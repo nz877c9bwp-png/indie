@@ -4,186 +4,183 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>너 인디 좋아해?</title>
-<!-- 세련된 프리텐다드 폰트 적용 -->
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --bg: #101113;
-    --panel: #17181B;
-    --panel-alt: #1B1D21;
-    --border: #26282C;
-    --text: #E7E5DC;
-    --muted: #75787E;
-    --muted-2: #4D4F53;
-    --music: #E8542E;
-    --gig: #1F8A8F;
-    --demo: #C23FA5;
-    --talk: #D6A61A;
+    --bg: #101113; --panel: #17181B; --panel-alt: #1B1D21;
+    --border: #26282C; --text: #E7E5DC; --muted: #75787E;
+    --muted-2: #4D4F53; --music: #E8542E; --music-hover: #cf4522;
   }
   *{box-sizing:border-box;}
-  
-  /* 글씨체 설정 */
-  body{
-    margin:0; background:var(--bg); color:var(--text);
-    font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
-  }
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px; }
   .display{font-family:'Pretendard', sans-serif; font-weight:800; letter-spacing:-1px;}
-  
   a{color:inherit; text-decoration:none;}
   .tabular{font-variant-numeric:tabular-nums;}
 
   header{ border-bottom:1px solid var(--border); background:var(--panel); }
-  .header-inner{
-    max-width:1180px; margin:0 auto; padding:14px 20px;
-    display:flex; align-items:center; gap:24px;
-  }
+  .header-inner{ max-width:1180px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:24px; }
   .brand{ font-size:20px; white-space:nowrap; cursor:pointer; }
-  .brand .dot{color:var(--music);}
-  .search{
-    flex:1; display:flex; max-width:420px;
-    border:1px solid var(--border); background:var(--bg);
-  }
-  .search input{
-    flex:1; background:none; border:none; outline:none; color:var(--text);
-    padding:8px 10px; font-size:13px; font-family:inherit;
-  }
+  .search{ flex:1; display:flex; max-width:420px; border:1px solid var(--border); background:var(--bg); border-radius:4px; overflow:hidden;}
+  .search input{ flex:1; background:none; border:none; outline:none; color:var(--text); padding:9px 12px; font-size:13px; font-family:inherit; }
   .search button{ border:none; background:none; color:var(--muted); padding:0 12px; cursor:pointer; }
-  .write-btn{
-    margin-left:auto; background:var(--music); color:#101113; font-weight:700;
-    border:none; padding:9px 18px; cursor:pointer; font-size:13px; font-family:inherit;
-  }
+  .write-btn{ margin-left:auto; background:var(--music); color:#101113; font-weight:700; border:none; padding:9px 18px; cursor:pointer; font-size:13px; border-radius:4px; font-family:inherit; transition:0.2s;}
+  .write-btn:hover { background:var(--music-hover); }
 
-  .shell{
-    max-width:1180px; margin:0 auto; padding:20px;
-    display:grid; grid-template-columns:230px 1fr; gap:20px;
-  }
+  .shell{ max-width:1180px; margin:0 auto; padding:20px; display:grid; grid-template-columns:230px 1fr; gap:24px; }
   @media (max-width:840px){ .shell{grid-template-columns:1fr;} .sidebar{order:2;} }
 
-  .sidebar{ background:var(--panel); border:1px solid var(--border); align-self:start; padding:6px 0; }
-  .cat-group{border-bottom:1px solid var(--border);}
-  .cat-group:last-child{border-bottom:none;}
-  .cat-head{ display:flex; align-items:center; justify-content:space-between; padding:11px 14px; font-weight:700; font-size:13px; }
-  .cat-head .swatch{ width:8px; height:8px; display:inline-block; margin-right:8px; border-radius:1px; }
-  .board-list{list-style:none; margin:0; padding:0 0 8px;}
-  .board-list li a{ display:flex; justify-content:space-between; padding:6px 14px 6px 30px; font-size:12.5px; color:var(--muted); }
-  .board-list li a:hover, .board-list li a.active{color:var(--text); background:var(--panel-alt);}
+  .sidebar{ background:var(--panel); border:1px solid var(--border); align-self:start; padding:6px 0; border-radius:8px;}
+  .cat-head{ display:flex; align-items:center; justify-content:space-between; padding:11px 14px; font-weight:700; font-size:13px; border-bottom:1px solid var(--border);}
+  .board-list{list-style:none; margin:0; padding:8px 0;}
+  .board-list li a{ display:block; padding:8px 14px 8px 14px; font-size:13px; color:var(--muted); transition:0.2s;}
+  .board-list li a:hover, .board-list li a.active{color:var(--music); background:var(--panel-alt); font-weight:600;}
 
-  .hot-strip{
-    border:1px solid var(--border); background:var(--panel);
-    padding:10px 14px; display:flex; align-items:center; gap:14px;
-    font-size:12.5px; margin-bottom:14px; overflow:hidden;
-  }
-  .hot-strip .label{ color:var(--music); font-weight:700; white-space:nowrap; }
+  /* 핫게시판 영역 */
+  .hot-board-container { display:flex; gap:12px; margin-bottom:24px; overflow-x:auto; padding-bottom:4px;}
+  .hot-card { flex:1; min-width:200px; background:var(--panel); border:1px solid var(--music); padding:16px; border-radius:8px; cursor:pointer; transition:transform 0.2s; position:relative; overflow:hidden;}
+  .hot-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(232,84,46,0.15);}
+  .hot-badge { color:var(--music); font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block;}
+  .hot-title { font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;}
+  .hot-stats { font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center;}
 
-  .board-title-row{ display:flex; align-items:baseline; gap:10px; margin:2px 0 12px; }
+  .board-title-row{ display:flex; align-items:baseline; justify-content:space-between; margin:0 0 12px; }
   .board-title-row h1{ font-size:19px; margin:0; font-weight:700; }
 
-  .post-table{ width:100%; border-collapse:collapse; border:1px solid var(--border); }
-  .post-table thead th{
-    background:var(--panel); color:var(--muted); font-weight:600;
-    font-size:11.5px; padding:9px 10px; text-align:left; border-bottom:1px solid var(--border);
-  }
-  .post-table th.num, .post-table td.num{width:50px; text-align:center; color:var(--muted-2);}
-  .post-table th.meta, .post-table td.meta{width:80px; text-align:center;}
-  .post-table tbody tr{ border-bottom:1px solid var(--border); }
+  /* 게시판 테이블 */
+  .post-table{ width:100%; border-collapse:collapse; border-top:2px solid var(--border); border-bottom:1px solid var(--border); }
+  .post-table th{ background:var(--panel); color:var(--muted); font-weight:600; font-size:12px; padding:10px; text-align:center; border-bottom:1px solid var(--border); }
+  .post-table td{ padding:10px; vertical-align:middle; border-bottom:1px solid var(--border); font-size:13px;}
   .post-table tbody tr:hover{background:var(--panel-alt);}
-  .post-table td{padding:9px 10px; vertical-align:middle;}
-  .tag{ display:inline-block; font-size:10.5px; font-weight:700; padding:2px 6px; margin-right:6px; color:#101113; background:var(--music); border-radius:2px; }
-  .title-cell a:hover { text-decoration: underline; color: var(--text); }
-  .author{color:var(--muted);}
-  .date, .views, .recs{color:var(--muted); text-align:center; font-size:12px;}
+  
+  .col-num{width:50px; text-align:center; color:var(--muted-2);}
+  .col-tag{width:80px; text-align:center;}
+  .col-title{text-align:left;}
+  .col-author{width:100px; text-align:center; color:var(--muted);}
+  .col-date{width:80px; text-align:center; color:var(--muted);}
+  .col-stats{width:60px; text-align:center; color:var(--muted); font-size:12px;}
 
-  /* ---------------- 모달 (팝업) 공통 ---------------- */
-  .modal{
-    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:100;
-  }
-  .modal-content{
-    background:var(--panel); border:1px solid var(--border); width:90%; max-width:500px; padding:24px; border-radius:8px;
-  }
+  .tag{ display:inline-block; font-size:11px; font-weight:700; padding:3px 6px; color:#101113; background:var(--muted); border-radius:3px; }
+  .tag.hot { background:var(--music); color:#fff; }
+  .title-cell a:hover { text-decoration: underline; color: var(--text); }
+  .title-cell .rec-count { color:var(--music); font-weight:bold; font-size:12px; margin-left:6px;}
+
+  /* ---------------- 디시인사이드 스타일 글 읽기 영역 (메인 화면 대체용) ---------------- */
+  #postViewSection { display: none; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:0; overflow:hidden;}
+  .view-header { padding:20px 24px; border-bottom:1px solid var(--border); }
+  .view-title { font-size:22px; font-weight:700; color:var(--text); margin:0 0 16px 0; line-height:1.4;}
+  .view-meta { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); }
+  .view-meta-left { display:flex; align-items:center; gap:12px; }
+  .view-meta-right { display:flex; gap:16px; }
+  
+  .view-content-area { padding:30px 24px; min-height:300px; font-size:15px; line-height:1.7; color:#E7E5DC; white-space:pre-wrap; }
+  
+  .view-footer { padding:20px 24px; border-top:1px solid var(--border); display:flex; justify-content:center; align-items:center; flex-direction:column; gap:20px; background:var(--bg);}
+  .btn-recommend { background:none; border:2px solid var(--music); color:var(--music); padding:12px 32px; border-radius:30px; font-size:16px; font-weight:bold; cursor:pointer; transition:0.2s; font-family:inherit; display:flex; align-items:center; gap:8px;}
+  .btn-recommend:hover { background:var(--music); color:#fff; }
+  
+  .view-controls { width:100%; display:flex; justify-content:flex-end; padding-top:10px;}
+  .btn-list { background:var(--panel-alt); color:var(--text); border:1px solid var(--border); padding:8px 20px; border-radius:4px; font-size:13px; cursor:pointer; font-family:inherit; font-weight:600;}
+  .btn-list:hover { background:var(--border); }
+
+  /* ---------------- 글쓰기 모달 (이건 그대로 팝업 유지) ---------------- */
+  .modal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); justify-content:center; align-items:center; z-index:100; backdrop-filter:blur(3px);}
+  .modal-content{ background:var(--panel); border:1px solid var(--border); width:90%; max-width:550px; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);}
   .modal-content h2{ margin-top:0; font-size:18px; color:var(--text); margin-bottom:16px;}
-  .modal-content input, .modal-content select, .modal-content textarea{
-    width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
-    padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px;
-  }
-  .modal-content textarea{ height:120px; resize:none; line-height:1.5; }
-  .modal-btns{ display:flex; justify-content:flex-end; gap:8px; margin-top:10px;}
-  .modal-btns button{ border:none; padding:9px 16px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:4px; }
+  .modal-content input, .modal-content select, .modal-content textarea{ width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px; font-size:14px;}
+  .modal-content textarea{ height:200px; resize:none; line-height:1.6; }
+  .modal-btns{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
+  .modal-btns button{ border:none; padding:10px 18px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:4px; font-size:13px;}
   .btn-save{ background:var(--music); color:#101113; }
   .btn-cancel{ background:var(--border); color:var(--text); }
-
-  /* 글 읽기 본문 영역 */
-  #readContent {
-    min-height: 120px;
-    padding: 16px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    white-space: pre-wrap; /* 줄바꿈 유지 */
-    margin-bottom: 16px;
-    line-height: 1.6;
-    color: #e0e0e0;
-  }
 </style>
 </head>
 <body>
 
 <header>
   <div class="header-inner">
-<div class="brand display">너 <span style="color:var(--music)">인디</span> 좋아해<span class="dot">?</span></div>
-    <div class="search">
-      <input type="text" placeholder="게시글 검색">
-      <button>🔍</button>
-    </div>
+    <!-- 로고 클릭 시 새로고침 되도록 링크 추가 -->
+    <div class="brand display" onclick="location.reload()">너 <span style="color:var(--music)">인디</span> 좋아해<span style="color:var(--music)">?</span></div>
+    <div class="search"><input type="text" placeholder="게시글 검색"><button>🔍</button></div>
     <button class="write-btn" id="openModalBtn">글쓰기</button>
   </div>
 </header>
 
 <div class="shell">
-  <!-- 사이드바: 게시판 메뉴 추가 -->
   <aside class="sidebar">
-    <div class="cat-group">
-      <div class="cat-head"><span><span class="swatch" style="background:var(--music)"></span>너 인디 좋아해?</span></div>
-      <ul class="board-list" id="boardMenu">
-        <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">전체 게시판</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('국내인디')">국내인디</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('해외인디')">해외인디</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('공연정보')">공연정보</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('자작곡')">자작곡</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('자유')">자유</a></li>
-      </ul>
-    </div>
+    <div class="cat-head"><span>🎸 너 인디 좋아해?</span></div>
+    <ul class="board-list" id="boardMenu">
+      <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">전체 게시판</a></li>
+      <li><a href="javascript:void(0);" onclick="changeBoard('국내인디')">국내인디</a></li>
+      <li><a href="javascript:void(0);" onclick="changeBoard('해외인디')">해외인디</a></li>
+      <li><a href="javascript:void(0);" onclick="changeBoard('공연정보')">공연정보</a></li>
+      <li><a href="javascript:void(0);" onclick="changeBoard('자작곡')">자작곡</a></li>
+      <li><a href="javascript:void(0);" onclick="changeBoard('자유')">자유</a></li>
+    </ul>
   </aside>
 
   <main>
-    <div class="hot-strip">
-      <span class="label">🔥 메뉴 연동 완료</span>
-      <span>왼쪽 메뉴를 클릭하면 해당 카테고리 글만 모아서 볼 수 있습니다!</span>
+    <!-- 1. 기존 게시판 목록 영역 -->
+    <div id="boardSection">
+      <div class="board-title-row" style="margin-top:0;">
+        <h1 style="color:var(--music); font-size:16px;">🔥 핫게시판 (HOT)</h1>
+      </div>
+      <div class="hot-board-container" id="hotBoard">
+        <!-- 핫게시글 렌더링 -->
+      </div>
+
+      <div class="board-title-row">
+        <h1 id="boardTitle">전체 게시판</h1>
+      </div>
+
+      <table class="post-table">
+        <thead>
+          <tr>
+            <th class="col-num">번호</th>
+            <th class="col-tag">분류</th>
+            <th class="col-title">제목</th>
+            <th class="col-author">글쓴이</th>
+            <th class="col-date">날짜</th>
+            <th class="col-stats">조회</th>
+            <th class="col-stats">추천</th>
+          </tr>
+        </thead>
+        <tbody id="postList">
+          <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글을 불러오는 중...</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="board-title-row">
-      <h1 id="boardTitle">전체 게시판</h1>
+    <!-- 2. 새롭게 추가된 디시인사이드 스타일 글 읽기 영역 -->
+    <div id="postViewSection">
+      <div class="view-header">
+        <h2 class="view-title" id="readTitle"></h2>
+        <div class="view-meta">
+          <div class="view-meta-left">
+            <span id="readTag" class="tag"></span>
+            <span id="readAuthor" style="color:var(--text); font-weight:600;"></span>
+            <span id="readDate"></span>
+          </div>
+          <div class="view-meta-right">
+            <span>조회 <span id="readViews" style="color:var(--text); font-weight:600;">0</span></span>
+            <span>추천 <span id="readRecs" style="color:var(--music); font-weight:600;">0</span></span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="view-content-area" id="readContent"></div>
+      
+      <div class="view-footer">
+        <button class="btn-recommend" id="recommendBtn">👍 추천 <span id="btnRecCount">0</span></button>
+        <div class="view-controls">
+          <button class="btn-list" onclick="backToList()">목록으로</button>
+        </div>
+      </div>
     </div>
-
-    <table class="post-table">
-      <thead>
-        <tr>
-          <th class="num">번호</th>
-          <th class="meta">분류</th>
-          <th>제목</th>
-          <th class="meta">글쓴이</th>
-          <th class="meta">날짜</th>
-        </tr>
-      </thead>
-      <tbody id="postList">
-        <tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">게시글을 불러오는 중...</td></tr>
-      </tbody>
-    </table>
   </main>
 </div>
 
-<!-- 글쓰기 모달 -->
+<!-- 글쓰기 모달 (팝업 유지) -->
 <div class="modal" id="writeModal">
   <div class="modal-content">
     <h2>새 글 작성하기</h2>
@@ -204,106 +201,133 @@
   </div>
 </div>
 
-<!-- 글 읽기 모달 -->
-<div class="modal" id="readModal">
-  <div class="modal-content">
-    <h2 id="readTitle" style="margin-bottom:8px;"></h2>
-    <div style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">
-      <span id="readTag" class="tag" style="margin-right:8px;"></span>
-      작성자: <span id="readAuthor" style="color:var(--text);"></span> &nbsp;|&nbsp; 
-      작성일: <span id="readDate"></span>
-    </div>
-    <div id="readContent"></div>
-    <div class="modal-btns">
-      <button class="btn-cancel" id="closeReadModalBtn">닫기</button>
-    </div>
-  </div>
-</div>
-
 <script>
   const SUPABASE_URL = 'https://jvitmimabxupkhrksudu.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY';
-  
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let currentPosts = [];
-  let currentCategory = '전체'; // 현재 선택된 게시판 카테고리
+  let currentCategory = '전체'; 
+  let currentReadPostId = null;
 
-  // 게시글 가져오기
   async function fetchPosts() {
-    const { data, error } = await client
-      .from('posts')
-      .select('*')
-      .order('id', { ascending: false });
-
-    if (!error && data) {
-      currentPosts = data;
-    }
-    renderPosts(); // 데이터 갱신 후 화면 다시 그리기
+    const { data, error } = await client.from('posts').select('*').order('id', { ascending: false });
+    if (!error && data) { currentPosts = data; }
+    renderPosts(); 
+    renderHotBoard();
   }
 
-  // 화면에 게시글 그리기 (필터 기능 포함)
+  function renderHotBoard() {
+    const hotBoard = document.getElementById('hotBoard');
+    let hotPosts = [...currentPosts].filter(p => p.recs > 0 || p.views > 5)
+      .sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
+
+    if(hotPosts.length === 0) {
+      hotBoard.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">아직 핫게시글이 없습니다. 글을 읽고 추천을 눌러보세요!</div>';
+      return;
+    }
+    hotBoard.innerHTML = hotPosts.map((post, index) => `
+      <div class="hot-card" onclick="openPostView(${post.id})">
+        <span class="hot-badge">HOT ${index + 1}</span>
+        <div class="hot-title">${post.title}</div>
+        <div class="hot-stats">
+          <span>👀 ${post.views || 0}</span>
+          <span style="color:var(--music)">👍 ${post.recs || 0}</span>
+          <span style="margin-left:auto;">${post.author || '익명'}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
   function renderPosts() {
     const tbody = document.getElementById('postList');
-    
-    // 카테고리가 '전체'가 아니면 해당 태그의 글만 걸러냄
-    let filteredPosts = currentPosts;
-    if (currentCategory !== '전체') {
-      filteredPosts = currentPosts.filter(post => post.tag === currentCategory);
-    }
+    let filteredPosts = currentCategory !== '전체' ? currentPosts.filter(post => post.tag === currentCategory) : currentPosts;
 
     if (filteredPosts.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
       return;
     }
 
     tbody.innerHTML = filteredPosts.map(post => {
       const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
+      const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${post.recs}]</span>` : '';
       return `
         <tr>
-          <td class="num tabular">${post.id}</td>
-          <td class="meta"><span class="tag">${post.tag}</span></td>
-          <td class="title-cell"><a href="javascript:void(0);" onclick="openReadModal(${post.id})">${post.title}</a></td>
-          <td class="author">${post.author || '익명'}</td>
-          <td class="date">${date}</td>
+          <td class="col-num tabular">${post.id}</td>
+          <td class="col-tag"><span class="tag ${post.recs >= 3 ? 'hot' : ''}">${post.tag}</span></td>
+          <td class="col-title title-cell"><a href="javascript:void(0);" onclick="openPostView(${post.id})">${post.title}</a>${recBadge}</td>
+          <td class="col-author">${post.author || '익명'}</td>
+          <td class="col-date">${date}</td>
+          <td class="col-stats tabular">${post.views || 0}</td>
+          <td class="col-stats tabular" style="color:var(--music); font-weight:600;">${post.recs || 0}</td>
         </tr>
       `;
     }).join('');
   }
 
-  // 왼쪽 게시판 메뉴 클릭 시 카테고리 변경하는 함수
   function changeBoard(category) {
+    backToList(); // 다른 카테고리 누르면 무조건 목록 화면으로 복귀
     currentCategory = category;
-    
-    // 메인 제목 바꾸기
     document.getElementById('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
-    
-    // 왼쪽 메뉴 선택된 디자인(하이라이트) 처리
-    const links = document.querySelectorAll('#boardMenu a');
-    links.forEach(link => {
-      if (link.innerText.includes(category)) {
-        link.classList.add('active');
-      } else {
-        link.classList.remove('active');
-      }
+    document.querySelectorAll('#boardMenu a').forEach(link => {
+      link.classList.toggle('active', link.innerText.includes(category));
     });
-
-    renderPosts(); // 게시글 목록 새로고침
+    renderPosts(); 
   }
 
-  // 글 읽기 모달 열기
-  function openReadModal(postId) {
+  // 글 전체화면으로 읽기 (화면 전환)
+  async function openPostView(postId) {
     const post = currentPosts.find(p => p.id === postId);
-    if(post) {
-      document.getElementById('readTitle').textContent = post.title;
-      document.getElementById('readTag').textContent = post.tag;
-      document.getElementById('readAuthor').textContent = post.author || '익명';
-      document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleDateString('ko-KR');
-      document.getElementById('readContent').textContent = post.content;
-      
-      document.getElementById('readModal').style.display = 'flex';
-    }
+    if(!post) return;
+
+    currentReadPostId = postId;
+
+    // 데이터 채우기
+    document.getElementById('readTitle').textContent = post.title;
+    document.getElementById('readTag').textContent = post.tag;
+    document.getElementById('readAuthor').textContent = post.author || '익명';
+    document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
+    document.getElementById('readContent').textContent = post.content;
+    
+    // 조회수 1 증가 처리 (화면)
+    post.views = (post.views || 0) + 1;
+    document.getElementById('readViews').textContent = post.views;
+    document.getElementById('readRecs').textContent = post.recs || 0;
+    document.getElementById('btnRecCount').textContent = post.recs || 0;
+    
+    // 화면 전환 (게시판 목록 숨기고, 본문 보기 표시)
+    document.getElementById('boardSection').style.display = 'none';
+    document.getElementById('postViewSection').style.display = 'block';
+    window.scrollTo(0, 0); // 화면 맨 위로 올리기
+
+    // DB 조회수 업데이트
+    await client.from('posts').update({ views: post.views }).eq('id', postId);
+    renderHotBoard();
   }
+
+  // '목록으로' 버튼 클릭 시 게시판으로 복귀
+  function backToList() {
+    document.getElementById('postViewSection').style.display = 'none';
+    document.getElementById('boardSection').style.display = 'block';
+    renderPosts(); // 최신 조회수/추천수 반영해서 목록 다시 그리기
+  }
+
+  // 추천하기
+  document.getElementById('recommendBtn').addEventListener('click', async () => {
+    if(!currentReadPostId) return;
+    if (localStorage.getItem('rec_' + currentReadPostId)) { alert('이미 추천한 게시글입니다.'); return; }
+
+    const post = currentPosts.find(p => p.id === currentReadPostId);
+    if(!post) return;
+
+    post.recs = (post.recs || 0) + 1;
+    document.getElementById('readRecs').textContent = post.recs;
+    document.getElementById('btnRecCount').textContent = post.recs;
+    localStorage.setItem('rec_' + currentReadPostId, 'true'); 
+
+    alert('게시글을 추천했습니다! 👍');
+    await client.from('posts').update({ recs: post.recs }).eq('id', currentReadPostId);
+  });
 
   // 글쓰기 저장
   document.getElementById('savePostBtn').addEventListener('click', async () => {
@@ -312,30 +336,23 @@
     const title = document.getElementById('postTitle').value;
     const content = document.getElementById('postContent').value;
 
-    if (!title.trim()) {
-      alert('제목을 입력해주세요.');
-      return;
-    }
+    if (!title.trim()) { alert('제목을 입력해주세요.'); return; }
 
     const { error } = await client.from('posts').insert([{ tag, author, title, content }]);
-
-    if (error) {
-      alert('글 등록 실패: ' + error.message);
-    } else {
-      alert('글이 성공적으로 등록되었습니다!');
+    if (error) { alert('글 등록 실패: ' + error.message); } 
+    else {
+      alert('글이 등록되었습니다!');
       document.getElementById('writeModal').style.display = 'none';
       document.getElementById('postTitle').value = '';
       document.getElementById('postContent').value = '';
+      backToList(); // 글 작성 후 무조건 목록 화면으로 이동
       fetchPosts(); 
     }
   });
 
-  // 팝업 닫기/열기
   document.getElementById('openModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'flex';
   document.getElementById('closeModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'none';
-  document.getElementById('closeReadModalBtn').onclick = () => document.getElementById('readModal').style.display = 'none';
 
-  // 처음 접속 시 전체 목록 불러오기
   fetchPosts();
 </script>
 
