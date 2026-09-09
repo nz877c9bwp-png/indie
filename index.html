@@ -111,7 +111,10 @@
   .rc-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:8px;}
   .rc-content { font-size:14px; color:var(--muted); line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
 
-  #postViewSection { display: none; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:0; overflow:hidden;}
+  /* 🌟 글 읽기 영역 여백 추가 (하단 목록과의 간격) */
+  #postViewSection { display: none; margin-bottom: 40px; }
+  .view-box { background:var(--panel); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  
   .view-header { padding:20px 24px; border-bottom:1px solid var(--border); }
   .view-title { font-size:22px; font-weight:700; color:var(--text); margin:0 0 16px 0; line-height:1.4; word-break:break-all;}
   .view-meta { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); flex-wrap:wrap; gap:10px;}
@@ -289,6 +292,59 @@
   </aside>
 
   <main>
+    <!-- 🌟 글 읽기 영역을 리스트 위쪽으로 배치 -->
+    <div id="postViewSection">
+      <!-- 🌟 원래 화면으로 돌아가는 상단 버튼 -->
+      <div style="margin-bottom: 16px;">
+        <button class="btn-list" onclick="backToList()" style="padding:10px 24px; font-size:14px; font-weight:700; border-radius:6px; background:var(--panel); border:1px solid var(--border); color:var(--text);">← 원래 화면으로 돌아가기</button>
+      </div>
+      
+      <div class="view-box">
+        <div class="view-header">
+          <h2 class="view-title" id="readTitle"></h2>
+          <div class="view-meta">
+            <div class="view-meta-left">
+              <span id="readTag" class="tag"></span>
+              <span id="readAuthor" style="color:var(--text); font-weight:600;"></span>
+              <span id="readDate"></span>
+            </div>
+            <div class="view-meta-right">
+              <span>조회 <span id="readViews" style="color:var(--text); font-weight:600;">0</span></span>
+              <span>추천 <span id="readRecs" style="color:var(--music); font-weight:600;">0</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="view-content-area" id="readContent"></div>
+        <div class="view-footer">
+          <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
+          <div class="view-controls">
+            <button class="btn-admin-edit" id="adminEditBtn" style="display:none;">수정</button>
+            <button class="btn-admin-delete" id="adminDeleteBtn" style="display:none;">삭제</button>
+            <button class="btn-list" onclick="backToList()">목록으로</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 앨범 상세 -->
+    <div id="albumDetailSection">
+      <button class="btn-list" onclick="backToList()" style="margin-bottom:24px;">← 뒤로가기</button>
+      <div class="ad-header">
+        <img id="adCover" src="">
+        <div class="ad-info">
+          <div id="adTitle" class="ad-title"></div>
+          <div id="adArtist" class="ad-artist"></div>
+          <div id="adScore" class="ad-score"></div>
+          <div class="ad-actions">
+            <button class="write-btn" onclick="openWriteWithPreSelectedAlbum()" style="background:var(--special);">이 앨범 평가 남기기</button>
+          </div>
+        </div>
+      </div>
+      <h3 style="border-bottom:1px solid var(--border); padding-bottom:12px; color:var(--text); font-size:18px;">유저 리뷰</h3>
+      <div class="review-list" id="adReviews"></div>
+    </div>
+
+    <!-- 🌟 게시판 목록 (하단 고정용) -->
     <div id="boardSection">
       <div class="board-title-row" style="margin-top:0;">
         <h1 id="widgetTitle" style="color:var(--music); font-size:16px;">🔥 핫게시판 (HOT)</h1>
@@ -321,49 +377,7 @@
       <div id="albumGrid"></div>
     </div>
 
-    <div id="albumDetailSection">
-      <button class="btn-list" onclick="backToList()" style="margin-bottom:24px;">← 뒤로가기</button>
-      <div class="ad-header">
-        <img id="adCover" src="">
-        <div class="ad-info">
-          <div id="adTitle" class="ad-title"></div>
-          <div id="adArtist" class="ad-artist"></div>
-          <div id="adScore" class="ad-score"></div>
-          <div class="ad-actions">
-            <button class="write-btn" onclick="openWriteWithPreSelectedAlbum()" style="background:var(--special);">이 앨범 평가 남기기</button>
-          </div>
-        </div>
-      </div>
-      <h3 style="border-bottom:1px solid var(--border); padding-bottom:12px; color:var(--text); font-size:18px;">유저 리뷰</h3>
-      <div class="review-list" id="adReviews"></div>
-    </div>
-
-    <div id="postViewSection">
-      <div class="view-header">
-        <h2 class="view-title" id="readTitle"></h2>
-        <div class="view-meta">
-          <div class="view-meta-left">
-            <span id="readTag" class="tag"></span>
-            <span id="readAuthor" style="color:var(--text); font-weight:600;"></span>
-            <span id="readDate"></span>
-          </div>
-          <div class="view-meta-right">
-            <span>조회 <span id="readViews" style="color:var(--text); font-weight:600;">0</span></span>
-            <span>추천 <span id="readRecs" style="color:var(--music); font-weight:600;">0</span></span>
-          </div>
-        </div>
-      </div>
-      <div class="view-content-area" id="readContent"></div>
-      <div class="view-footer">
-        <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
-        <div class="view-controls">
-          <button class="btn-admin-edit" id="adminEditBtn" style="display:none;">수정</button>
-          <button class="btn-admin-delete" id="adminDeleteBtn" style="display:none;">삭제</button>
-          <button class="btn-list" onclick="backToList()">목록으로</button>
-        </div>
-      </div>
-    </div>
-
+    <!-- 글쓰기 -->
     <div id="writeSection">
       <div class="write-header">
         <h2 id="writeSectionTitle">새 글 작성하기</h2>
@@ -829,10 +843,12 @@
     document.getElementById('adminEditBtn').style.display = isAdmin ? 'inline-block' : 'none';
     document.getElementById('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
 
-    document.getElementById('boardSection').style.display = 'none';
+    // 🌟 핵심 변경: boardSection(목록)을 'none'이 아닌 'block'으로 유지!
     document.getElementById('writeSection').style.display = 'none';
     document.getElementById('albumDetailSection').style.display = 'none';
     document.getElementById('postViewSection').style.display = 'block';
+    document.getElementById('boardSection').style.display = 'block';
+    
     window.scrollTo(0, 0); 
     await client.from('posts').update({ views: (post.views || 0) + 1 }).eq('id', postId);
   }
@@ -843,6 +859,7 @@
     document.getElementById('albumDetailSection').style.display = 'none';
     document.getElementById('boardSection').style.display = 'block';
     renderPosts(); 
+    window.scrollTo(0, 0);
   }
 
   document.getElementById('recommendBtn').addEventListener('click', async () => {
@@ -868,6 +885,7 @@
     document.getElementById('albumSearchWrap').style.display = 'none';
     if(isAdmin) document.getElementById('postAuthor').value = post.author || 'ㅇㅇ';
     document.getElementById('postViewSection').style.display = 'none';
+    document.getElementById('boardSection').style.display = 'none';
     document.getElementById('writeSection').style.display = 'block';
   });
 
