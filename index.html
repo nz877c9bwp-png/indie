@@ -504,6 +504,11 @@
   let tempAlbum = { title: null, artist: null, cover: null };
   let currentSelectedRating = 5;
 
+  // XSS 방어 및 문자열 렌더링 헬퍼 함수
+  function esc(s){ 
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); 
+  }
+
   client.auth.onAuthStateChange((event, session) => {
     const authorInput = document.getElementById('postAuthor');
     if (session) {
@@ -511,16 +516,19 @@
       const nickname = currentUser.email.split('@')[0]; 
       if (currentUser.email === ADMIN_EMAIL) {
         isAdmin = true;
-        document.getElementById('userStatus').innerHTML = `<span style="color:var(--admin); font-weight:bold;">[관리자] ${nickname}</span>님`;
+        document.getElementById('userStatus').innerHTML = `<span style="color:var(--admin); font-weight:bold;">[관리자] ${esc(nickname)}</span>님`;
       } else {
         isAdmin = false;
-        document.getElementById('userStatus').innerHTML = `<span style="color:var(--text); font-weight:bold;">${nickname}</span>님`;
+        document.getElementById('userStatus').innerHTML = `<span style="color:var(--text); font-weight:bold;">${esc(nickname)}</span>님`;
       }
       document.getElementById('showLoginBtn').style.display = 'none';
       document.getElementById('showSignupBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
-      authorInput.value = nickname; authorInput.readOnly = true;
-      authorInput.style.background = 'var(--panel-alt)'; authorInput.style.color = 'var(--music)';
+      
+      authorInput.value = nickname; 
+      authorInput.readOnly = false; 
+      authorInput.style.background = 'var(--bg)'; 
+      authorInput.style.color = 'var(--text)';
     } else {
       currentUser = null; isAdmin = false;
       document.getElementById('userStatus').innerHTML = '';
@@ -600,8 +608,8 @@
         return `
           <div class="search-item" onclick="selectAlbum('${safeTitle}', '${safeArtist}', '${coverUrl}')">
             <img src="${coverUrl}" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
-            <div class="s-title">${a.collectionName}</div>
-            <div class="s-artist">${a.artistName}</div>
+            <div class="s-title">${esc(a.collectionName)}</div>
+            <div class="s-artist">${esc(a.artistName)}</div>
           </div>
         `;
       }).join('');
@@ -652,6 +660,7 @@
   });
 
   document.getElementById('openWriteBtn').onclick = () => {
+    if (!currentUser) return alert('로그인 후 이용할 수 있습니다.');
     isEditMode = false;
     document.getElementById('writeSectionTitle').textContent = '새 글 작성하기';
     document.getElementById('savePostBtn').textContent = '등록하기';
@@ -685,10 +694,10 @@
     
     let hotPosts = [...currentPosts].filter(p => p.recs > 0 || p.views > 5).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
     widgetArea.innerHTML = hotPosts.length ? hotPosts.map((post, i) => `
-      <div class="widget-card" onclick="openPostView(${post.id})">
+      <div class="widget-card" onclick="openPostView(${Number(post.id)})">
         <span class="hot-badge">HOT ${i + 1}</span>
-        <div class="widget-title">${post.title}</div>
-        <div class="widget-stats"><span>조회 ${post.views || 0}</span><span style="color:var(--music)">추천 ${post.recs || 0}</span><span style="margin-left:auto;">${post.author || 'ㅇㅇ'}</span></div>
+        <div class="widget-title">${esc(post.title)}</div>
+        <div class="widget-stats"><span>조회 ${Number(post.views || 0)}</span><span style="color:var(--music)">추천 ${Number(post.recs || 0)}</span><span style="margin-left:auto;">${esc(post.author || 'ㅇㅇ')}</span></div>
       </div>`).join('') : '<div style="color:var(--muted); font-size:13px; padding:10px;">아직 핫게시글이 없습니다.</div>';
 
     if (currentCategory === '앨범 평가') {
@@ -717,9 +726,9 @@
             <div class="album-card" onclick="openAlbumDetail('${safeKey}')">
               <img src="${a.cover}" loading="lazy">
               <div class="album-card-info">
-                <div class="album-card-title">${a.title}</div>
-                <div class="album-card-artist">${a.artist}</div>
-                <div class="album-card-rating">★ ${avg} <span>(${a.count}명)</span></div>
+                <div class="album-card-title">${esc(a.title)}</div>
+                <div class="album-card-artist">${esc(a.artist)}</div>
+                <div class="album-card-rating">★ ${Number(avg)} <span>(${Number(a.count)}명)</span></div>
               </div>
             </div>`;
         }).join('');
@@ -737,17 +746,17 @@
         const total = filtered.length;
         tbody.innerHTML = filtered.map((post, i) => {
           const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
-          const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${post.recs}]</span>` : '';
-          const ratingBadge = post.album_title ? `<span style="color:var(--special); font-size:11px; margin-left:6px;">★ ${post.rating}</span>` : '';
+          const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${Number(post.recs)}]</span>` : '';
+          const ratingBadge = post.album_title ? `<span style="color:var(--special); font-size:11px; margin-left:6px;">★ ${Number(post.rating)}</span>` : '';
           return `
             <tr>
               <td class="col-num tabular">${total - i}</td>
-              <td class="col-tag"><span class="tag ${post.recs >= 3 ? 'hot' : ''}">${post.tag}</span></td>
-              <td class="col-title title-cell"><a href="javascript:void(0);" onclick="openPostView(${post.id})">${post.title}</a>${ratingBadge}${recBadge}</td>
-              <td class="col-author">${post.author || 'ㅇㅇ'}</td>
-              <td class="col-date">${date}</td>
-              <td class="col-stats tabular">${post.views || 0}</td>
-              <td class="col-stats tabular" style="color:var(--music); font-weight:600;">${post.recs || 0}</td>
+              <td class="col-tag"><span class="tag ${post.recs >= 3 ? 'hot' : ''}">${esc(post.tag)}</span></td>
+              <td class="col-title title-cell"><a href="javascript:void(0);" onclick="openPostView(${Number(post.id)})">${esc(post.title)}</a>${ratingBadge}${recBadge}</td>
+              <td class="col-author">${esc(post.author || 'ㅇㅇ')}</td>
+              <td class="col-date">${esc(date)}</td>
+              <td class="col-stats tabular">${Number(post.views || 0)}</td>
+              <td class="col-stats tabular" style="color:var(--music); font-weight:600;">${Number(post.recs || 0)}</td>
             </tr>`;
         }).join('');
       }
@@ -768,16 +777,16 @@
     document.getElementById('adCover').src = cover;
     document.getElementById('adTitle').innerText = title;
     document.getElementById('adArtist').innerText = artist;
-    document.getElementById('adScore').innerHTML = `★ ${avg} <span>(${albumPosts.length}명 참여)</span>`;
+    document.getElementById('adScore').innerHTML = `★ ${Number(avg)} <span>(${Number(albumPosts.length)}명 참여)</span>`;
 
     document.getElementById('adReviews').innerHTML = albumPosts.map(p => `
-      <div class="review-card" onclick="openPostView(${p.id})">
+      <div class="review-card" onclick="openPostView(${Number(p.id)})">
         <div class="rc-header">
-          <span class="rc-author">${p.author || 'ㅇㅇ(유동)'}</span>
-          <span class="rc-stars">★ ${p.rating}</span>
+          <span class="rc-author">${esc(p.author || 'ㅇㅇ(유동)')}</span>
+          <span class="rc-stars">★ ${Number(p.rating)}</span>
         </div>
-        <div class="rc-title">${p.title}</div>
-        <div class="rc-content">${p.content.replace(/\[img\].*?\[\/img\]/g, '(사진)').replace(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/\S+/g, '(영상)').substring(0, 150)}...</div>
+        <div class="rc-title">${esc(p.title)}</div>
+        <div class="rc-content">${formatContent(p.content).replace(/<[^>]+>/g, '').substring(0, 150)}...</div>
       </div>
     `).join('');
 
@@ -811,12 +820,13 @@
     renderPosts(); 
   }
 
+  // 이스케이프가 통합된 본문 포맷팅 헬퍼
   function formatContent(text) {
     if (!text) return '';
-    let safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let safeText = esc(text); // 전체 텍스트 XSS 1차 방어
     safeText = safeText.replace(/\[img\](.*?)\[\/img\]/g, '<img src="$1">');
     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
-    safeText = safeText.replace(ytRegex, (match, videoId) => `<div class="yt-wrapper"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>`);
+    safeText = safeText.replace(ytRegex, (match, videoId) => `<div class="yt-wrapper"><iframe src="https://www.youtube.com/embed/${esc(videoId)}" allowfullscreen></iframe></div>`);
     return safeText.replace(/\n/g, '<br>');
   }
 
@@ -890,6 +900,8 @@
   });
 
   document.getElementById('savePostBtn').addEventListener('click', async () => {
+    if (!currentUser) return alert('로그인 후 이용할 수 있습니다.'); // 클라이언트 검증 강화
+
     const tag = document.getElementById('postTag').value;
     const author = document.getElementById('postAuthor').value.trim() || 'ㅇㅇ(유동)';
     const title = document.getElementById('postTitle').value;
