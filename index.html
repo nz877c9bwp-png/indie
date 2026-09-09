@@ -8,7 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    /* 시안색 포인트와 어울리는 은은한 네이비 다크(Slate) 테마로 변경 */
     --bg: #0F172A; 
     --panel: #1E293B; 
     --panel-alt: #334155; 
@@ -19,7 +18,7 @@
     
     --music: #22D3EE; 
     --music-hover: #06B6D4; 
-    --admin: #F43F5E; /* 관리자용 삭제 버튼 (부드러운 빨간색) */
+    --admin: #F43F5E; 
   }
   *{box-sizing:border-box;}
   body{ margin:0; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px; }
@@ -306,7 +305,6 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY';
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // 관리자 이메일을 요청하신 이메일로 변경 완료
   const ADMIN_EMAIL = 'bkseungah010223@gmail.com'; 
 
   let currentPosts = [];
@@ -449,15 +447,19 @@
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
       return;
     }
+    
+    // 전체 글 개수를 구해서 최신 글이 가장 큰 번호부터 시작하게 함 (가상 번호 적용)
+    const totalPosts = filteredPosts.length;
 
-    tbody.innerHTML = filteredPosts.map(post => {
+    tbody.innerHTML = filteredPosts.map((post, index) => {
+      const displayNum = totalPosts - index; // 가상 번호 부여
       const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
       const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${post.recs}]</span>` : '';
       const authorName = post.author || 'ㅇㅇ(유동)';
       
       return `
         <tr>
-          <td class="col-num tabular">${post.id}</td>
+          <td class="col-num tabular">${displayNum}</td>
           <td class="col-tag"><span class="tag ${post.recs >= 3 ? 'hot' : ''}">${post.tag}</span></td>
           <td class="col-title title-cell"><a href="javascript:void(0);" onclick="openPostView(${post.id})">${post.title}</a>${recBadge}</td>
           <td class="col-author">${authorName}</td>
