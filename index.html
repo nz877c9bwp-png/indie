@@ -4,11 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>너 인디 좋아해?</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
-<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
-<!-- Supabase SDK 추가 -->
+<!-- 세련된 프리텐다드 폰트 적용 -->
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
@@ -25,11 +22,14 @@
     --talk: #D6A61A;
   }
   *{box-sizing:border-box;}
-body{
-margin:0; background:var(--bg); color:var(--text);
-font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
-}
-.display{font-family:'Pretendard', sans-serif; font-weight:800; letter-spacing:-1px;}
+  
+  /* 글씨체 설정 */
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
+  }
+  .display{font-family:'Pretendard', sans-serif; font-weight:800; letter-spacing:-1px;}
+  
   a{color:inherit; text-decoration:none;}
   .tabular{font-variant-numeric:tabular-nums;}
 
@@ -89,28 +89,42 @@ font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
   .post-table tbody tr{ border-bottom:1px solid var(--border); }
   .post-table tbody tr:hover{background:var(--panel-alt);}
   .post-table td{padding:9px 10px; vertical-align:middle;}
-  .tag{ display:inline-block; font-size:10.5px; font-weight:700; padding:2px 6px; margin-right:6px; color:#101113; background:var(--music); }
+  .tag{ display:inline-block; font-size:10.5px; font-weight:700; padding:2px 6px; margin-right:6px; color:#101113; background:var(--music); border-radius:2px; }
+  .title-cell a:hover { text-decoration: underline; color: var(--text); }
   .author{color:var(--muted);}
   .date, .views, .recs{color:var(--muted); text-align:center; font-size:12px;}
 
-  /* ---------------- 글쓰기 모달 ---------------- */
+  /* ---------------- 모달 (팝업) 공통 ---------------- */
   .modal{
     display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:100;
   }
   .modal-content{
-    background:var(--panel); border:1px solid var(--border); width:90%; max-width:500px; padding:20px;
+    background:var(--panel); border:1px solid var(--border); width:90%; max-width:500px; padding:24px; border-radius:8px;
   }
-  .modal-content h2{ margin-top:0; font-size:16px; color:var(--text); }
+  .modal-content h2{ margin-top:0; font-size:18px; color:var(--text); margin-bottom:16px;}
   .modal-content input, .modal-content select, .modal-content textarea{
     width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
-    padding:8px; margin-bottom:10px; font-family:inherit;
+    padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px;
   }
-  .modal-content textarea{ height:100px; resize:none; }
-  .modal-btns{ display:flex; justify-content:flex-end; gap:8px; }
-  .modal-btns button{ border:none; padding:8px 14px; cursor:pointer; font-weight:700; font-family:inherit; }
+  .modal-content textarea{ height:120px; resize:none; line-height:1.5; }
+  .modal-btns{ display:flex; justify-content:flex-end; gap:8px; margin-top:10px;}
+  .modal-btns button{ border:none; padding:9px 16px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:4px; }
   .btn-save{ background:var(--music); color:#101113; }
-  .btn-cancel{ background:var(--muted-2); color:var(--text); }
+  .btn-cancel{ background:var(--border); color:var(--text); }
+
+  /* 글 읽기 본문 영역 */
+  #readContent {
+    min-height: 120px;
+    padding: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    white-space: pre-wrap; /* 줄바꿈 유지 */
+    margin-bottom: 16px;
+    line-height: 1.6;
+    color: #e0e0e0;
+  }
 </style>
 </head>
 <body>
@@ -139,7 +153,7 @@ font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
   <main>
     <div class="hot-strip">
       <span class="label">🔥 게시판 연동 완료</span>
-      <span>글을 쓰면 실시간으로 데이터베이스(Supabase)에 저장됩니다!</span>
+      <span>글 제목을 클릭하면 작성한 내용을 볼 수 있습니다!</span>
     </div>
 
     <div class="board-title-row">
@@ -163,7 +177,7 @@ font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
   </main>
 </div>
 
-<!-- 글쓰기 레이어 팝업 -->
+<!-- 글쓰기 모달 -->
 <div class="modal" id="writeModal">
   <div class="modal-content">
     <h2>새 글 작성하기</h2>
@@ -184,14 +198,32 @@ font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
   </div>
 </div>
 
+<!-- 글 읽기 모달 (새로 추가됨) -->
+<div class="modal" id="readModal">
+  <div class="modal-content">
+    <h2 id="readTitle" style="margin-bottom:8px;"></h2>
+    <div style="font-size:12.5px; color:var(--muted); margin-bottom:16px;">
+      <span id="readTag" class="tag" style="margin-right:8px;"></span>
+      작성자: <span id="readAuthor" style="color:var(--text);"></span> &nbsp;|&nbsp; 
+      작성일: <span id="readDate"></span>
+    </div>
+    <div id="readContent"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="closeReadModalBtn">닫기</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  // 회원님의 Supabase 주소와 키 값이 모두 적용되어 있습니다.
   const SUPABASE_URL = 'https://jvitmimabxupkhrksudu.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY';
   
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // 게시글 가져오기
+  // 불러온 게시글 데이터를 임시 저장해둘 변수
+  let currentPosts = [];
+
+  // 게시글 목록 가져오기
   async function fetchPosts() {
     const { data, error } = await client
       .from('posts')
@@ -204,18 +236,36 @@ font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
       return;
     }
 
+    currentPosts = data; // 가져온 데이터를 저장해둠
+
     tbody.innerHTML = data.map(post => {
       const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
+      // 제목 클릭 시 openReadModal 함수 실행
       return `
         <tr>
           <td class="num tabular">${post.id}</td>
           <td class="meta"><span class="tag">${post.tag}</span></td>
-          <td class="title-cell"><a href="#">${post.title}</a></td>
+          <td class="title-cell"><a href="javascript:void(0);" onclick="openReadModal(${post.id})">${post.title}</a></td>
           <td class="author">${post.author || '익명'}</td>
           <td class="date">${date}</td>
         </tr>
       `;
     }).join('');
+  }
+
+  // 글 읽기 모달 열기 함수
+  function openReadModal(postId) {
+    // 저장해둔 데이터에서 클릭한 글 번호와 일치하는 데이터를 찾음
+    const post = currentPosts.find(p => p.id === postId);
+    if(post) {
+      document.getElementById('readTitle').textContent = post.title;
+      document.getElementById('readTag').textContent = post.tag;
+      document.getElementById('readAuthor').textContent = post.author || '익명';
+      document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleDateString('ko-KR');
+      document.getElementById('readContent').textContent = post.content; // 글 내용 표시
+      
+      document.getElementById('readModal').style.display = 'flex'; // 모달 띄우기
+    }
   }
 
   // 글쓰기 기능
@@ -239,13 +289,14 @@ font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px;
       document.getElementById('writeModal').style.display = 'none';
       document.getElementById('postTitle').value = '';
       document.getElementById('postContent').value = '';
-      fetchPosts();
+      fetchPosts(); // 글 목록 새로고침
     }
   });
 
-  // 모달 제어
+  // 버튼 클릭 시 팝업 열고 닫기 이벤트들
   document.getElementById('openModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'flex';
   document.getElementById('closeModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'none';
+  document.getElementById('closeReadModalBtn').onclick = () => document.getElementById('readModal').style.display = 'none';
 
   // 처음 접속 시 글 목록 불러오기
   fetchPosts();
