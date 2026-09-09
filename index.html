@@ -131,7 +131,7 @@
 
 <header>
   <div class="header-inner">
-    <div class="brand display">너 인디 좋아해<span class="dot">?</span></div>
+<div class="brand display">너 <span style="color:var(--music)">인디</span> 좋아해<span class="dot">?</span></div>
     <div class="search">
       <input type="text" placeholder="게시글 검색">
       <button>🔍</button>
@@ -141,23 +141,29 @@
 </header>
 
 <div class="shell">
+  <!-- 사이드바: 게시판 메뉴 추가 -->
   <aside class="sidebar">
     <div class="cat-group">
       <div class="cat-head"><span><span class="swatch" style="background:var(--music)"></span>너 인디 좋아해?</span></div>
-      <ul class="board-list">
-        <li><a href="#" class="active">전체 게시판</a></li>
+      <ul class="board-list" id="boardMenu">
+        <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">전체 게시판</a></li>
+        <li><a href="javascript:void(0);" onclick="changeBoard('국내인디')">국내인디</a></li>
+        <li><a href="javascript:void(0);" onclick="changeBoard('해외인디')">해외인디</a></li>
+        <li><a href="javascript:void(0);" onclick="changeBoard('공연정보')">공연정보</a></li>
+        <li><a href="javascript:void(0);" onclick="changeBoard('자작곡')">자작곡</a></li>
+        <li><a href="javascript:void(0);" onclick="changeBoard('자유')">자유</a></li>
       </ul>
     </div>
   </aside>
 
   <main>
     <div class="hot-strip">
-      <span class="label">🔥 게시판 연동 완료</span>
-      <span>글 제목을 클릭하면 작성한 내용을 볼 수 있습니다!</span>
+      <span class="label">🔥 메뉴 연동 완료</span>
+      <span>왼쪽 메뉴를 클릭하면 해당 카테고리 글만 모아서 볼 수 있습니다!</span>
     </div>
 
     <div class="board-title-row">
-      <h1>전체 게시판</h1>
+      <h1 id="boardTitle">전체 게시판</h1>
     </div>
 
     <table class="post-table">
@@ -198,7 +204,7 @@
   </div>
 </div>
 
-<!-- 글 읽기 모달 (새로 추가됨) -->
+<!-- 글 읽기 모달 -->
 <div class="modal" id="readModal">
   <div class="modal-content">
     <h2 id="readTitle" style="margin-bottom:8px;"></h2>
@@ -220,27 +226,39 @@
   
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // 불러온 게시글 데이터를 임시 저장해둘 변수
   let currentPosts = [];
+  let currentCategory = '전체'; // 현재 선택된 게시판 카테고리
 
-  // 게시글 목록 가져오기
+  // 게시글 가져오기
   async function fetchPosts() {
     const { data, error } = await client
       .from('posts')
       .select('*')
       .order('id', { ascending: false });
 
+    if (!error && data) {
+      currentPosts = data;
+    }
+    renderPosts(); // 데이터 갱신 후 화면 다시 그리기
+  }
+
+  // 화면에 게시글 그리기 (필터 기능 포함)
+  function renderPosts() {
     const tbody = document.getElementById('postList');
-    if (error || !data || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">등록된 게시글이 없습니다. 첫 글을 작성해 보세요!</td></tr>';
+    
+    // 카테고리가 '전체'가 아니면 해당 태그의 글만 걸러냄
+    let filteredPosts = currentPosts;
+    if (currentCategory !== '전체') {
+      filteredPosts = currentPosts.filter(post => post.tag === currentCategory);
+    }
+
+    if (filteredPosts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
       return;
     }
 
-    currentPosts = data; // 가져온 데이터를 저장해둠
-
-    tbody.innerHTML = data.map(post => {
+    tbody.innerHTML = filteredPosts.map(post => {
       const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
-      // 제목 클릭 시 openReadModal 함수 실행
       return `
         <tr>
           <td class="num tabular">${post.id}</td>
@@ -253,22 +271,41 @@
     }).join('');
   }
 
-  // 글 읽기 모달 열기 함수
+  // 왼쪽 게시판 메뉴 클릭 시 카테고리 변경하는 함수
+  function changeBoard(category) {
+    currentCategory = category;
+    
+    // 메인 제목 바꾸기
+    document.getElementById('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
+    
+    // 왼쪽 메뉴 선택된 디자인(하이라이트) 처리
+    const links = document.querySelectorAll('#boardMenu a');
+    links.forEach(link => {
+      if (link.innerText.includes(category)) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+
+    renderPosts(); // 게시글 목록 새로고침
+  }
+
+  // 글 읽기 모달 열기
   function openReadModal(postId) {
-    // 저장해둔 데이터에서 클릭한 글 번호와 일치하는 데이터를 찾음
     const post = currentPosts.find(p => p.id === postId);
     if(post) {
       document.getElementById('readTitle').textContent = post.title;
       document.getElementById('readTag').textContent = post.tag;
       document.getElementById('readAuthor').textContent = post.author || '익명';
       document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleDateString('ko-KR');
-      document.getElementById('readContent').textContent = post.content; // 글 내용 표시
+      document.getElementById('readContent').textContent = post.content;
       
-      document.getElementById('readModal').style.display = 'flex'; // 모달 띄우기
+      document.getElementById('readModal').style.display = 'flex';
     }
   }
 
-  // 글쓰기 기능
+  // 글쓰기 저장
   document.getElementById('savePostBtn').addEventListener('click', async () => {
     const tag = document.getElementById('postTag').value;
     const author = document.getElementById('postAuthor').value || '익명';
@@ -289,16 +326,16 @@
       document.getElementById('writeModal').style.display = 'none';
       document.getElementById('postTitle').value = '';
       document.getElementById('postContent').value = '';
-      fetchPosts(); // 글 목록 새로고침
+      fetchPosts(); 
     }
   });
 
-  // 버튼 클릭 시 팝업 열고 닫기 이벤트들
+  // 팝업 닫기/열기
   document.getElementById('openModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'flex';
   document.getElementById('closeModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'none';
   document.getElementById('closeReadModalBtn').onclick = () => document.getElementById('readModal').style.display = 'none';
 
-  // 처음 접속 시 글 목록 불러오기
+  // 처음 접속 시 전체 목록 불러오기
   fetchPosts();
 </script>
 
