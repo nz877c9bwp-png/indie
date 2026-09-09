@@ -52,7 +52,6 @@
   .board-list li a{ display:block; padding:8px 16px; font-size:13px; color:var(--muted); transition:0.2s;}
   .board-list li a:hover, .board-list li a.active{color:var(--music); background:var(--bg); font-weight:600;}
 
-  /* 게시판 상단 위젯 (핫게시판 / 앨범랭킹) */
   .widget-container { display:flex; gap:12px; margin-bottom:24px; overflow-x:auto; padding-bottom:4px;}
   .widget-card { flex:1; min-width:200px; background:var(--panel); border:1px solid var(--border); padding:16px; border-radius:8px; cursor:pointer; transition:transform 0.2s; position:relative; overflow:hidden;}
   .widget-card:hover { transform:translateY(-2px); border-color:var(--music); box-shadow:0 4px 12px rgba(34, 211, 238, 0.15);}
@@ -60,7 +59,6 @@
   .widget-title { font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;}
   .widget-stats { font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center;}
 
-  /* 앨범 랭킹 전용 디자인 */
   .album-rank-card { display:flex; align-items:center; gap:12px; min-width:280px; background:var(--panel); border:1px solid var(--border); padding:12px; border-radius:8px;}
   .album-rank-card img { width:56px; height:56px; border-radius:4px; object-fit:cover; border:1px solid var(--border);}
   .album-rank-info { flex:1; overflow:hidden; }
@@ -96,15 +94,16 @@
   .view-meta-left { display:flex; align-items:center; gap:12px; }
   .view-meta-right { display:flex; gap:16px; }
   
-  /* 평가 앨범 배지 (글 읽기) */
   .read-album-box { display:flex; align-items:center; gap:16px; background:var(--bg); border:1px solid var(--border); padding:16px; border-radius:8px; margin:24px 24px 0 24px;}
   .read-album-box img { width:80px; height:80px; border-radius:6px; object-fit:cover;}
   .read-album-title { font-size:18px; font-weight:800; color:var(--text); margin-bottom:6px;}
   .read-album-artist { font-size:14px; color:var(--muted); margin-bottom:8px;}
   
   .view-content-area { padding:30px 24px; min-height:300px; font-size:15px; line-height:1.7; color:var(--text); white-space:pre-wrap; word-break:break-word;}
-  .view-footer { padding:20px 24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--bg);}
+  /* 이미지 랜더링 최대 너비 제한 */
+  .view-content-area img { max-width:100%; border-radius:8px; margin:12px 0; display:block; }
   
+  .view-footer { padding:20px 24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--bg);}
   .btn-recommend { background:none; border:2px solid var(--music); color:var(--music); padding:10px 24px; border-radius:30px; font-size:14px; font-weight:bold; cursor:pointer; transition:0.2s; font-family:inherit; display:flex; align-items:center; gap:8px;}
   .btn-recommend:hover { background:var(--music); color:var(--bg); }
   
@@ -115,35 +114,57 @@
   .btn-admin-edit:hover { background:var(--music-hover); }
   .btn-admin-delete { background:var(--admin); color:#fff; border:1px solid var(--admin); padding:8px 20px; border-radius:4px; font-size:13px; cursor:pointer; font-weight:700; transition:0.2s;}
 
-  /* 모달 & 앨범 검색 UI */
+  /* 디시인사이드 스타일 전체화면 글쓰기 영역 */
+  #writeSection { display: none; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:0; overflow:hidden;}
+  .write-header { padding:20px 24px; border-bottom:1px solid var(--border); background:var(--bg); }
+  .write-header h2 { margin:0; font-size:20px; color:var(--text); font-weight:800;}
+  
+  .write-body { padding:24px; }
+  .write-row { display:flex; gap:12px; margin-bottom:12px; }
+  .write-row select, .write-row input { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:12px; border-radius:4px; font-size:14px; outline:none; font-family:inherit;}
+  .write-row select:focus, .write-row input:focus { border-color:var(--music); }
+  #postTag { width: 150px; }
+  #postAuthor { width: 180px; }
+  #postTitle { flex:1; }
+
+  /* 사진 첨부 툴바 */
+  .write-toolbar { background:var(--panel-alt); border:1px solid var(--border); border-bottom:none; padding:10px 16px; border-top-left-radius:6px; border-top-right-radius:6px; display:flex; gap:12px; align-items:center;}
+  .btn-toolbar { background:none; border:none; color:var(--text); cursor:pointer; font-size:13px; font-weight:bold; padding:6px 12px; border-radius:4px; display:flex; align-items:center; gap:6px; transition:0.2s;}
+  .btn-toolbar:hover { background:var(--border); color:var(--music); }
+  
+  #postContent { width:100%; height:450px; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:16px; font-family:inherit; font-size:15px; resize:vertical; outline:none; border-bottom-left-radius:6px; border-bottom-right-radius:6px; line-height:1.6;}
+  #postContent:focus { border-color:var(--music); }
+
+  .write-footer { padding:20px 24px; border-top:1px solid var(--border); background:var(--bg); display:flex; justify-content:flex-end; gap:10px;}
+  .btn-cancel-write { background:var(--panel-alt); color:var(--text); border:1px solid var(--border); padding:10px 24px; border-radius:4px; font-size:14px; cursor:pointer; font-weight:bold; transition:0.2s;}
+  .btn-cancel-write:hover { background:var(--border); }
+  .btn-submit-write { background:var(--music); color:var(--bg); border:none; padding:10px 32px; border-radius:4px; font-size:14px; cursor:pointer; font-weight:bold; transition:0.2s;}
+  .btn-submit-write:hover { background:var(--music-hover); }
+
+  /* 앨범 검색창 전용 스타일 (글쓰기 영역 내부로 이동) */
+  #albumSearchWrap { background:var(--bg); padding:16px; border-radius:6px; margin-bottom:16px; display:none; border:1px solid var(--border);}
+  .search-result-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;}
+  .search-item { min-width:100px; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:8px; cursor:pointer; transition:0.2s;}
+  .search-item:hover { border-color:var(--music); }
+  .search-item img { width:100%; aspect-ratio:1/1; border-radius:4px; object-fit:cover; margin-bottom:6px;}
+  .search-item .s-title { font-size:12px; font-weight:bold; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .search-item .s-artist { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+  /* 로그인/가입 모달 (유지) */
   .modal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); justify-content:center; align-items:center; z-index:100; backdrop-filter:blur(3px);}
-  .modal-content{ background:var(--panel); border:1px solid var(--border); width:90%; max-width:550px; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); max-height:90vh; overflow-y:auto;}
+  .modal-content{ background:var(--panel); border:1px solid var(--border); width:90%; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);}
   .modal-content.small { max-width:350px; }
   .modal-content h2{ margin-top:0; font-size:18px; color:var(--text); margin-bottom:16px;}
-  .modal-content input, .modal-content select, .modal-content textarea{ width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px; font-size:14px; outline:none;}
-  .modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus { border-color:var(--music); }
-  .modal-content textarea{ height:200px; resize:none; line-height:1.6; }
+  .modal-content input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px; font-size:14px; outline:none;}
+  .modal-content input:focus { border-color:var(--music); }
   .modal-btns{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
   .modal-btns button{ border:none; padding:10px 18px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:4px; font-size:13px; transition:0.2s;}
-  .btn-save{ background:var(--music); color:var(--bg); }
-  .btn-save:hover{ background:var(--music-hover); }
-  .btn-cancel{ background:var(--panel-alt); color:var(--text); border:1px solid var(--border);}
-  .btn-cancel:hover{ background:var(--border); }
   
   optgroup { background:var(--panel); color:var(--text); font-weight:bold; }
   option { background:var(--bg); color:var(--text); font-weight:normal; }
   
   .yt-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   .yt-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-
-  /* 앨범 검색창 전용 스타일 */
-  #albumSearchWrap { background:var(--panel-alt); padding:16px; border-radius:6px; margin-bottom:12px; display:none; border:1px solid var(--border);}
-  .search-result-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;}
-  .search-item { min-width:100px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px; cursor:pointer; transition:0.2s;}
-  .search-item:hover { border-color:var(--music); }
-  .search-item img { width:100%; aspect-ratio:1/1; border-radius:4px; object-fit:cover; margin-bottom:6px;}
-  .search-item .s-title { font-size:12px; font-weight:bold; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .search-item .s-artist { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -158,7 +179,7 @@
       <button id="showLoginBtn" class="auth-btn">로그인</button>
       <button id="showSignupBtn" class="auth-btn">회원가입</button>
       <button id="logoutBtn" class="auth-btn" style="display:none;">로그아웃</button>
-      <button class="write-btn" id="openModalBtn">글쓰기</button>
+      <button class="write-btn" id="openWriteBtn">글쓰기</button>
     </div>
   </div>
 </header>
@@ -209,8 +230,8 @@
   </aside>
 
   <main>
+    <!-- 게시판 목록 영역 -->
     <div id="boardSection">
-      <!-- 동적으로 변하는 상단 위젯 (핫게시판 or 앨범랭킹) -->
       <div class="board-title-row" style="margin-top:0;">
         <h1 id="widgetTitle" style="color:var(--music); font-size:16px;">🔥 핫게시판 (HOT)</h1>
       </div>
@@ -237,6 +258,7 @@
       </table>
     </div>
 
+    <!-- 글 읽기 영역 -->
     <div id="postViewSection">
       <div class="view-header">
         <h2 class="view-title" id="readTitle"></h2>
@@ -253,7 +275,6 @@
         </div>
       </div>
       
-      <!-- 앨범 평가글일 경우 표시될 앨범 정보 영역 -->
       <div id="readAlbumInfo" class="read-album-box" style="display:none;">
         <img id="rAlbumCover" src="">
         <div>
@@ -274,75 +295,86 @@
         </div>
       </div>
     </div>
-  </main>
-</div>
 
-<!-- 글쓰기(수정) 모달 -->
-<div class="modal" id="writeModal">
-  <div class="modal-content">
-    <h2 id="modalTitle">새 글 작성하기</h2>
-    <select id="postTag">
-      <optgroup label="너 인디 좋아해?">
-        <option value="국내 인디">국내 인디</option>
-        <option value="해외 인디">해외 인디</option>
-        <option value="앨범/곡 추천">앨범/곡 추천</option>
-        <option value="앨범 평가">앨범 평가</option>
-      </optgroup>
-      <optgroup label="너 공연 좋아해?">
-        <option value="공연 정보">공연 정보</option>
-        <option value="공연 후기">공연 후기</option>
-        <option value="같이 갈 사람">같이 갈 사람</option>
-      </optgroup>
-      <optgroup label="너 자작곡 좋아해?">
-        <option value="자작곡">자작곡</option>
-        <option value="데모">데모</option>
-        <option value="밴드 홍보">밴드 홍보</option>
-        <option value="피드백">피드백</option>
-      </optgroup>
-      <optgroup label="너 수다 좋아해?">
-        <option value="자유">자유</option>
-        <option value="야구">야구</option>
-        <option value="음반">음반</option>
-        <option value="장터">장터</option>
-        <option value="자랑">자랑</option>
-      </optgroup>
-    </select>
-
-    <!-- 앨범 평가 선택시 나타나는 숨겨진 검색창 -->
-    <div id="albumSearchWrap">
-      <div style="font-weight:bold; margin-bottom:8px; color:var(--music);">🎵 앨범 정보 불러오기 (Apple Music)</div>
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <input type="text" id="albumQuery" placeholder="아티스트 또는 앨범명 검색" style="margin-bottom:0;">
-        <button type="button" id="btnSearchAlbum" style="background:var(--music); color:var(--bg); border:none; padding:0 16px; border-radius:4px; font-weight:bold; cursor:pointer; white-space:nowrap;">검색</button>
+    <!-- 새롭게 개편된 큼직한 글쓰기 영역 (디시인사이드 스타일) -->
+    <div id="writeSection">
+      <div class="write-header">
+        <h2 id="writeSectionTitle">새 글 작성하기</h2>
       </div>
-      <div id="albumResults" class="search-result-row"></div>
-      
-      <!-- 선택된 앨범 표시 및 별점 -->
-      <div id="selAlbumWrap" style="display:none; align-items:center; gap:12px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-        <img id="selCover" src="" style="width:60px; height:60px; border-radius:4px; object-fit:cover;">
-        <div style="flex:1;">
-          <div id="selTitle" style="font-weight:bold; color:var(--text); margin-bottom:4px; font-size:13px;"></div>
-          <div id="selArtist" style="font-size:12px; color:var(--muted);"></div>
+      <div class="write-body">
+        
+        <!-- 앨범 평가 선택시 나타나는 숨겨진 검색창 -->
+        <div id="albumSearchWrap">
+          <div style="font-weight:bold; margin-bottom:8px; color:var(--music);">🎵 앨범 정보 불러오기 (Apple Music)</div>
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <input type="text" id="albumQuery" placeholder="아티스트 또는 앨범명 검색" style="margin-bottom:0;">
+            <button type="button" id="btnSearchAlbum" style="background:var(--music); color:var(--bg); border:none; padding:0 16px; border-radius:4px; font-weight:bold; cursor:pointer; white-space:nowrap;">검색</button>
+          </div>
+          <div id="albumResults" class="search-result-row"></div>
+          
+          <div id="selAlbumWrap" style="display:none; align-items:center; gap:12px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+            <img id="selCover" src="" style="width:60px; height:60px; border-radius:4px; object-fit:cover;">
+            <div style="flex:1;">
+              <div id="selTitle" style="font-weight:bold; color:var(--text); margin-bottom:4px; font-size:13px;"></div>
+              <div id="selArtist" style="font-size:12px; color:var(--muted);"></div>
+            </div>
+          </div>
+          
+          <select id="postRating" style="margin-top:12px; margin-bottom:0; display:none; padding:10px; width:100%; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px;">
+            <option value="5">⭐⭐⭐⭐⭐ (5점 - 명반!)</option>
+            <option value="4">⭐⭐⭐⭐ (4점 - 훌륭함)</option>
+            <option value="3">⭐⭐⭐ (3점 - 들을만함)</option>
+            <option value="2">⭐⭐ (2점 - 아쉬움)</option>
+            <option value="1">⭐ (1점 - 별로임)</option>
+          </select>
         </div>
+
+        <div class="write-row">
+          <select id="postTag">
+            <optgroup label="너 인디 좋아해?">
+              <option value="국내 인디">국내 인디</option>
+              <option value="해외 인디">해외 인디</option>
+              <option value="앨범/곡 추천">앨범/곡 추천</option>
+              <option value="앨범 평가">앨범 평가</option>
+            </optgroup>
+            <optgroup label="너 공연 좋아해?">
+              <option value="공연 정보">공연 정보</option>
+              <option value="공연 후기">공연 후기</option>
+              <option value="같이 갈 사람">같이 갈 사람</option>
+            </optgroup>
+            <optgroup label="너 자작곡 좋아해?">
+              <option value="자작곡">자작곡</option>
+              <option value="데모">데모</option>
+              <option value="밴드 홍보">밴드 홍보</option>
+              <option value="피드백">피드백</option>
+            </optgroup>
+            <optgroup label="너 수다 좋아해?">
+              <option value="자유">자유</option>
+              <option value="야구">야구</option>
+              <option value="음반">음반</option>
+              <option value="장터">장터</option>
+              <option value="자랑">자랑</option>
+            </optgroup>
+          </select>
+          <input type="text" id="postAuthor" placeholder="작성자 닉네임 (유동닉)">
+          <input type="text" id="postTitle" placeholder="제목을 입력해 주세요.">
+        </div>
+        
+        <!-- 이미지 업로드 툴바 -->
+        <div class="write-toolbar">
+          <label for="imageUpload" class="btn-toolbar" id="btnImageUploadText">📷 사진 첨부</label>
+          <input type="file" id="imageUpload" accept="image/*" style="display:none;">
+          <span style="font-size:12px; color:var(--muted); margin-left:auto;">유튜브 주소를 넣으면 자동으로 영상이 나타납니다.</span>
+        </div>
+        <textarea id="postContent" placeholder="내용을 입력해 주세요."></textarea>
       </div>
       
-      <select id="postRating" style="margin-top:12px; margin-bottom:0; display:none;">
-        <option value="5">⭐⭐⭐⭐⭐ (5점 - 명반!)</option>
-        <option value="4">⭐⭐⭐⭐ (4점 - 훌륭함)</option>
-        <option value="3">⭐⭐⭐ (3점 - 들을만함)</option>
-        <option value="2">⭐⭐ (2점 - 아쉬움)</option>
-        <option value="1">⭐ (1점 - 별로임)</option>
-      </select>
+      <div class="write-footer">
+        <button class="btn-cancel-write" onclick="backToList()">취소</button>
+        <button class="btn-submit-write" id="savePostBtn">등록하기</button>
+      </div>
     </div>
-
-    <input type="text" id="postAuthor" placeholder="작성자 닉네임 (유동닉)">
-    <input type="text" id="postTitle" placeholder="제목을 입력하세요">
-    <textarea id="postContent" placeholder="내용을 입력하세요 (유튜브 주소를 넣으면 영상이 뜹니다!)"></textarea>
-    <div class="modal-btns">
-      <button class="btn-cancel" id="closeModalBtn">취소</button>
-      <button class="btn-save" id="savePostBtn">등록하기</button>
-    </div>
-  </div>
+  </main>
 </div>
 
 <!-- 로그인/가입 모달 -->
@@ -352,8 +384,8 @@
     <input type="email" id="loginEmail" placeholder="이메일 (아이디)">
     <input type="password" id="loginPw" placeholder="비밀번호">
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('loginModal').style.display='none'">취소</button>
-      <button class="btn-save" id="doLoginBtn">로그인</button>
+      <button class="btn-cancel" onclick="document.getElementById('loginModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
+      <button class="btn-save" id="doLoginBtn" style="background:var(--music); color:var(--bg);">로그인</button>
     </div>
   </div>
 </div>
@@ -364,8 +396,8 @@
     <input type="email" id="signupEmail" placeholder="사용할 이메일 (아이디)">
     <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)">
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('signupModal').style.display='none'">취소</button>
-      <button class="btn-save" id="doSignupBtn">가입하기</button>
+      <button class="btn-cancel" onclick="document.getElementById('signupModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
+      <button class="btn-save" id="doSignupBtn" style="background:var(--music); color:var(--bg);">가입하기</button>
     </div>
   </div>
 </div>
@@ -383,8 +415,6 @@
   let currentUser = null; 
   let isAdmin = false;
   let isEditMode = false;
-  
-  // 앨범 데이터 임시 저장 객체
   let tempAlbum = { title: null, artist: null, cover: null, rating: 0 };
 
   client.auth.onAuthStateChange((event, session) => {
@@ -425,14 +455,15 @@
     }
   });
 
-  // 로그인/가입/로그아웃 로직
   document.getElementById('doSignupBtn').addEventListener('click', async () => {
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPw').value;
-    if(!email || password.length < 6) return alert('이메일과 6자리 이상의 비밀번호를 입력하세요.');
+    if(!email || password.length < 6) { alert('이메일과 6자리 이상의 비밀번호를 입력하세요.'); return; }
+    
     const btn = document.getElementById('doSignupBtn');
     btn.disabled = true; btn.textContent = '처리 중...';
-    const { error } = await client.auth.signUp({ email, password });
+    
+    const { data, error } = await client.auth.signUp({ email, password });
     if(error) { alert('가입 실패: ' + error.message); btn.disabled = false; btn.textContent = '가입하기'; } 
     else {
       document.getElementById('signupModal').style.display = 'none';
@@ -443,46 +474,35 @@
       }, 1000);
     }
   });
+
   document.getElementById('doLoginBtn').addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPw').value;
-    if(!email || !password) return alert('정보를 모두 입력하세요.');
+    if(!email || !password) { alert('정보를 모두 입력하세요.'); return; }
     const { error } = await client.auth.signInWithPassword({ email, password });
     if(error) alert('로그인 실패: 아이디나 비밀번호를 확인해주세요.');
     else { document.getElementById('loginModal').style.display = 'none'; document.getElementById('loginEmail').value = ''; document.getElementById('loginPw').value = ''; }
   });
+
   document.getElementById('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 되었습니다.'); });
   document.getElementById('showLoginBtn').onclick = () => document.getElementById('loginModal').style.display = 'flex';
   document.getElementById('showSignupBtn').onclick = () => document.getElementById('signupModal').style.display = 'flex';
   
-  // ---------------- [새 기능] 앨범 평가 & iTunes 검색 연동 ----------------
   document.getElementById('postTag').addEventListener('change', (e) => {
-    // 앨범 평가 카테고리 선택 시에만 앨범 검색창 오픈
-    if(e.target.value === '앨범 평가') {
-      document.getElementById('albumSearchWrap').style.display = 'block';
-    } else {
-      document.getElementById('albumSearchWrap').style.display = 'none';
-      tempAlbum = { title: null, artist: null, cover: null, rating: 0 };
-    }
+    if(e.target.value === '앨범 평가') document.getElementById('albumSearchWrap').style.display = 'block';
+    else { document.getElementById('albumSearchWrap').style.display = 'none'; tempAlbum = { title: null, artist: null, cover: null, rating: 0 }; }
   });
 
   document.getElementById('btnSearchAlbum').addEventListener('click', async () => {
     const query = document.getElementById('albumQuery').value;
     if(!query) return alert('검색어를 입력하세요.');
-    
     document.getElementById('albumResults').innerHTML = '<div style="color:var(--muted); font-size:12px;">검색 중...</div>';
-    
-    // Apple Music API (별도 키 없이 무료 사용 가능)
     const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&country=KR&limit=10`);
     const data = await res.json();
-    
-    if(data.results.length === 0) {
-      document.getElementById('albumResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 결과가 없습니다.</div>';
-      return;
-    }
+    if(data.results.length === 0) { document.getElementById('albumResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 결과가 없습니다.</div>'; return; }
 
     document.getElementById('albumResults').innerHTML = data.results.map(a => {
-      const coverUrl = a.artworkUrl100.replace('100x100bb', '300x300bb'); // 고화질로 변경
+      const coverUrl = a.artworkUrl100.replace('100x100bb', '300x300bb'); 
       const safeTitle = a.collectionName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
       const safeArtist = a.artistName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
       return `
@@ -495,27 +515,58 @@
     }).join('');
   });
 
-  // 사용자가 검색 결과 중 하나를 클릭했을 때
   window.selectAlbum = function(title, artist, cover) {
-    tempAlbum = { title, artist, cover, rating: 5 }; // 임시 객체에 저장
+    tempAlbum = { title, artist, cover, rating: 5 }; 
     document.getElementById('selAlbumWrap').style.display = 'flex';
     document.getElementById('postRating').style.display = 'block';
-    
     document.getElementById('selCover').src = cover;
     document.getElementById('selTitle').innerText = title;
     document.getElementById('selArtist').innerText = artist;
-    document.getElementById('postRating').value = "5"; // 기본 별점 5점
+    document.getElementById('postRating').value = "5"; 
   };
-  // ----------------------------------------------------------------------
 
-  document.getElementById('openModalBtn').onclick = () => {
+  // ---------------- [새 기능] 스토리지에 이미지 업로드 ----------------
+  document.getElementById('imageUpload').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const label = document.getElementById('btnImageUploadText');
+    label.innerText = '⏳ 업로드 중...';
+    
+    // 고유 파일명 생성 (예: 1690000000.png)
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+
+    // Supabase 스토리지 'images' 버킷에 파일 업로드
+    const { data, error } = await client.storage.from('images').upload(fileName, file);
+
+    if (error) {
+      alert('이미지 업로드 실패: ' + error.message);
+      label.innerText = '📷 사진 첨부';
+      return;
+    }
+
+    // 업로드된 이미지의 공개 URL 가져오기
+    const { data: publicUrlData } = client.storage.from('images').getPublicUrl(fileName);
+    const imageUrl = publicUrlData.publicUrl;
+
+    // 본문 작성칸에 이미지 삽입용 태그 추가 [img]주소[/img]
+    const contentArea = document.getElementById('postContent');
+    contentArea.value += `\n[img]${imageUrl}[/img]\n`;
+
+    label.innerText = '📷 사진 첨부';
+    e.target.value = ''; // 다음 업로드를 위해 초기화
+  });
+  // -----------------------------------------------------------------
+
+  // 글쓰기 창 열기 (디시인사이드 화면 전환 스타일)
+  document.getElementById('openWriteBtn').onclick = () => {
     isEditMode = false;
-    document.getElementById('modalTitle').textContent = '새 글 작성하기';
+    document.getElementById('writeSectionTitle').textContent = '새 글 작성하기';
     document.getElementById('savePostBtn').textContent = '등록하기';
     document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
     
-    // 앨범 초기화
     document.getElementById('albumSearchWrap').style.display = document.getElementById('postTag').value === '앨범 평가' ? 'block' : 'none';
     document.getElementById('albumResults').innerHTML = '';
     document.getElementById('albumQuery').value = '';
@@ -523,25 +574,24 @@
     document.getElementById('postRating').style.display = 'none';
     tempAlbum = { title: null, artist: null, cover: null, rating: 0 };
 
-    document.getElementById('writeModal').style.display = 'flex';
+    document.getElementById('boardSection').style.display = 'none';
+    document.getElementById('postViewSection').style.display = 'none';
+    document.getElementById('writeSection').style.display = 'block';
+    window.scrollTo(0, 0); 
   };
-  
-  document.getElementById('closeModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'none';
 
   async function fetchPosts() {
     const { data, error } = await client.from('posts').select('*').order('id', { ascending: false });
     if (!error && data) { currentPosts = data; }
-    renderTopWidget(); // 상단 위젯 렌더링 호출
+    renderTopWidget(); 
     renderPosts(); 
   }
 
-  // 상단 핫게시판 or 앨범랭킹 렌더링 함수
   function renderTopWidget() {
     const widgetArea = document.getElementById('topWidgetArea');
     const widgetTitle = document.getElementById('widgetTitle');
 
     if (currentCategory === '앨범 평가') {
-      // --- 앨범 명반 랭킹 표시 ---
       widgetTitle.innerText = '🎧 명반 랭킹 (유저 평점순)';
       const evalPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title);
       
@@ -550,7 +600,6 @@
         return;
       }
 
-      // 같은 앨범끼리 별점 종합 및 평균 계산
       const stats = {};
       evalPosts.forEach(p => {
         const key = `${p.album_title}:::${p.album_artist}:::${p.album_cover}`;
@@ -559,11 +608,9 @@
         stats[key].totalScore += p.rating;
       });
 
-      // 평점 높은 순으로 5개만 정렬
       const ranking = Object.values(stats)
         .map(a => ({ ...a, avg: (a.totalScore / a.count).toFixed(1) }))
-        .sort((a, b) => b.avg - a.avg || b.count - a.count)
-        .slice(0, 5);
+        .sort((a, b) => b.avg - a.avg || b.count - a.count).slice(0, 5);
 
       widgetArea.innerHTML = ranking.map((a, i) => `
         <div class="album-rank-card">
@@ -578,7 +625,6 @@
       `).join('');
 
     } else {
-      // --- 기존 핫게시판 표시 ---
       widgetTitle.innerText = '🔥 핫게시판 (HOT)';
       let hotPosts = [...currentPosts].filter(p => p.recs > 0 || p.views > 5)
         .sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
@@ -616,8 +662,6 @@
       const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
       const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${post.recs}]</span>` : '';
       const authorName = post.author || 'ㅇㅇ(유동)';
-      
-      // 앨범 평가글이면 제목 옆에 별점 배지 추가
       const ratingBadge = post.album_title ? `<span style="color:var(--music); font-size:11px; margin-left:6px;">⭐${post.rating}</span>` : '';
 
       return `
@@ -640,23 +684,22 @@
     document.getElementById('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
     
     document.querySelectorAll('.sidebar a').forEach(link => {
-      if (link.getAttribute('onclick').includes(`'${category}'`)) {
-        link.classList.add('active');
-      } else {
-        link.classList.remove('active');
-      }
+      if (link.getAttribute('onclick').includes(`'${category}'`)) link.classList.add('active');
+      else link.classList.remove('active');
     });
     
-    renderTopWidget(); // 카테고리 변경 시 위젯도 변경
+    renderTopWidget(); 
     renderPosts(); 
   }
 
-  // 🎵 글 내용 렌더링 함수: 유튜브 링크 자동 영상 변환 추가
+  // 유튜브 및 이미지 태그 렌더링
   function formatContent(text) {
     if (!text) return '';
     let safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     
-    // 유튜브 링크 감지 정규식
+    // 업로드된 [img]...[/img] 를 진짜 이미지 태그로 변환
+    safeText = safeText.replace(/\[img\](.*?)\[\/img\]/g, '<img src="$1">');
+
     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
     safeText = safeText.replace(ytRegex, (match, videoId) => {
       return `
@@ -678,10 +721,8 @@
     document.getElementById('readAuthor').textContent = post.author || 'ㅇㅇ(유동)';
     document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
     
-    // 유튜브 링크가 영상으로 변환되어 출력됨
     document.getElementById('readContent').innerHTML = formatContent(post.content);
     
-    // 앨범 정보가 있는 글이면 상단에 앨범 정보 박스 표시
     const albumBox = document.getElementById('readAlbumInfo');
     if(post.album_title) {
       albumBox.style.display = 'flex';
@@ -702,6 +743,7 @@
     document.getElementById('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
 
     document.getElementById('boardSection').style.display = 'none';
+    document.getElementById('writeSection').style.display = 'none';
     document.getElementById('postViewSection').style.display = 'block';
     window.scrollTo(0, 0); 
 
@@ -711,6 +753,7 @@
 
   function backToList() {
     document.getElementById('postViewSection').style.display = 'none';
+    document.getElementById('writeSection').style.display = 'none';
     document.getElementById('boardSection').style.display = 'block';
     renderPosts(); 
   }
@@ -736,18 +779,19 @@
     if(!post) return;
     
     isEditMode = true; 
-    document.getElementById('modalTitle').textContent = '게시글 수정하기';
+    document.getElementById('writeSectionTitle').textContent = '게시글 수정하기';
     document.getElementById('savePostBtn').textContent = '수정 완료';
     
     document.getElementById('postTag').value = post.tag;
     document.getElementById('postTitle').value = post.title;
     document.getElementById('postContent').value = post.content;
     
-    // 앨범 정보 셋팅 감추기 (수정 모드에선 앨범 변경 막기 위함)
     document.getElementById('albumSearchWrap').style.display = 'none';
     
     if(isAdmin) document.getElementById('postAuthor').value = post.author || 'ㅇㅇ(유동)';
-    document.getElementById('writeModal').style.display = 'flex';
+    
+    document.getElementById('postViewSection').style.display = 'none';
+    document.getElementById('writeSection').style.display = 'block';
   });
 
   document.getElementById('adminDeleteBtn').addEventListener('click', async () => {
@@ -768,18 +812,17 @@
     if (!title.trim()) return alert('제목을 입력해주세요.'); 
     if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
 
-    // 새로 작성 시에만 별점을 가져옴
     const finalRating = tag === '앨범 평가' && !isEditMode ? parseInt(document.getElementById('postRating').value) : null;
 
+    const btn = document.getElementById('savePostBtn');
+    btn.disabled = true; btn.textContent = '처리 중...';
+
     if (isEditMode) {
-      // 수정 (앨범 정보는 보존)
       const { error } = await client.from('posts').update({ tag, author, title, content }).eq('id', currentReadPostId);
-      if (error) { alert('수정 실패: ' + error.message); } 
-      else { alert('글이 성공적으로 수정되었습니다.'); document.getElementById('writeModal').style.display = 'none'; backToList(); fetchPosts(); }
+      if (error) { alert('수정 실패: ' + error.message); btn.disabled = false; btn.textContent = '수정 완료';} 
+      else { alert('글이 성공적으로 수정되었습니다.'); btn.disabled = false; backToList(); fetchPosts(); }
     } else {
-      // 새 글 작성 (앨범 정보 포함)
       const postData = { tag, author, title, content };
-      
       if (tag === '앨범 평가') {
         postData.album_title = tempAlbum.title;
         postData.album_artist = tempAlbum.artist;
@@ -788,10 +831,10 @@
       }
 
       const { error } = await client.from('posts').insert([postData]);
-      if (error) { alert('글 등록 실패: ' + error.message); } 
+      if (error) { alert('글 등록 실패: ' + error.message); btn.disabled = false; btn.textContent = '등록하기';} 
       else {
         alert('글이 등록되었습니다.');
-        document.getElementById('writeModal').style.display = 'none';
+        btn.disabled = false;
         document.getElementById('postTitle').value = '';
         document.getElementById('postContent').value = '';
         if(!currentUser) document.getElementById('postAuthor').value = ''; 
