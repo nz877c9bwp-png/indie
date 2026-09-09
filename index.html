@@ -85,7 +85,7 @@
   .view-meta { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); }
   .view-meta-left { display:flex; align-items:center; gap:12px; }
   .view-meta-right { display:flex; gap:16px; }
-  .view-content-area { padding:30px 24px; min-height:300px; font-size:15px; line-height:1.7; color:var(--text); white-space:pre-wrap; }
+  .view-content-area { padding:30px 24px; min-height:300px; font-size:15px; line-height:1.7; color:var(--text); white-space:pre-wrap; word-break:break-word;}
   .view-footer { padding:20px 24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--bg);}
   
   .btn-recommend { background:none; border:2px solid var(--music); color:var(--music); padding:10px 24px; border-radius:30px; font-size:14px; font-weight:bold; cursor:pointer; transition:0.2s; font-family:inherit; display:flex; align-items:center; gap:8px;}
@@ -115,6 +115,25 @@
   
   optgroup { background:var(--panel); color:var(--text); font-weight:bold; }
   option { background:var(--bg); color:var(--text); font-weight:normal; }
+  
+  /* 반응형 유튜브 비디오 래퍼 */
+  .yt-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 비율 */
+    height: 0;
+    overflow: hidden;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .yt-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
 </style>
 </head>
 <body>
@@ -222,6 +241,7 @@
           </div>
         </div>
       </div>
+      <!-- 글 내용 영역 (여기서 유튜브 변환이 일어남) -->
       <div class="view-content-area" id="readContent"></div>
       
       <div class="view-footer">
@@ -268,7 +288,7 @@
     </select>
     <input type="text" id="postAuthor" placeholder="작성자 닉네임 (유동닉)">
     <input type="text" id="postTitle" placeholder="제목을 입력하세요">
-    <textarea id="postContent" placeholder="내용을 입력하세요"></textarea>
+    <textarea id="postContent" placeholder="내용을 입력하세요 (유튜브 주소를 붙여넣으면 자동으로 영상이 뜹니다!)"></textarea>
     <div class="modal-btns">
       <button class="btn-cancel" id="closeModalBtn">취소</button>
       <button class="btn-save" id="savePostBtn">등록하기</button>
@@ -448,11 +468,10 @@
       return;
     }
     
-    // 전체 글 개수를 구해서 최신 글이 가장 큰 번호부터 시작하게 함 (가상 번호 적용)
     const totalPosts = filteredPosts.length;
 
     tbody.innerHTML = filteredPosts.map((post, index) => {
-      const displayNum = totalPosts - index; // 가상 번호 부여
+      const displayNum = totalPosts - index; 
       const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
       const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${post.recs}]</span>` : '';
       const authorName = post.author || 'ㅇㅇ(유동)';
@@ -486,6 +505,28 @@
     renderPosts(); 
   }
 
+  // 🎵 글 내용 렌더링 함수: 보안 처리 및 유튜브 링크 자동 변환
+  function formatContent(text) {
+    if (!text) return '';
+    
+    // 1. 보안을 위해 <, > 등 기호를 무력화시킵니다 (XSS 해킹 방지)
+    let safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // 2. 내용 안에서 유튜브 주소를 찾아서 영상 플레이어로 바꿔줍니다.
+    const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
+    safeText = safeText.replace(ytRegex, (match, videoId) => {
+      return `
+        <div class="yt-wrapper">
+          <iframe src="https://www.youtube.com/embed/${videoId}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <a href="${match}" target="_blank" style="color:var(--music); font-size:12.5px; text-decoration:underline;">[🎵 원본 유튜브 링크로 이동]</a>
+      `;
+    });
+
+    // 3. 사용자가 입력한 줄바꿈(엔터)을 화면에 그대로 반영합니다.
+    return safeText.replace(/\n/g, '<br>');
+  }
+
   async function openPostView(postId) {
     const post = currentPosts.find(p => p.id === postId);
     if(!post) return;
@@ -495,7 +536,9 @@
     document.getElementById('readTag').textContent = post.tag;
     document.getElementById('readAuthor').textContent = post.author || 'ㅇㅇ(유동)';
     document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
-    document.getElementById('readContent').textContent = post.content;
+    
+    // 유튜브 변환 함수를 거쳐서 본문을 출력합니다.
+    document.getElementById('readContent').innerHTML = formatContent(post.content);
     
     post.views = (post.views || 0) + 1;
     document.getElementById('readViews').textContent = post.views;
