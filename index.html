@@ -46,9 +46,6 @@
   .shell{ max-width:1180px; margin:0 auto; padding:20px; display:grid; grid-template-columns:230px 1fr; gap:24px; }
   
   .sidebar{ background:var(--panel); border:1px solid var(--border); align-self:start; border-radius:8px; overflow:hidden;}
-  .special-menu { background:var(--special); }
-  .special-menu a { display:block; padding:16px; text-align:center; color:#fff !important; font-weight:800; font-size:16px; letter-spacing:-0.5px;}
-  .special-menu a:hover { background:#7C3AED; }
   .cat-group{border-bottom:1px solid var(--border);}
   .cat-group:last-child{border-bottom:none;}
   .cat-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; font-weight:700; font-size:13px; background:var(--panel-alt); color:var(--text);}
@@ -186,8 +183,6 @@
     .board-list { display:flex; padding:0; gap:4px;}
     .board-list li a { padding:12px 16px; font-size:14px;}
     
-    .special-menu a { padding:12px 20px; font-size:15px; }
-
     .col-num, .col-date, .col-stats { display:none; }
     .col-tag { width:70px; }
     .post-table td, .post-table th { padding:12px 8px; font-size:14px; }
@@ -236,6 +231,8 @@
       <span id="userStatus" style="font-size:13px;"></span>
       <button id="showLoginBtn" class="auth-btn">로그인</button>
       <button id="showSignupBtn" class="auth-btn">회원가입</button>
+      <!-- 🌟 설정 버튼 추가 -->
+      <button id="showSettingsBtn" class="auth-btn" style="display:none;">설정</button>
       <button id="logoutBtn" class="auth-btn" style="display:none;">로그아웃</button>
       <button class="write-btn" id="openWriteBtn">글쓰기</button>
     </div>
@@ -244,9 +241,10 @@
 
 <div class="shell">
   <aside class="sidebar">
-    <div class="cat-group special-menu">
-      <ul class="board-list" style="padding:0;">
-        <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">명반 평가소</a></li>
+    <div class="cat-group">
+      <div class="cat-head"><span style="color:var(--special);">너 평가 좋아해?</span></div>
+      <ul class="board-list">
+        <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">앨범 평가</a></li>
       </ul>
     </div>
     
@@ -256,7 +254,7 @@
       </ul>
     </div>
     <div class="cat-group">
-      <div class="cat-head"><span>너 평가 좋아해?</span></div>
+      <div class="cat-head"><span>너 인디 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('국내 인디')">국내 인디</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('해외 인디')">해외 인디</a></li>
@@ -418,10 +416,10 @@
 
         <div class="write-row">
           <select id="postTag">
-            <optgroup label="명반 평가소" style="color:var(--special);">
+            <optgroup label="너 평가 좋아해?" style="color:var(--special);">
               <option value="앨범 평가">앨범 평가</option>
             </optgroup>
-            <optgroup label="너 평가 좋아해?">
+            <optgroup label="너 인디 좋아해?">
               <option value="국내 인디">국내 인디</option>
               <option value="해외 인디">해외 인디</option>
               <option value="앨범/곡 추천">앨범/곡 추천</option>
@@ -465,6 +463,7 @@
   </main>
 </div>
 
+<!-- 🌟 로그인 모달 -->
 <div class="modal" id="loginModal">
   <div class="modal-content small">
     <h2>로그인</h2>
@@ -476,6 +475,8 @@
     </div>
   </div>
 </div>
+
+<!-- 🌟 회원가입 모달 -->
 <div class="modal" id="signupModal">
   <div class="modal-content small">
     <h2>회원가입</h2>
@@ -484,6 +485,18 @@
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('signupModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doSignupBtn" style="background:var(--music); color:var(--bg);">가입하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🌟 설정(닉네임 변경) 모달 추가 -->
+<div class="modal" id="settingsModal">
+  <div class="modal-content small">
+    <h2>설정 (닉네임 변경)</h2>
+    <input type="text" id="settingNickname" placeholder="새 닉네임 입력">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('settingsModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
+      <button class="btn-save" id="doSaveSettingsBtn" style="background:var(--music); color:var(--bg);">저장하기</button>
     </div>
   </div>
 </div>
@@ -513,7 +526,10 @@
     const authorInput = document.getElementById('postAuthor');
     if (session) {
       currentUser = session.user;
-      const nickname = currentUser.email.split('@')[0]; 
+      
+      // 🌟 설정된 닉네임이 있으면 가져오고, 없으면 이메일 앞자리 사용
+      const nickname = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]; 
+      
       if (currentUser.email === ADMIN_EMAIL) {
         isAdmin = true;
         document.getElementById('userStatus').innerHTML = `<span style="color:var(--admin); font-weight:bold;">[관리자] ${esc(nickname)}</span>님`;
@@ -521,10 +537,13 @@
         isAdmin = false;
         document.getElementById('userStatus').innerHTML = `<span style="color:var(--text); font-weight:bold;">${esc(nickname)}</span>님`;
       }
+      
       document.getElementById('showLoginBtn').style.display = 'none';
       document.getElementById('showSignupBtn').style.display = 'none';
+      document.getElementById('showSettingsBtn').style.display = 'inline-block'; // 설정 버튼 노출
       document.getElementById('logoutBtn').style.display = 'inline-block';
       
+      // 작성자(닉네임) 칸 잠금 해제 (로그인 사용자도 자유롭게 수정 가능)
       authorInput.value = nickname; 
       authorInput.readOnly = false; 
       authorInput.style.background = 'var(--bg)'; 
@@ -534,9 +553,42 @@
       document.getElementById('userStatus').innerHTML = '';
       document.getElementById('showLoginBtn').style.display = 'inline-block';
       document.getElementById('showSignupBtn').style.display = 'inline-block';
+      document.getElementById('showSettingsBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
       authorInput.value = ''; authorInput.readOnly = false;
       authorInput.style.background = 'var(--bg)'; authorInput.style.color = 'var(--text)';
+    }
+  });
+
+  // 🌟 설정(닉네임 변경) 버튼 이벤트
+  document.getElementById('showSettingsBtn').onclick = () => {
+    const currentNick = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
+    document.getElementById('settingNickname').value = currentNick;
+    document.getElementById('settingsModal').style.display = 'flex';
+  };
+
+  // 🌟 닉네임 저장(업데이트) 이벤트
+  document.getElementById('doSaveSettingsBtn').addEventListener('click', async () => {
+    const newNick = document.getElementById('settingNickname').value.trim();
+    if(!newNick) return alert('변경할 닉네임을 입력해주세요.');
+
+    const btn = document.getElementById('doSaveSettingsBtn');
+    btn.disabled = true; btn.textContent = '저장 중...';
+
+    // Supabase user_metadata 에 닉네임 업데이트
+    const { data, error } = await client.auth.updateUser({
+      data: { nickname: newNick }
+    });
+
+    btn.disabled = false; btn.textContent = '저장하기';
+
+    if (error) {
+      alert('닉네임 변경에 실패했습니다: ' + error.message);
+    } else {
+      alert('닉네임이 성공적으로 변경되었습니다!');
+      document.getElementById('settingsModal').style.display = 'none';
+      // UI 즉각 반영을 위해 새로고침
+      location.reload(); 
     }
   });
 
