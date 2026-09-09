@@ -10,7 +10,10 @@
   :root{
     --bg: #101113; --panel: #17181B; --panel-alt: #1B1D21;
     --border: #26282C; --text: #E7E5DC; --muted: #75787E;
-    --muted-2: #4D4F53; --music: #E8542E; --music-hover: #cf4522;
+    --muted-2: #4D4F53; 
+    /* 포인트 컬러 변경 */
+    --music: #22D3EE; 
+    --music-hover: #06B6D4; 
   }
   *{box-sizing:border-box;}
   body{ margin:0; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px; }
@@ -23,8 +26,14 @@
   .brand{ font-size:20px; white-space:nowrap; cursor:pointer; }
   .search{ flex:1; display:flex; max-width:420px; border:1px solid var(--border); background:var(--bg); border-radius:4px; overflow:hidden;}
   .search input{ flex:1; background:none; border:none; outline:none; color:var(--text); padding:9px 12px; font-size:13px; font-family:inherit; }
-  .search button{ border:none; background:none; color:var(--muted); padding:0 12px; cursor:pointer; }
-  .write-btn{ margin-left:auto; background:var(--music); color:#101113; font-weight:700; border:none; padding:9px 18px; cursor:pointer; font-size:13px; border-radius:4px; font-family:inherit; transition:0.2s;}
+  .search button{ border:none; background:var(--panel-alt); color:var(--text); padding:0 16px; cursor:pointer; font-family:inherit; font-weight:600;}
+  .search button:hover { background:var(--border); }
+  
+  .user-actions { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .auth-btn { background:none; border:none; color:var(--text); cursor:pointer; font-size:13px; font-family:inherit; font-weight:600; padding:0;}
+  .auth-btn:hover { color:var(--music); }
+  
+  .write-btn{ background:var(--music); color:#101113; font-weight:700; border:none; padding:9px 18px; cursor:pointer; font-size:13px; border-radius:4px; font-family:inherit; transition:0.2s;}
   .write-btn:hover { background:var(--music-hover); }
 
   .shell{ max-width:1180px; margin:0 auto; padding:20px; display:grid; grid-template-columns:230px 1fr; gap:24px; }
@@ -38,10 +47,9 @@
   .board-list li a{ display:block; padding:8px 16px; font-size:13px; color:var(--muted); transition:0.2s;}
   .board-list li a:hover, .board-list li a.active{color:var(--music); background:var(--bg); font-weight:600;}
 
-  /* 핫게시판 영역 */
   .hot-board-container { display:flex; gap:12px; margin-bottom:24px; overflow-x:auto; padding-bottom:4px;}
   .hot-card { flex:1; min-width:200px; background:var(--panel); border:1px solid var(--music); padding:16px; border-radius:8px; cursor:pointer; transition:transform 0.2s; position:relative; overflow:hidden;}
-  .hot-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(232,84,46,0.15);}
+  .hot-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(34, 211, 238, 0.15);}
   .hot-badge { color:var(--music); font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block;}
   .hot-title { font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;}
   .hot-stats { font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center;}
@@ -49,7 +57,6 @@
   .board-title-row{ display:flex; align-items:baseline; justify-content:space-between; margin:0 0 12px; }
   .board-title-row h1{ font-size:19px; margin:0; font-weight:700; }
 
-  /* 게시판 테이블 */
   .post-table{ width:100%; border-collapse:collapse; border-top:2px solid var(--border); border-bottom:1px solid var(--border); }
   .post-table th{ background:var(--panel); color:var(--muted); font-weight:600; font-size:12px; padding:10px; text-align:center; border-bottom:1px solid var(--border); }
   .post-table td{ padding:10px; vertical-align:middle; border-bottom:1px solid var(--border); font-size:13px;}
@@ -58,36 +65,32 @@
   .col-num{width:50px; text-align:center; color:var(--muted-2);}
   .col-tag{width:90px; text-align:center;}
   .col-title{text-align:left;}
-  .col-author{width:100px; text-align:center; color:var(--muted);}
+  .col-author{width:110px; text-align:center; color:var(--muted);}
   .col-date{width:80px; text-align:center; color:var(--muted);}
   .col-stats{width:60px; text-align:center; color:var(--muted); font-size:12px;}
 
   .tag{ display:inline-block; font-size:11px; font-weight:700; padding:4px 6px; color:#101113; background:var(--muted); border-radius:3px; white-space:nowrap;}
-  .tag.hot { background:var(--music); color:#fff; }
+  .tag.hot { background:var(--music); color:#101113; }
   .title-cell a:hover { text-decoration: underline; color: var(--text); }
   .title-cell .rec-count { color:var(--music); font-weight:bold; font-size:12px; margin-left:6px;}
 
-  /* ---------------- 디시인사이드 스타일 글 읽기 영역 ---------------- */
   #postViewSection { display: none; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:0; overflow:hidden;}
   .view-header { padding:20px 24px; border-bottom:1px solid var(--border); }
   .view-title { font-size:22px; font-weight:700; color:var(--text); margin:0 0 16px 0; line-height:1.4;}
   .view-meta { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); }
   .view-meta-left { display:flex; align-items:center; gap:12px; }
   .view-meta-right { display:flex; gap:16px; }
-  
   .view-content-area { padding:30px 24px; min-height:300px; font-size:15px; line-height:1.7; color:#E7E5DC; white-space:pre-wrap; }
-  
   .view-footer { padding:20px 24px; border-top:1px solid var(--border); display:flex; justify-content:center; align-items:center; flex-direction:column; gap:20px; background:var(--bg);}
   .btn-recommend { background:none; border:2px solid var(--music); color:var(--music); padding:12px 32px; border-radius:30px; font-size:16px; font-weight:bold; cursor:pointer; transition:0.2s; font-family:inherit; display:flex; align-items:center; gap:8px;}
-  .btn-recommend:hover { background:var(--music); color:#fff; }
-  
+  .btn-recommend:hover { background:var(--music); color:#101113; }
   .view-controls { width:100%; display:flex; justify-content:flex-end; padding-top:10px;}
   .btn-list { background:var(--panel-alt); color:var(--text); border:1px solid var(--border); padding:8px 20px; border-radius:4px; font-size:13px; cursor:pointer; font-family:inherit; font-weight:600;}
   .btn-list:hover { background:var(--border); }
 
-  /* ---------------- 글쓰기 모달 ---------------- */
   .modal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); justify-content:center; align-items:center; z-index:100; backdrop-filter:blur(3px);}
   .modal-content{ background:var(--panel); border:1px solid var(--border); width:90%; max-width:550px; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);}
+  .modal-content.small { max-width:350px; }
   .modal-content h2{ margin-top:0; font-size:18px; color:var(--text); margin-bottom:16px;}
   .modal-content input, .modal-content select, .modal-content textarea{ width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px; font-size:14px;}
   .modal-content textarea{ height:200px; resize:none; line-height:1.6; }
@@ -105,22 +108,27 @@
 <header>
   <div class="header-inner">
     <div class="brand display" onclick="location.reload()">너 <span style="color:var(--music)">인디</span> 좋아해<span style="color:var(--music)">?</span></div>
-    <div class="search"><input type="text" placeholder="게시글 검색"><button>🔍</button></div>
-    <button class="write-btn" id="openModalBtn">글쓰기</button>
+    <div class="search"><input type="text" placeholder="게시글 검색"><button>검색</button></div>
+    
+    <div class="user-actions">
+      <span id="userStatus" style="font-size:13px;"></span>
+      <button id="showLoginBtn" class="auth-btn">로그인</button>
+      <button id="showSignupBtn" class="auth-btn">회원가입</button>
+      <button id="logoutBtn" class="auth-btn" style="display:none;">로그아웃</button>
+      <button class="write-btn" id="openModalBtn">글쓰기</button>
+    </div>
   </div>
 </header>
 
 <div class="shell">
-  <!-- 새롭게 개편된 사이드바 분류 -->
   <aside class="sidebar">
     <div class="cat-group">
       <ul class="board-list" style="padding-top:6px;">
-        <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">🌟 전체 게시판</a></li>
+        <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">전체 게시판</a></li>
       </ul>
     </div>
-
     <div class="cat-group">
-      <div class="cat-head"><span>🎵 너 인디 좋아해?</span></div>
+      <div class="cat-head"><span>너 인디 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('국내 인디')">국내 인디</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('해외 인디')">해외 인디</a></li>
@@ -128,18 +136,16 @@
         <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">앨범 평가</a></li>
       </ul>
     </div>
-
     <div class="cat-group">
-      <div class="cat-head"><span>🎤 너 공연 좋아해?</span></div>
+      <div class="cat-head"><span>너 공연 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('공연 정보')">공연 정보</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('공연 후기')">공연 후기</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('같이 갈 사람')">같이 갈 사람</a></li>
       </ul>
     </div>
-
     <div class="cat-group">
-      <div class="cat-head"><span>🎧 너 자작곡 좋아해?</span></div>
+      <div class="cat-head"><span>너 자작곡 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('자작곡')">자작곡</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('데모')">데모</a></li>
@@ -147,9 +153,8 @@
         <li><a href="javascript:void(0);" onclick="changeBoard('피드백')">피드백</a></li>
       </ul>
     </div>
-
     <div class="cat-group">
-      <div class="cat-head"><span>💬 너 수다 좋아해?</span></div>
+      <div class="cat-head"><span>너 수다 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('자유')">자유</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('야구')">야구</a></li>
@@ -163,16 +168,13 @@
   <main>
     <div id="boardSection">
       <div class="board-title-row" style="margin-top:0;">
-        <h1 style="color:var(--music); font-size:16px;">🔥 핫게시판 (HOT)</h1>
+        <h1 style="color:var(--music); font-size:16px;">핫게시판 (HOT)</h1>
       </div>
-      <div class="hot-board-container" id="hotBoard">
-        <!-- 핫게시글 렌더링 -->
-      </div>
+      <div class="hot-board-container" id="hotBoard"></div>
 
       <div class="board-title-row">
-        <h1 id="boardTitle">🌟 전체 게시판</h1>
+        <h1 id="boardTitle">전체 게시판</h1>
       </div>
-
       <table class="post-table">
         <thead>
           <tr>
@@ -191,7 +193,6 @@
       </table>
     </div>
 
-    <!-- 글 읽기 영역 -->
     <div id="postViewSection">
       <div class="view-header">
         <h2 class="view-title" id="readTitle"></h2>
@@ -209,7 +210,7 @@
       </div>
       <div class="view-content-area" id="readContent"></div>
       <div class="view-footer">
-        <button class="btn-recommend" id="recommendBtn">👍 추천 <span id="btnRecCount">0</span></button>
+        <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
         <div class="view-controls">
           <button class="btn-list" onclick="backToList()">목록으로</button>
         </div>
@@ -222,26 +223,25 @@
 <div class="modal" id="writeModal">
   <div class="modal-content">
     <h2>새 글 작성하기</h2>
-    <!-- 분류 항목 선택지 업데이트 -->
     <select id="postTag">
-      <optgroup label="🎵 너 인디 좋아해?">
+      <optgroup label="너 인디 좋아해?">
         <option value="국내 인디">국내 인디</option>
         <option value="해외 인디">해외 인디</option>
         <option value="앨범/곡 추천">앨범/곡 추천</option>
         <option value="앨범 평가">앨범 평가</option>
       </optgroup>
-      <optgroup label="🎤 너 공연 좋아해?">
+      <optgroup label="너 공연 좋아해?">
         <option value="공연 정보">공연 정보</option>
         <option value="공연 후기">공연 후기</option>
         <option value="같이 갈 사람">같이 갈 사람</option>
       </optgroup>
-      <optgroup label="🎧 너 자작곡 좋아해?">
+      <optgroup label="너 자작곡 좋아해?">
         <option value="자작곡">자작곡</option>
         <option value="데모">데모</option>
         <option value="밴드 홍보">밴드 홍보</option>
         <option value="피드백">피드백</option>
       </optgroup>
-      <optgroup label="💬 너 수다 좋아해?">
+      <optgroup label="너 수다 좋아해?">
         <option value="자유">자유</option>
         <option value="야구">야구</option>
         <option value="음반">음반</option>
@@ -249,12 +249,38 @@
         <option value="자랑">자랑</option>
       </optgroup>
     </select>
-    <input type="text" id="postAuthor" placeholder="작성자 이름">
+    <input type="text" id="postAuthor" placeholder="작성자 닉네임 (유동닉)">
     <input type="text" id="postTitle" placeholder="제목을 입력하세요">
     <textarea id="postContent" placeholder="내용을 입력하세요"></textarea>
     <div class="modal-btns">
       <button class="btn-cancel" id="closeModalBtn">취소</button>
       <button class="btn-save" id="savePostBtn">등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 로그인 모달 -->
+<div class="modal" id="loginModal">
+  <div class="modal-content small">
+    <h2>로그인</h2>
+    <input type="email" id="loginEmail" placeholder="이메일 (아이디)">
+    <input type="password" id="loginPw" placeholder="비밀번호">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('loginModal').style.display='none'">취소</button>
+      <button class="btn-save" id="doLoginBtn">로그인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 회원가입 모달 -->
+<div class="modal" id="signupModal">
+  <div class="modal-content small">
+    <h2>회원가입</h2>
+    <input type="email" id="signupEmail" placeholder="사용할 이메일 (아이디)">
+    <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('signupModal').style.display='none'">취소</button>
+      <button class="btn-save" id="doSignupBtn">가입하기</button>
     </div>
   </div>
 </div>
@@ -267,6 +293,86 @@
   let currentPosts = [];
   let currentCategory = '전체'; 
   let currentReadPostId = null;
+  let currentUser = null; 
+
+  client.auth.onAuthStateChange((event, session) => {
+    const authorInput = document.getElementById('postAuthor');
+    if (session) {
+      currentUser = session.user;
+      const nickname = currentUser.email.split('@')[0]; 
+      
+      document.getElementById('userStatus').innerHTML = `<span style="color:var(--text); font-weight:bold;">${nickname}</span>님`;
+      document.getElementById('showLoginBtn').style.display = 'none';
+      document.getElementById('showSignupBtn').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'inline-block';
+      
+      authorInput.value = nickname;
+      authorInput.readOnly = true;
+      authorInput.style.background = 'var(--panel-alt)';
+      authorInput.style.color = 'var(--music)';
+    } else {
+      currentUser = null;
+      document.getElementById('userStatus').innerHTML = '';
+      document.getElementById('showLoginBtn').style.display = 'inline-block';
+      document.getElementById('showSignupBtn').style.display = 'inline-block';
+      document.getElementById('logoutBtn').style.display = 'none';
+      
+      authorInput.value = '';
+      authorInput.readOnly = false;
+      authorInput.style.background = 'var(--bg)';
+      authorInput.style.color = 'var(--text)';
+      authorInput.placeholder = '작성자 닉네임 (유동닉)';
+    }
+  });
+
+  document.getElementById('doSignupBtn').addEventListener('click', async () => {
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPw').value;
+    if(!email || password.length < 6) { alert('이메일과 6자리 이상의 비밀번호를 입력하세요.'); return; }
+    
+    const btn = document.getElementById('doSignupBtn');
+    btn.disabled = true; btn.textContent = '처리 중...';
+    
+    const { data, error } = await client.auth.signUp({ email, password });
+    
+    if(error) {
+      alert('가입 실패: ' + error.message);
+      btn.disabled = false; btn.textContent = '가입하기';
+    } else {
+      document.getElementById('signupModal').style.display = 'none';
+      btn.disabled = false; btn.textContent = '가입하기';
+      
+      setTimeout(async () => {
+        const { error: loginError } = await client.auth.signInWithPassword({ email, password });
+        if(!loginError) alert('회원가입 완료! 자동으로 로그인되었습니다.');
+        else alert('가입은 완료되었으나 자동 로그인에 실패했습니다. 직접 로그인해주세요.');
+      }, 1000);
+    }
+  });
+
+  document.getElementById('doLoginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPw').value;
+    if(!email || !password) { alert('정보를 모두 입력하세요.'); return; }
+    
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if(error) alert('로그인 실패: 아이디나 비밀번호를 확인해주세요.');
+    else {
+      document.getElementById('loginModal').style.display = 'none';
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPw').value = '';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await client.auth.signOut();
+    alert('로그아웃 되었습니다.');
+  });
+
+  document.getElementById('showLoginBtn').onclick = () => document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('showSignupBtn').onclick = () => document.getElementById('signupModal').style.display = 'flex';
+  document.getElementById('openModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'flex';
+  document.getElementById('closeModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'none';
 
   async function fetchPosts() {
     const { data, error } = await client.from('posts').select('*').order('id', { ascending: false });
@@ -281,7 +387,7 @@
       .sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
 
     if(hotPosts.length === 0) {
-      hotBoard.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">아직 핫게시글이 없습니다. 글을 읽고 추천을 눌러보세요!</div>';
+      hotBoard.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">아직 핫게시글이 없습니다. 글을 읽고 추천을 눌러보세요.</div>';
       return;
     }
     hotBoard.innerHTML = hotPosts.map((post, index) => `
@@ -289,9 +395,9 @@
         <span class="hot-badge">HOT ${index + 1}</span>
         <div class="hot-title">${post.title}</div>
         <div class="hot-stats">
-          <span>👀 ${post.views || 0}</span>
-          <span style="color:var(--music)">👍 ${post.recs || 0}</span>
-          <span style="margin-left:auto;">${post.author || '익명'}</span>
+          <span>조회 ${post.views || 0}</span>
+          <span style="color:var(--music)">추천 ${post.recs || 0}</span>
+          <span style="margin-left:auto;">${post.author || 'ㅇㅇ(유동)'}</span>
         </div>
       </div>
     `).join('');
@@ -309,12 +415,14 @@
     tbody.innerHTML = filteredPosts.map(post => {
       const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
       const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${post.recs}]</span>` : '';
+      const authorName = post.author || 'ㅇㅇ(유동)';
+      
       return `
         <tr>
           <td class="col-num tabular">${post.id}</td>
           <td class="col-tag"><span class="tag ${post.recs >= 3 ? 'hot' : ''}">${post.tag}</span></td>
           <td class="col-title title-cell"><a href="javascript:void(0);" onclick="openPostView(${post.id})">${post.title}</a>${recBadge}</td>
-          <td class="col-author">${post.author || '익명'}</td>
+          <td class="col-author">${authorName}</td>
           <td class="col-date">${date}</td>
           <td class="col-stats tabular">${post.views || 0}</td>
           <td class="col-stats tabular" style="color:var(--music); font-weight:600;">${post.recs || 0}</td>
@@ -326,7 +434,7 @@
   function changeBoard(category) {
     backToList(); 
     currentCategory = category;
-    document.getElementById('boardTitle').innerText = category === '전체' ? '🌟 전체 게시판' : category + ' 게시판';
+    document.getElementById('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
     
     document.querySelectorAll('.sidebar a').forEach(link => {
       if (link.getAttribute('onclick').includes(`'${category}'`)) {
@@ -345,7 +453,7 @@
     currentReadPostId = postId;
     document.getElementById('readTitle').textContent = post.title;
     document.getElementById('readTag').textContent = post.tag;
-    document.getElementById('readAuthor').textContent = post.author || '익명';
+    document.getElementById('readAuthor').textContent = post.author || 'ㅇㅇ(유동)';
     document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
     document.getElementById('readContent').textContent = post.content;
     
@@ -380,13 +488,15 @@
     document.getElementById('btnRecCount').textContent = post.recs;
     localStorage.setItem('rec_' + currentReadPostId, 'true'); 
 
-    alert('게시글을 추천했습니다! 👍');
+    alert('게시글을 추천했습니다.');
     await client.from('posts').update({ recs: post.recs }).eq('id', currentReadPostId);
   });
 
   document.getElementById('savePostBtn').addEventListener('click', async () => {
     const tag = document.getElementById('postTag').value;
-    const author = document.getElementById('postAuthor').value || '익명';
+    let author = document.getElementById('postAuthor').value.trim();
+    
+    if(!author) author = 'ㅇㅇ(유동)';
     const title = document.getElementById('postTitle').value;
     const content = document.getElementById('postContent').value;
 
@@ -395,17 +505,16 @@
     const { error } = await client.from('posts').insert([{ tag, author, title, content }]);
     if (error) { alert('글 등록 실패: ' + error.message); } 
     else {
-      alert('글이 등록되었습니다!');
+      alert('글이 등록되었습니다.');
       document.getElementById('writeModal').style.display = 'none';
       document.getElementById('postTitle').value = '';
       document.getElementById('postContent').value = '';
+      if(!currentUser) document.getElementById('postAuthor').value = ''; 
+      
       backToList(); 
       fetchPosts(); 
     }
   });
-
-  document.getElementById('openModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'flex';
-  document.getElementById('closeModalBtn').onclick = () => document.getElementById('writeModal').style.display = 'none';
 
   fetchPosts();
 </script>
