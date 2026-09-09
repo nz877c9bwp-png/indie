@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>너 인디 좋아해?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #101113;
+    --panel: #17181B;
+    --panel-alt: #1B1D21;
+    --border: #26282C;
+    --text: #E7E5DC;
+    --muted: #75787E;
+    --muted-2: #4D4F53;
+    --music: #E8542E;
+    --gig: #1F8A8F;
+    --demo: #C23FA5;
+    --talk: #D6A61A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'IBM Plex Sans KR', sans-serif;
+    font-size:14px;
+  }
+  .display{font-family:'Black Han Sans', sans-serif;}
+  a{color:inherit; text-decoration:none;}
+  .tabular{font-variant-numeric:tabular-nums;}
+
+  /* ---------------- header ---------------- */
+  header{
+    border-bottom:1px solid var(--border);
+    background:var(--panel);
+  }
+  .header-inner{
+    max-width:1180px; margin:0 auto; padding:14px 20px;
+    display:flex; align-items:center; gap:24px;
+  }
+  .brand{
+    font-size:20px; white-space:nowrap;
+  }
+  .brand .dot{color:var(--music);}
+  .search{
+    flex:1; display:flex; max-width:420px;
+    border:1px solid var(--border); background:var(--bg);
+  }
+  .search input{
+    flex:1; background:none; border:none; outline:none; color:var(--text);
+    padding:8px 10px; font-size:13px; font-family:inherit;
+  }
+  .search button{
+    border:none; background:none; color:var(--muted); padding:0 12px; cursor:pointer;
+  }
+  .write-btn{
+    margin-left:auto; background:var(--music); color:#101113; font-weight:700;
+    border:none; padding:9px 18px; cursor:pointer; font-size:13px; font-family:inherit;
+  }
+
+  /* ---------------- layout ---------------- */
+  .shell{
+    max-width:1180px; margin:0 auto; padding:20px;
+    display:grid; grid-template-columns:230px 1fr; gap:20px;
+  }
+  @media (max-width:840px){ .shell{grid-template-columns:1fr;} .sidebar{order:2;} }
+
+  /* ---------------- sidebar ---------------- */
+  .sidebar{
+    background:var(--panel); border:1px solid var(--border);
+    align-self:start; padding:6px 0;
+  }
+  .cat-group{border-bottom:1px solid var(--border);}
+  .cat-group:last-child{border-bottom:none;}
+  .cat-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 14px; font-weight:700; font-size:13px; cursor:pointer;
+  }
+  .cat-head:hover{background:var(--panel-alt);}
+  .cat-head .swatch{
+    width:8px; height:8px; display:inline-block; margin-right:8px; border-radius:1px;
+  }
+  .board-list{list-style:none; margin:0; padding:0 0 8px;}
+  .board-list li a{
+    display:flex; justify-content:space-between;
+    padding:6px 14px 6px 30px; font-size:12.5px; color:var(--muted);
+  }
+  .board-list li a:hover{color:var(--text); background:var(--panel-alt);}
+  .board-list li a.active{color:var(--text); background:var(--panel-alt); font-weight:700;}
+  .board-list li a .n{color:var(--muted-2); font-size:11px;}
+
+  /* ---------------- hot strip ---------------- */
+  .hot-strip{
+    border:1px solid var(--border); background:var(--panel);
+    padding:10px 14px; display:flex; align-items:center; gap:14px;
+    font-size:12.5px; margin-bottom:14px; overflow:hidden;
+  }
+  .hot-strip .label{
+    color:var(--music); font-weight:700; white-space:nowrap;
+  }
+  .hot-strip ul{
+    list-style:none; margin:0; padding:0; display:flex; gap:22px; overflow:hidden;
+  }
+  .hot-strip li{white-space:nowrap; color:var(--muted);}
+  .hot-strip li a:hover{color:var(--text);}
+
+  /* ---------------- board header ---------------- */
+  .board-title-row{
+    display:flex; align-items:baseline; gap:10px; margin:2px 0 12px;
+  }
+  .board-title-row h1{
+    font-size:19px; margin:0; font-weight:700;
+  }
+  .board-title-row .count{color:var(--muted); font-size:12.5px;}
+
+  /* ---------------- post table ---------------- */
+  .post-table{
+    width:100%; border-collapse:collapse; border:1px solid var(--border);
+  }
+  .post-table thead th{
+    background:var(--panel); color:var(--muted); font-weight:600;
+    font-size:11.5px; padding:9px 10px; text-align:left; border-bottom:1px solid var(--border);
+  }
+  .post-table th.num, .post-table td.num{width:44px; text-align:center; color:var(--muted-2);}
+  .post-table th.meta, .post-table td.meta{width:64px; text-align:center;}
+  .post-table tbody tr{
+    border-bottom:1px solid var(--border);
+  }
+  .post-table tbody tr:nth-child(even){background:var(--panel);}
+  .post-table tbody tr:hover{background:var(--panel-alt);}
+  .post-table td{padding:9px 10px; vertical-align:middle;}
+  .tag{
+    display:inline-block; font-size:10.5px; font-weight:700; padding:2px 6px;
+    margin-right:6px; color:#101113;
+  }
+  .tag.music{background:var(--music);}
+  .tag.gig{background:var(--gig);}
+  .tag.demo{background:var(--demo);}
+  .tag.talk{background:var(--talk);}
+  .title-cell a{font-size:13.5px;}
+  .title-cell a:hover{text-decoration:underline;}
+  .cmt{color:var(--music); font-size:11.5px; margin-left:4px;}
+  .author{color:var(--muted);}
+  .date, .views, .recs{color:var(--muted); text-align:center; font-size:12px;}
+
+  /* ---------------- pagination ---------------- */
+  .pager{
+    display:flex; justify-content:center; gap:6px; margin:22px 0 4px; font-size:13px;
+  }
+  .pager a{
+    padding:6px 11px; border:1px solid var(--border); color:var(--muted);
+  }
+  .pager a.current{color:var(--text); border-color:var(--music); font-weight:700;}
+  .pager a:hover{color:var(--text);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand display">너 인디 좋아해<span class="dot">?</span></div>
+    <div class="search">
+      <input type="text" placeholder="게시글, 글쓴이 검색">
+      <button aria-label="검색">🔍</button>
+    </div>
+    <button class="write-btn">글쓰기</button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ---------------- sidebar ---------------- -->
+  <aside class="sidebar">
+    <div class="cat-group">
+      <div class="cat-head"><span><span class="swatch" style="background:var(--music)"></span>너 인디 좋아해?</span></div>
+      <ul class="board-list">
+        <li><a href="#" class="active">국내 인디 <span class="n">128</span></a></li>
+        <li><a href="#">해외 인디 <span class="n">94</span></a></li>
+        <li><a href="#">앨범/곡 추천 <span class="n">210</span></a></li>
+        <li><a href="#">앨범 평가 <span class="n">67</span></a></li>
+      </ul>
+    </div>
+    <div class="cat-group">
+      <div class="cat-head"><span><span class="swatch" style="background:var(--gig)"></span>너 공연 좋아해?</span></div>
+      <ul class="board-list">
+        <li><a href="#">공연 정보 <span class="n">41</span></a></li>
+        <li><a href="#">공연 후기 <span class="n">83</span></a></li>
+        <li><a href="#">같이 갈 사람 <span class="n">12</span></a></li>
+      </ul>
+    </div>
+    <div class="cat-group">
+      <div class="cat-head"><span><span class="swatch" style="background:var(--demo)"></span>너 자작곡 좋아해?</span></div>
+      <ul class="board-list">
+        <li><a href="#">자작곡 <span class="n">55</span></a></li>
+        <li><a href="#">데모 <span class="n">31</span></a></li>
+        <li><a href="#">밴드 홍보 <span class="n">19</span></a></li>
+        <li><a href="#">피드백 <span class="n">42</span></a></li>
+      </ul>
+    </div>
+    <div class="cat-group">
+      <div class="cat-head"><span><span class="swatch" style="background:var(--talk)"></span>너 수다 좋아해?</span></div>
+      <ul class="board-list">
+        <li><a href="#">자유 <span class="n">301</span></a></li>
+        <li><a href="#">야구 <span class="n">156</span></a></li>
+        <li><a href="#">음반 <span class="n">48</span></a></li>
+        <li><a href="#">장터 <span class="n">27</span></a></li>
+        <li><a href="#">자랑 <span class="n">63</span></a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ---------------- main ---------------- -->
+  <main>
+    <div class="hot-strip">
+      <span class="label">🔥 지금 인기</span>
+      <ul>
+        <li><a href="#">이번 신보 순위권 밖인데 개인적으론 올해 최고작</a></li>
+        <li><a href="#">10월 공연 라인업 떴다</a></li>
+        <li><a href="#">데모 하나만 봐주세요 (5분컷)</a></li>
+      </ul>
+    </div>
+
+    <div class="board-title-row">
+      <h1>전체 게시판</h1>
+      <span class="count">전체 글 1,266</span>
+    </div>
+
+    <table class="post-table">
+      <thead>
+        <tr>
+          <th class="num">번호</th>
+          <th class="meta">분류</th>
+          <th>제목</th>
+          <th class="meta">글쓴이</th>
+          <th class="meta">날짜</th>
+          <th class="meta">조회</th>
+          <th class="meta">추천</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num tabular">1266</td>
+          <td class="meta"><span class="tag music">국내인디</span></td>
+          <td class="title-cell"><a href="#">이번 신보 순위권 밖인데 개인적으론 올해 최고작</a><span class="cmt">[47]</span></td>
+          <td class="author">청록빛</td><td class="date">09.09</td><td class="views tabular">842</td><td class="recs tabular">36</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1265</td>
+          <td class="meta"><span class="tag gig">공연정보</span></td>
+          <td class="title-cell"><a href="#">10월 공연 라인업 떴다 (홍대 일대 정리)</a><span class="cmt">[22]</span></td>
+          <td class="author">우기</td><td class="date">09.09</td><td class="views tabular">613</td><td class="recs tabular">19</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1264</td>
+          <td class="meta"><span class="tag demo">데모</span></td>
+          <td class="title-cell"><a href="#">데모 하나만 봐주세요 (5분컷) 편곡 방향 고민중</a><span class="cmt">[15]</span></td>
+          <td class="author">낮잠소나타</td><td class="date">09.09</td><td class="views tabular">201</td><td class="recs tabular">8</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1263</td>
+          <td class="meta"><span class="tag talk">자유</span></td>
+          <td class="title-cell"><a href="#">여기 처음인데 다들 최애 인디밴드 뭐임?</a><span class="cmt">[63]</span></td>
+          <td class="author">방구석평론가</td><td class="date">09.09</td><td class="views tabular">1204</td><td class="recs tabular">27</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1262</td>
+          <td class="meta"><span class="tag music">앨범평가</span></td>
+          <td class="title-cell"><a href="#">이번 앨범 프로듀싱은 진짜 과감했다, 곡별 정리</a><span class="cmt">[9]</span></td>
+          <td class="author">테잎감기</td><td class="date">09.08</td><td class="views tabular">356</td><td class="recs tabular">14</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1261</td>
+          <td class="meta"><span class="tag gig">같이갈사람</span></td>
+          <td class="title-cell"><a href="#">[모집] 9/27 무브홀 공연 같이 갈 두 명 구해요</a><span class="cmt">[6]</span></td>
+          <td class="author">이어폰한쪽</td><td class="date">09.08</td><td class="views tabular">178</td><td class="recs tabular">5</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1260</td>
+          <td class="meta"><span class="tag talk">야구</span></td>
+          <td class="title-cell"><a href="#">오늘 경기 인디밴드 응원가 나온 거 실화냐</a><span class="cmt">[31]</span></td>
+          <td class="author">직관러</td><td class="date">09.08</td><td class="views tabular">522</td><td class="recs tabular">11</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1259</td>
+          <td class="meta"><span class="tag demo">밴드홍보</span></td>
+          <td class="title-cell"><a href="#">3인조 밴드 베이스 급구 (합주실 마포)</a><span class="cmt">[4]</span></td>
+          <td class="author">기타줄끊김</td><td class="date">09.07</td><td class="views tabular">96</td><td class="recs tabular">2</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1258</td>
+          <td class="meta"><span class="tag music">해외인디</span></td>
+          <td class="title-cell"><a href="#">요즘 드림팝 신인들 계보 정리해봤음</a><span class="cmt">[18]</span></td>
+          <td class="author">청록빛</td><td class="date">09.07</td><td class="views tabular">433</td><td class="recs tabular">21</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1257</td>
+          <td class="meta"><span class="tag talk">장터</span></td>
+          <td class="title-cell"><a href="#">이번 주 공연 티켓 양도합니다 (2매)</a><span class="cmt">[3]</span></td>
+          <td class="author">양도급</td><td class="date">09.07</td><td class="views tabular">145</td><td class="recs tabular">1</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1256</td>
+          <td class="meta"><span class="tag demo">피드백</span></td>
+          <td class="title-cell"><a href="#">보컬 톤 이상한지 냉정하게 평가 부탁</a><span class="cmt">[11]</span></td>
+          <td class="author">낮잠소나타</td><td class="date">09.06</td><td class="views tabular">167</td><td class="recs tabular">6</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1255</td>
+          <td class="meta"><span class="tag gig">공연후기</span></td>
+          <td class="title-cell"><a href="#">어제 앵콜 세 번 받은 거 실화? 후기 씁니다</a><span class="cmt">[24]</span></td>
+          <td class="author">맨앞줄</td><td class="date">09.06</td><td class="views tabular">389</td><td class="recs tabular">17</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1254</td>
+          <td class="meta"><span class="tag talk">자랑</span></td>
+          <td class="title-cell"><a href="#">사인 CD 득템 인증 (feat. 눈물)</a><span class="cmt">[29]</span></td>
+          <td class="author">굿즈수집가</td><td class="date">09.06</td><td class="views tabular">278</td><td class="recs tabular">13</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1253</td>
+          <td class="meta"><span class="tag music">앨범/곡추천</span></td>
+          <td class="title-cell"><a href="#">비 오는 날 듣기 좋은 곡 다섯 개만 추천해줘</a><span class="cmt">[38]</span></td>
+          <td class="author">우기</td><td class="date">09.05</td><td class="views tabular">701</td><td class="recs tabular">24</td>
+        </tr>
+        <tr>
+          <td class="num tabular">1252</td>
+          <td class="meta"><span class="tag talk">음반</span></td>
+          <td class="title-cell"><a href="#">턴테이블 산 지 한 달, 인디 바이닐 추천 좀</a><span class="cmt">[16]</span></td>
+          <td class="author">아날로그입문</td><td class="date">09.05</td><td class="views tabular">203</td><td class="recs tabular">9</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pager">
+      <a href="#">‹</a>
+      <a href="#" class="current">1</a>
+      <a href="#">2</a>
+      <a href="#">3</a>
+      <a href="#">4</a>
+      <a href="#">5</a>
+      <a href="#">›</a>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
