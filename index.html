@@ -22,7 +22,7 @@
     --special: #8B5CF6; 
   }
   *{box-sizing:border-box;}
-  body{ margin:0; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px; -webkit-font-smoothing: antialiased;}
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px; -webkit-font-smoothing: antialiased; display:flex; flex-direction:column; min-height:100vh;}
   .display{font-family:'Pretendard', sans-serif; font-weight:800; letter-spacing:-1px;}
   a{color:inherit; text-decoration:none;}
   .tabular{font-variant-numeric:tabular-nums;}
@@ -43,7 +43,7 @@
   .write-btn{ background:var(--music); color:var(--bg); font-weight:700; border:none; padding:9px 18px; cursor:pointer; font-size:13px; border-radius:4px; font-family:inherit; transition:0.2s;}
   .write-btn:hover { background:var(--music-hover); }
 
-  .shell{ max-width:1180px; margin:0 auto; padding:20px; display:grid; grid-template-columns:230px 1fr; gap:24px; }
+  .shell{ max-width:1180px; margin:0 auto; padding:20px; display:grid; grid-template-columns:230px 1fr; gap:24px; flex:1; width:100%;}
   
   .sidebar{ background:var(--panel); border:1px solid var(--border); align-self:start; border-radius:8px; overflow:hidden;}
   .cat-group{border-bottom:1px solid var(--border);}
@@ -168,6 +168,12 @@
   .yt-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   .yt-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
+  /* 🌟 사이트 하단 법적 고지 푸터 CSS */
+  .site-footer { border-top:1px solid var(--border); padding:30px 20px; text-align:center; color:var(--muted); font-size:12px; line-height:1.6; margin-top:auto; background:var(--panel);}
+  .footer-inner { max-width:1180px; margin:0 auto; }
+  .footer-inner a { color:var(--muted); text-decoration:underline; cursor:pointer;}
+  .footer-inner a:hover { color:var(--text); }
+
   @media (max-width: 840px) {
     .shell { grid-template-columns: 1fr; padding: 12px; gap: 16px; }
     
@@ -210,7 +216,7 @@
   .modal-content{ background:var(--panel); border:1px solid var(--border); width:90%; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);}
   .modal-content.small { max-width:350px; }
   .modal-content h2{ margin-top:0; font-size:18px; color:var(--text); margin-bottom:16px;}
-  .modal-content input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px; font-size:14px; outline:none; box-sizing:border-box;}
+  .modal-content input[type="email"], .modal-content input[type="password"], .modal-content input[type="text"] { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:10px; margin-bottom:12px; font-family:inherit; border-radius:4px; font-size:14px; outline:none; box-sizing:border-box;}
   .modal-content input:focus { border-color:var(--music); }
   .modal-btns{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
   .modal-btns button{ border:none; padding:10px 18px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:4px; font-size:13px; transition:0.2s;}
@@ -231,7 +237,6 @@
       <span id="userStatus" style="font-size:13px;"></span>
       <button id="showLoginBtn" class="auth-btn">로그인</button>
       <button id="showSignupBtn" class="auth-btn">회원가입</button>
-      <!-- 🌟 설정 버튼 추가 -->
       <button id="showSettingsBtn" class="auth-btn" style="display:none;">설정</button>
       <button id="logoutBtn" class="auth-btn" style="display:none;">로그아웃</button>
       <button class="write-btn" id="openWriteBtn">글쓰기</button>
@@ -463,7 +468,18 @@
   </main>
 </div>
 
-<!-- 🌟 로그인 모달 -->
+<!-- 🌟 사이트 하단 법적 고지 및 처리방침 푸터 -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p style="margin:0 0 8px 0; color:var(--text); font-weight:bold;">너 평가 좋아해?</p>
+    <p style="margin:0 0 8px 0;">타인의 명예를 훼손하거나 저작권을 침해하는 게시글은 통보 없이 삭제될 수 있으며, 이에 대한 법적 책임은 작성자 본인에게 있습니다.</p>
+    <p style="margin:0;">
+      관리자 이메일: bkseungah010223@gmail.com | 
+      <a onclick="document.getElementById('privacyModal').style.display='flex'">[개인정보 처리방침 및 이용약관]</a>
+    </p>
+  </div>
+</footer>
+
 <div class="modal" id="loginModal">
   <div class="modal-content small">
     <h2>로그인</h2>
@@ -476,12 +492,18 @@
   </div>
 </div>
 
-<!-- 🌟 회원가입 모달 -->
+<!-- 🌟 필수 약관 동의가 추가된 회원가입 모달 -->
 <div class="modal" id="signupModal">
   <div class="modal-content small">
     <h2>회원가입</h2>
     <input type="email" id="signupEmail" placeholder="사용할 이메일 (아이디)">
     <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)">
+    
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); margin-bottom:16px; cursor:pointer; line-height:1.4;">
+      <input type="checkbox" id="signupConsent" style="width:auto; margin:2px 0 0 0;">
+      <span>[필수] 개인정보 수집 및 이용, 이용약관에 동의합니다. <a onclick="document.getElementById('privacyModal').style.display='flex'" style="color:var(--music); text-decoration:underline;">내용 보기</a></span>
+    </label>
+
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('signupModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doSignupBtn" style="background:var(--music); color:var(--bg);">가입하기</button>
@@ -489,7 +511,6 @@
   </div>
 </div>
 
-<!-- 🌟 설정(닉네임 변경) 모달 추가 -->
 <div class="modal" id="settingsModal">
   <div class="modal-content small">
     <h2>설정 (닉네임 변경)</h2>
@@ -497,6 +518,26 @@
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('settingsModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doSaveSettingsBtn" style="background:var(--music); color:var(--bg);">저장하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🌟 개인정보 처리방침 텍스트 모달 -->
+<div class="modal" id="privacyModal">
+  <div class="modal-content" style="max-width:500px;">
+    <h2>개인정보 처리방침 및 이용약관</h2>
+    <div style="font-size:13px; color:var(--muted); line-height:1.6; max-height:300px; overflow-y:auto; background:var(--bg); padding:16px; border:1px solid var(--border); border-radius:4px; margin-bottom:16px;">
+      <strong>1. 수집하는 개인정보 항목</strong><br>
+      - 필수항목: 이메일, 비밀번호, 닉네임<br><br>
+      <strong>2. 개인정보의 수집 및 이용 목적</strong><br>
+      - 회원 식별, 게시판 서비스 제공 및 부정이용 방지<br><br>
+      <strong>3. 개인정보의 보유 및 이용 기간</strong><br>
+      - 회원 탈퇴 시 지체 없이 파기<br><br>
+      <strong>4. 이용자 의무</strong><br>
+      - 타인의 명예를 훼손하거나 저작권을 침해하는 불법적인 콘텐츠 게시를 금지하며, 적발 시 게시물 삭제 및 서비스 이용이 제한될 수 있습니다.
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('privacyModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">닫기</button>
     </div>
   </div>
 </div>
@@ -517,7 +558,6 @@
   let tempAlbum = { title: null, artist: null, cover: null };
   let currentSelectedRating = 5;
 
-  // XSS 방어 및 문자열 렌더링 헬퍼 함수
   function esc(s){ 
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); 
   }
@@ -526,8 +566,6 @@
     const authorInput = document.getElementById('postAuthor');
     if (session) {
       currentUser = session.user;
-      
-      // 🌟 설정된 닉네임이 있으면 가져오고, 없으면 이메일 앞자리 사용
       const nickname = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]; 
       
       if (currentUser.email === ADMIN_EMAIL) {
@@ -540,10 +578,9 @@
       
       document.getElementById('showLoginBtn').style.display = 'none';
       document.getElementById('showSignupBtn').style.display = 'none';
-      document.getElementById('showSettingsBtn').style.display = 'inline-block'; // 설정 버튼 노출
+      document.getElementById('showSettingsBtn').style.display = 'inline-block';
       document.getElementById('logoutBtn').style.display = 'inline-block';
       
-      // 작성자(닉네임) 칸 잠금 해제 (로그인 사용자도 자유롭게 수정 가능)
       authorInput.value = nickname; 
       authorInput.readOnly = false; 
       authorInput.style.background = 'var(--bg)'; 
@@ -560,14 +597,12 @@
     }
   });
 
-  // 🌟 설정(닉네임 변경) 버튼 이벤트
   document.getElementById('showSettingsBtn').onclick = () => {
     const currentNick = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
     document.getElementById('settingNickname').value = currentNick;
     document.getElementById('settingsModal').style.display = 'flex';
   };
 
-  // 🌟 닉네임 저장(업데이트) 이벤트
   document.getElementById('doSaveSettingsBtn').addEventListener('click', async () => {
     const newNick = document.getElementById('settingNickname').value.trim();
     if(!newNick) return alert('변경할 닉네임을 입력해주세요.');
@@ -575,7 +610,6 @@
     const btn = document.getElementById('doSaveSettingsBtn');
     btn.disabled = true; btn.textContent = '저장 중...';
 
-    // Supabase user_metadata 에 닉네임 업데이트
     const { data, error } = await client.auth.updateUser({
       data: { nickname: newNick }
     });
@@ -587,18 +621,24 @@
     } else {
       alert('닉네임이 성공적으로 변경되었습니다!');
       document.getElementById('settingsModal').style.display = 'none';
-      // UI 즉각 반영을 위해 새로고침
       location.reload(); 
     }
   });
 
+  // 🌟 회원가입 시 동의 여부 체크 로직 추가
   document.getElementById('doSignupBtn').addEventListener('click', async () => {
-    const email = document.getElementById('signupEmail').value; const password = document.getElementById('signupPw').value;
-    if(!email || password.length < 6) return alert('이메일과 6자 이상 비밀번호 필수');
+    const email = document.getElementById('signupEmail').value; 
+    const password = document.getElementById('signupPw').value;
+    const consent = document.getElementById('signupConsent').checked;
+    
+    if(!email || password.length < 6) return alert('이메일과 6자 이상 비밀번호가 필요합니다.');
+    if(!consent) return alert('서비스 이용을 위해 개인정보 수집 및 이용약관에 동의해주세요.');
+
     const { error } = await client.auth.signUp({ email, password });
     if(error) alert('실패: ' + error.message);
     else { alert('가입 완료'); document.getElementById('signupModal').style.display='none'; setTimeout(()=>client.auth.signInWithPassword({ email, password }), 1000); }
   });
+
   document.getElementById('doLoginBtn').addEventListener('click', async () => {
     const email = document.getElementById('loginEmail').value; const password = document.getElementById('loginPw').value;
     const { error } = await client.auth.signInWithPassword({ email, password });
@@ -606,7 +646,10 @@
   });
   document.getElementById('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
   document.getElementById('showLoginBtn').onclick = () => document.getElementById('loginModal').style.display='flex';
-  document.getElementById('showSignupBtn').onclick = () => document.getElementById('signupModal').style.display='flex';
+  document.getElementById('showSignupBtn').onclick = () => {
+    document.getElementById('signupConsent').checked = false; // 열 때마다 동의 초기화
+    document.getElementById('signupModal').style.display='flex';
+  }
 
   document.getElementById('postTag').addEventListener('change', (e) => {
     if(e.target.value === '앨범 평가') {
@@ -872,10 +915,9 @@
     renderPosts(); 
   }
 
-  // 이스케이프가 통합된 본문 포맷팅 헬퍼
   function formatContent(text) {
     if (!text) return '';
-    let safeText = esc(text); // 전체 텍스트 XSS 1차 방어
+    let safeText = esc(text);
     safeText = safeText.replace(/\[img\](.*?)\[\/img\]/g, '<img src="$1">');
     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
     safeText = safeText.replace(ytRegex, (match, videoId) => `<div class="yt-wrapper"><iframe src="https://www.youtube.com/embed/${esc(videoId)}" allowfullscreen></iframe></div>`);
@@ -952,7 +994,7 @@
   });
 
   document.getElementById('savePostBtn').addEventListener('click', async () => {
-    if (!currentUser) return alert('로그인 후 이용할 수 있습니다.'); // 클라이언트 검증 강화
+    if (!currentUser) return alert('로그인 후 이용할 수 있습니다.');
 
     const tag = document.getElementById('postTag').value;
     const author = document.getElementById('postAuthor').value.trim() || 'ㅇㅇ(유동)';
