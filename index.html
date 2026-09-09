@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>너 인디 좋아해?</title>
+<title>너 평가 좋아해?</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -225,7 +225,7 @@
 
 <header>
   <div class="header-inner">
-    <div class="brand display" onclick="location.reload()">너 <span style="color:var(--music)">인디</span> 좋아해<span style="color:var(--music)">?</span></div>
+    <div class="brand display" onclick="location.reload()">너 <span style="color:var(--music)">평가</span> 좋아해<span style="color:var(--music)">?</span></div>
     
     <div class="search">
       <input type="text" placeholder="게시글 검색">
@@ -246,7 +246,7 @@
   <aside class="sidebar">
     <div class="cat-group special-menu">
       <ul class="board-list" style="padding:0;">
-        <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">🎧 명반 평가소</a></li>
+        <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">명반 평가소</a></li>
       </ul>
     </div>
     
@@ -256,7 +256,7 @@
       </ul>
     </div>
     <div class="cat-group">
-      <div class="cat-head"><span>너 인디 좋아해?</span></div>
+      <div class="cat-head"><span>너 평가 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('국내 인디')">국내 인디</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('해외 인디')">해외 인디</a></li>
@@ -344,7 +344,7 @@
 
     <div id="boardSection">
       <div class="board-title-row" style="margin-top:0;">
-        <h1 id="widgetTitle" style="color:var(--music); font-size:16px;">🔥 핫게시판 (HOT)</h1>
+        <h1 id="widgetTitle" style="color:var(--music); font-size:16px;">핫게시판 (HOT)</h1>
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
@@ -381,7 +381,7 @@
       <div class="write-body">
         
         <div id="albumSearchWrap">
-          <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">🎵 평가할 앨범 검색 (Apple Music)</div>
+          <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">평가할 앨범 검색 (Apple Music)</div>
           <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
             <select id="searchType" style="background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0 10px; border-radius:4px; outline:none; font-family:inherit; height:38px;">
               <option value="all">통합검색</option>
@@ -419,9 +419,9 @@
         <div class="write-row">
           <select id="postTag">
             <optgroup label="명반 평가소" style="color:var(--special);">
-              <option value="앨범 평가">🎧 앨범 평가</option>
+              <option value="앨범 평가">앨범 평가</option>
             </optgroup>
-            <optgroup label="너 인디 좋아해?">
+            <optgroup label="너 평가 좋아해?">
               <option value="국내 인디">국내 인디</option>
               <option value="해외 인디">해외 인디</option>
               <option value="앨범/곡 추천">앨범/곡 추천</option>
@@ -450,7 +450,7 @@
         </div>
         
         <div class="write-toolbar">
-          <label for="imageUpload" class="btn-toolbar" id="btnImageUploadText">📷 사진 첨부</label>
+          <label for="imageUpload" class="btn-toolbar" id="btnImageUploadText">사진 첨부</label>
           <input type="file" id="imageUpload" accept="image/*" style="display:none;">
           <span style="font-size:12px; color:var(--muted); margin-left:auto;">유튜브 주소를 넣으면 영상 자동 표시</span>
         </div>
@@ -586,7 +586,7 @@
         document.getElementById('albumResults').innerHTML = `
           <div style="color:var(--admin); font-size:13px; line-height:1.5;">
             결과가 없습니다.<br>
-            💡 <b>검색 꿀팁:</b><br>
+            <b>검색 꿀팁:</b><br>
             - '부활' 밴드를 찾으시려면 드롭다운을 <b>[가수명만]</b>으로 변경하고 검색하세요. (종교 앨범 제외)<br>
             - 한글로 안 나오면 영문 <b>Boohwal, Jannabi</b> 등으로 검색해보세요.
           </div>`; 
@@ -642,13 +642,13 @@
 
   document.getElementById('imageUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0]; if(!file) return;
-    const label = document.getElementById('btnImageUploadText'); label.innerText = '⏳ 업로드 중...';
+    const label = document.getElementById('btnImageUploadText'); label.innerText = '업로드 중...';
     const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
     const { error } = await client.storage.from('images').upload(fileName, file);
-    if (error) { alert('실패: ' + error.message); label.innerText = '📷 사진 첨부'; return; }
+    if (error) { alert('실패: ' + error.message); label.innerText = '사진 첨부'; return; }
     const { data: publicUrlData } = client.storage.from('images').getPublicUrl(fileName);
     document.getElementById('postContent').value += `\n[img]${publicUrlData.publicUrl}[/img]\n`;
-    label.innerText = '📷 사진 첨부'; e.target.value = ''; 
+    label.innerText = '사진 첨부'; e.target.value = ''; 
   });
 
   document.getElementById('openWriteBtn').onclick = () => {
@@ -719,7 +719,7 @@
               <div class="album-card-info">
                 <div class="album-card-title">${a.title}</div>
                 <div class="album-card-artist">${a.artist}</div>
-                <div class="album-card-rating">⭐ ${avg} <span>(${a.count}명)</span></div>
+                <div class="album-card-rating">★ ${avg} <span>(${a.count}명)</span></div>
               </div>
             </div>`;
         }).join('');
@@ -738,7 +738,7 @@
         tbody.innerHTML = filtered.map((post, i) => {
           const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
           const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${post.recs}]</span>` : '';
-          const ratingBadge = post.album_title ? `<span style="color:var(--special); font-size:11px; margin-left:6px;">⭐${post.rating}</span>` : '';
+          const ratingBadge = post.album_title ? `<span style="color:var(--special); font-size:11px; margin-left:6px;">★ ${post.rating}</span>` : '';
           return `
             <tr>
               <td class="col-num tabular">${total - i}</td>
@@ -768,13 +768,13 @@
     document.getElementById('adCover').src = cover;
     document.getElementById('adTitle').innerText = title;
     document.getElementById('adArtist').innerText = artist;
-    document.getElementById('adScore').innerHTML = `⭐ ${avg} <span>(${albumPosts.length}명 참여)</span>`;
+    document.getElementById('adScore').innerHTML = `★ ${avg} <span>(${albumPosts.length}명 참여)</span>`;
 
     document.getElementById('adReviews').innerHTML = albumPosts.map(p => `
       <div class="review-card" onclick="openPostView(${p.id})">
         <div class="rc-header">
           <span class="rc-author">${p.author || 'ㅇㅇ(유동)'}</span>
-          <span class="rc-stars">⭐ ${p.rating}</span>
+          <span class="rc-stars">★ ${p.rating}</span>
         </div>
         <div class="rc-title">${p.title}</div>
         <div class="rc-content">${p.content.replace(/\[img\].*?\[\/img\]/g, '(사진)').replace(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/\S+/g, '(영상)').substring(0, 150)}...</div>
