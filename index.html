@@ -111,7 +111,6 @@
   .rc-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:8px;}
   .rc-content { font-size:14px; color:var(--muted); line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
 
-  /* 🌟 글 읽기 영역 여백 추가 (하단 목록과의 간격) */
   #postViewSection { display: none; margin-bottom: 40px; }
   .view-box { background:var(--panel); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
   
@@ -156,9 +155,11 @@
   .btn-submit-write { background:var(--music); color:var(--bg); border:none; padding:10px 32px; border-radius:4px; font-size:14px; cursor:pointer; font-weight:bold; transition:0.2s;}
 
   #albumSearchWrap { background:var(--bg); padding:20px; border-radius:6px; margin-bottom:16px; display:none; border:1px solid var(--border);}
-  .search-result-row { display:flex; gap:10px; overflow-x:auto; padding-bottom:10px; margin-top:10px; scroll-snap-type:x mandatory;}
-  .search-item { flex:0 0 120px; scroll-snap-align:start; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:10px; cursor:pointer; transition:0.2s;}
-  .search-item:hover { border-color:var(--music); }
+  
+  .search-result-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 15px; max-height: 360px; overflow-y: auto; padding-right: 5px; }
+  .search-item { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
+  .search-item:hover { border-color: var(--music); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  
   .search-item img { width:100%; aspect-ratio:1/1; border-radius:4px; object-fit:cover; margin-bottom:8px;}
   .search-item .s-title { font-size:13px; font-weight:bold; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .search-item .s-artist { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -292,9 +293,7 @@
   </aside>
 
   <main>
-    <!-- 🌟 글 읽기 영역을 리스트 위쪽으로 배치 -->
     <div id="postViewSection">
-      <!-- 🌟 원래 화면으로 돌아가는 상단 버튼 -->
       <div style="margin-bottom: 16px;">
         <button class="btn-list" onclick="backToList()" style="padding:10px 24px; font-size:14px; font-weight:700; border-radius:6px; background:var(--panel); border:1px solid var(--border); color:var(--text);">← 원래 화면으로 돌아가기</button>
       </div>
@@ -326,7 +325,6 @@
       </div>
     </div>
 
-    <!-- 앨범 상세 -->
     <div id="albumDetailSection">
       <button class="btn-list" onclick="backToList()" style="margin-bottom:24px;">← 뒤로가기</button>
       <div class="ad-header">
@@ -344,7 +342,6 @@
       <div class="review-list" id="adReviews"></div>
     </div>
 
-    <!-- 🌟 게시판 목록 (하단 고정용) -->
     <div id="boardSection">
       <div class="board-title-row" style="margin-top:0;">
         <h1 id="widgetTitle" style="color:var(--music); font-size:16px;">🔥 핫게시판 (HOT)</h1>
@@ -377,7 +374,6 @@
       <div id="albumGrid"></div>
     </div>
 
-    <!-- 글쓰기 -->
     <div id="writeSection">
       <div class="write-header">
         <h2 id="writeSectionTitle">새 글 작성하기</h2>
@@ -561,7 +557,6 @@
     }
   });
 
-  // 검색 기능 (고도화 버전)
   document.getElementById('btnSearchAlbum').addEventListener('click', async () => {
     const query = document.getElementById('albumQuery').value.trim();
     const searchType = document.getElementById('searchType').value;
@@ -843,7 +838,6 @@
     document.getElementById('adminEditBtn').style.display = isAdmin ? 'inline-block' : 'none';
     document.getElementById('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
 
-    // 🌟 핵심 변경: boardSection(목록)을 'none'이 아닌 'block'으로 유지!
     document.getElementById('writeSection').style.display = 'none';
     document.getElementById('albumDetailSection').style.display = 'none';
     document.getElementById('postViewSection').style.display = 'block';
