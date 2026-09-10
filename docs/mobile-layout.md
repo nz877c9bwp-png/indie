@@ -15,7 +15,8 @@
 ## 검증
 
 - `npm test`: **44/44 PASS**: 기존 기능·XSS 테스트.
-- `npm run test:layout`: **51/51 PASS**: 3개 엔진(Chromium/Firefox/WebKit) × 17개 케이스.
+- `npm run test:layout`: **66/66 PASS**: 3개 엔진(Chromium/Firefox/WebKit) × 22개 케이스.
+- `npm run test:devices`: **24/24 PASS**: 폰·태블릿 세로/가로 프로필.
 - `npm run test:baseline`: **4/4 PASS**.
 - 12개 화면 크기: 320×568, 360×800, 375×667, 390×844, 430×932, 600×800, 768×1024, 840×900, 841×900, 844×390, 1024×768, 1440×900.
 - 추가 케이스: 화면 회전/resize, 모바일 font-size, 확대 허용 viewport 설정, 200% CSS zoom. 320/390/600/840px에서 메뉴와 HOT 영역의 끝까지 스크롤한 뒤 문서 폭 유지와 HOT·게시글 클릭도 확인한다. 게시글 표는 스크롤 없이 화면에 맞는지도 검사한다.
@@ -35,7 +36,7 @@
 
 ## 화면 예시
 
-게시판 이미지는 로컬 mock 데이터로 촬영했다.
+게시판·앨범 이미지는 최신 main 통합 후 로컬 mock 데이터로 촬영했다.
 
 ![모바일 게시판](screenshots/mobile-board.png)
 
@@ -46,3 +47,7 @@
 모바일에서 번호·날짜·조회·추천 열을 숨겨 3개 열만 보이는데, 빈 상태의 `colspan="7"`이 추가 열을 만들어 제목 폭이 달라졌다. 로딩/빈 상태 안내 행을 모바일 3열과 desktop 7열로 나누고 CSS breakpoint에서 하나만 표시한다. 기존 열 너비(모바일 분류·글쓴이 각각 72px, 제목은 나머지)는 유지한다.
 
 수정 전 Chromium 모바일 320/390/840px에서 열 너비 비교 테스트 실패를 재현했다. 수정 후 `npm run test:layout -- --grep 'empty boards'`는 3개 엔진 × 5개 폭(320/390/840/841/1280px), **15/15 PASS**다. `npm test -- --grep 'empty states'`도 **2/2 PASS**이며 runtime/console 오류는 없었다. 서버 요청은 로컬 mock으로 대체했다.
+
+## 최신 main과 통합
+
+PR 준비 시 `44a48e3`을 통합했다. upstream 사이트명 “너 인디 좋아해?”와 조회수·추천수 RPC 호출 및 관련 mock/test를 유지했다. 모바일 메뉴는 최신 main의 바둑판 배치 대신 사용자가 fork에서 확인한 가로 스크롤 배치를 제안한다. 이 차이는 의도된 디자인 선택이며 관리자가 검토해야 한다. 840px 이하의 모바일 스타일 외에도 grid 최소 폭, 표 열 비율, 모달 최대 높이, viewport 설정 등 공통 스타일 보정이 포함되어 있다. Supabase SQL·정책·CNAME은 main 대비 변경하지 않았다.
