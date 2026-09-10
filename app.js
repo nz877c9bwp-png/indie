@@ -443,7 +443,7 @@ function renderPosts() {
         
         const recsVal = post.recs || 0;
         const recsCell = element('td', 'col-likes tabular', recsVal);
-        if(recsVal > 0) recsCell.style.cssText = 'color:#d31900; font-weight:bold;'; 
+        if(recsVal > 0) recsCell.style.cssText = 'color:var(--admin); font-weight:bold;';
         
         row.append(element('td', 'col-id tabular', displayNum), tag, titleCell, authorCell, dateCell, viewsCell, recsCell);
         return row;
