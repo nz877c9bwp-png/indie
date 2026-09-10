@@ -70,7 +70,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--panel); box-shadow:var(--shadow-sm); flex:none; }
 
 .brand-word{ display:inline-flex; align-items:baseline; }
-.bw-group{ display:inline-flex; align-items:baseline; width:44px; flex:none; }
+.bw-group{ display:inline-flex; align-items:baseline; width:38px; flex:none; }
 .bw-big{ color:var(--music); font-weight:900; font-size:1.15em; }
 .bw-big.bw-kr{ color:var(--muted); }
 .bw-small{ font-weight:300; font-size:10px; color:var(--muted); margin-left:1px; }
