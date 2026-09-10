@@ -7,7 +7,7 @@
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 아까 만든 CSS 파일을 연결합니다 -->
+<!-- 분리된 CSS 파일 연결 -->
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -94,7 +94,26 @@
             </div>
           </div>
         </div>
+        
         <div class="view-content-area" id="readContent"></div>
+        
+        <!-- [추가된 부분] 댓글 영역 시작 -->
+        <div class="comment-section">
+          <div class="comment-count">댓글 <span id="commentCount" style="color:var(--music)">0</span></div>
+          <ul class="comment-list" id="commentList">
+            <!-- 댓글이 여기에 표시됩니다 -->
+          </ul>
+          
+          <div class="comment-write">
+            <div class="cw-author"><input type="text" id="commentAuthor" placeholder="닉네임 (유동)"></div>
+            <div class="cw-input">
+              <textarea id="commentContent" placeholder="타인의 권리를 침해하거나 명예를 훼손하는 댓글은 운영원칙 및 관련 법률에 제재를 받을 수 있습니다."></textarea>
+              <button id="btnSubmitComment">등록</button>
+            </div>
+          </div>
+        </div>
+        <!-- [추가된 부분] 댓글 영역 끝 -->
+
         <div class="view-footer">
           <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
           <div class="view-controls">
@@ -341,7 +360,7 @@
   </div>
 </div>
 
-<!-- 아까 만든 JS 파일을 연결합니다 -->
+<!-- 분리된 JS 파일 연결 -->
 <script src="app.js"></script>
 </body>
 </html>
