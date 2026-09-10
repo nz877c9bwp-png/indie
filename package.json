@@ -1,0 +1,11 @@
+{
+  "name": "indie-frontend-tests",
+  "private": true,
+  "scripts": {
+    "test": "playwright test --project=chromium --project=mobile",
+    "test:baseline": "playwright test --project=baseline"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
