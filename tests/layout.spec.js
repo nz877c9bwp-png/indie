@@ -110,3 +110,19 @@ for (const width of [320, 390, 600, 840]) {
     await assertClean(page, state);
   });
 }
+
+for (const width of [320, 390, 840, 841, 1280]) {
+  test(`layout ${width}: empty boards preserve populated column widths`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    const state = await boot(page);
+    const widths = () => page.locator('.post-table th:visible').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+    const populated = await widths();
+    await page.evaluate(() => changeBoard('빈 테스트 게시판'));
+    await expect(page.locator('#postList')).toContainText('등록된 게시글이 없습니다.');
+    const empty = await widths();
+    expect(empty).toHaveLength(populated.length);
+    empty.forEach((value, i) => expect(Math.abs(value - populated[i])).toBeLessThan(1));
+    await fits(page, 'empty board');
+    await assertClean(page, state);
+  });
+}

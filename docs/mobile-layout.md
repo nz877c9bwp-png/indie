@@ -40,3 +40,9 @@
 ![모바일 게시판](screenshots/mobile-board.png)
 
 ![모바일 앨범 상세](screenshots/mobile-album.png)
+
+## 빈 게시판 열 너비 보정
+
+모바일에서 번호·날짜·조회·추천 열을 숨겨 3개 열만 보이는데, 빈 상태의 `colspan="7"`이 추가 열을 만들어 제목 폭이 달라졌다. 로딩/빈 상태 안내 행을 모바일 3열과 desktop 7열로 나누고 CSS breakpoint에서 하나만 표시한다. 기존 열 너비(모바일 분류·글쓴이 각각 72px, 제목은 나머지)는 유지한다.
+
+수정 전 Chromium 모바일 320/390/840px에서 열 너비 비교 테스트 실패를 재현했다. 수정 후 `npm run test:layout -- --grep 'empty boards'`는 3개 엔진 × 5개 폭(320/390/840/841/1280px), **15/15 PASS**다. `npm test -- --grep 'empty states'`도 **2/2 PASS**이며 runtime/console 오류는 없었다. 서버 요청은 로컬 mock으로 대체했다.

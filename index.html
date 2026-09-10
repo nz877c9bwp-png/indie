@@ -67,6 +67,7 @@
   .post-table th{ background:var(--panel); color:var(--muted); font-weight:600; font-size:12px; padding:10px; text-align:center; border-bottom:1px solid var(--border); }
   .post-table td{ padding:10px; vertical-align:middle; border-bottom:1px solid var(--border); font-size:13px;}
   .post-table tbody tr:hover{background:var(--panel-alt);}
+  .post-table .mobile-status { display:none; }
   
   .col-num{width:6%; text-align:center; color:var(--muted-2);}
   .col-tag{width:11%; text-align:center;}
@@ -205,7 +206,8 @@
     .board-list li a { padding:10px; font-size:12px; line-height:1.5; border-radius:4px; }
 
     .widget-container { grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:240px; overflow-x:auto; overscroll-behavior-x:contain; padding-top:4px; }
-    .col-num, .col-date, .col-stats { display:none; }
+    .col-num, .col-date, .col-stats, .post-table .desktop-status { display:none; }
+    .post-table .mobile-status { display:table-row; }
     .col-tag { width:72px; }
     .col-author { width:72px; }
     .post-table td, .post-table th { padding:10px 6px; font-size:13px; }
@@ -432,7 +434,7 @@
             </tr>
           </thead>
           <tbody id="postList">
-            <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글을 불러오는 중...</td></tr>
+            <tr class="desktop-status"><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글을 불러오는 중...</td></tr><tr class="mobile-status"><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">게시글을 불러오는 중...</td></tr>
           </tbody>
         </table>
       </div>
@@ -987,7 +989,7 @@
       let filtered = currentCategory !== '전체' ? currentPosts.filter(p => p.tag === currentCategory) : currentPosts;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr class="desktop-status"><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr><tr class="mobile-status"><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
       } else {
         const total = filtered.length;
         tbody.replaceChildren(...filtered.map((post, i) => {
