@@ -65,7 +65,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px); -webkit-backdrop-filter:saturate(180%) blur(10px); position:sticky; top:0; z-index:50; box-shadow: 0 8px 20px rgba(var(--sh-dark),0.12);}
 .header-inner{ max-width:1180px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;}
-.brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:10px; }
+.brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:20px; }
 .brand:hover{ opacity:0.85; }
 .logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--panel); box-shadow:var(--shadow-sm); flex:none; }
 
