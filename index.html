@@ -14,7 +14,16 @@
 
 <header>
   <div class="header-inner">
-    <div class="brand display" onclick="location.reload()">너 <span style="color:var(--music)">인디</span> 좋아해<span style="color:var(--music)">?</span></div>
+    <div class="brand display" onclick="location.reload()">
+      <span class="logo-badge" aria-hidden="true">
+        <svg viewBox="0 0 200 200" width="26" height="26">
+          <rect x="58" y="68" width="20" height="64" rx="10" fill="var(--muted-2)"/>
+          <rect x="90" y="46" width="20" height="108" rx="10" fill="var(--music)"/>
+          <rect x="122" y="58" width="20" height="84" rx="10" fill="var(--muted-2)"/>
+        </svg>
+      </span>
+      너 <span style="color:var(--music)">인디</span> 좋아해<span style="color:var(--music)">?</span>
+    </div>
     <div class="search">
       <input type="text" id="headerSearchInput" placeholder="게시글 검색" onkeypress="if(event.key === 'Enter') $('headerSearchBtn').click()">
       <button id="headerSearchBtn">검색</button>
