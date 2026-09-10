@@ -95,7 +95,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .board-list li a.active{color:var(--music); background:var(--panel); font-weight:700; box-shadow:var(--shadow-inset-sm);}
 
 /* 핫게시판(위젯) 영역 : PC에서는 캐러셀처럼 가로 스크롤 */
-.widget-container { display:flex; gap:16px; margin-bottom:10px; overflow-x:auto; padding:22px 6px; scroll-snap-type:x mandatory;}
+.widget-container { display:flex; gap:16px; margin:0 -20px 10px; padding:22px 20px; overflow-x:auto; scroll-snap-type:x mandatory;}
 .widget-card { flex:1; min-width:220px; max-width:100%; scroll-snap-align:start; background:var(--panel); padding:16px; border-radius:var(--radius-lg); cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; position:relative; box-sizing:border-box; box-shadow:var(--shadow-sm);}
 .widget-card:hover { transform:translateY(-3px); }
 .hot-badge { color:var(--music); font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block;}
@@ -143,7 +143,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .dc-comment-count { color:var(--special); font-weight:bold; font-size:11px; margin-left:5px; }
 
 /* 하단 컨트롤 */
-.board-footer { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; width:100%; box-sizing:border-box; }
+.board-footer { margin-top: 20px; padding: 6px 20px 28px; display: flex; flex-direction: column; align-items: center; gap: 16px; width:100%; box-sizing:border-box; }
 .pagination { display: flex; gap: 8px; }
 .page-btn { border: none; background: var(--panel); border-radius:var(--radius-sm); padding: 6px 13px; cursor: pointer; color: var(--text); font-family:inherit; transition: 0.2s; box-shadow:var(--shadow-sm); }
 .page-btn:hover { color:var(--music); }
@@ -318,7 +318,8 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 
   /* 핫게시판목록: 가로 스크롤 캐러셀 대신 폭에 맞춰 자동으로 줄바꿈되는 적응형 그리드 */
   .widget-container {
-    padding: 4px 12px;
+    margin: 0 0 10px;
+    padding: 6px 12px;
     width: 100%;
     box-sizing: border-box;
     display: grid;
