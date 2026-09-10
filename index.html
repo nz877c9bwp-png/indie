@@ -180,7 +180,7 @@
 
 
   /* =========================================
-     📱 완벽한 모바일 반응형
+     📱 모바일 반응형
      ========================================= */
   @media (max-width: 840px) {
     .shell { grid-template-columns: 1fr; padding: 12px; gap: 16px; }
@@ -224,15 +224,7 @@
     
     .col-num { display:none; }
     .col-tag { grid-area: tag; margin-right:4px; }
-    .col-title { 
-        grid-area: title; 
-        font-size: 15px; 
-        font-weight: 500;
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
-        min-width: 0; 
-    }
+    .col-title { grid-area: title; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .col-author { grid-area: author; color: var(--muted); }
     .col-date { grid-area: date; color: var(--muted); }
     
@@ -276,17 +268,15 @@
 <header>
   <div class="header-inner">
     <div class="brand display" onclick="location.reload()">너 <span style="color:var(--music)">인디</span> 좋아해<span style="color:var(--music)">?</span></div>
-    
     <div class="search">
       <input type="text" placeholder="게시글 검색">
       <button>검색</button>
     </div>
-    
     <div class="user-actions">
       <span id="userStatus" style="font-size:13px;"></span>
-      <button id="showLoginBtn" class="auth-btn">로그인</button>
-      <button id="showSignupBtn" class="auth-btn">회원가입</button>
-      <button id="showSettingsBtn" class="auth-btn" style="display:none;">설정</button>
+      <button id="showLoginBtn" class="auth-btn" onclick="toggleModal('loginModal', true)">로그인</button>
+      <button id="showSignupBtn" class="auth-btn" onclick="$('signupConsent').checked = false; toggleModal('signupModal', true)">회원가입</button>
+      <button id="showSettingsBtn" class="auth-btn" style="display:none;" onclick="openSettings()">설정</button>
       <button id="logoutBtn" class="auth-btn" style="display:none;">로그아웃</button>
       <button class="write-btn" id="openWriteBtn">글쓰기</button>
     </div>
@@ -300,14 +290,12 @@
         <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">전체 게시판</a></li>
       </ul>
     </div>
-
     <div class="cat-group">
       <div class="cat-head"><span>너 평가 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">앨범 평가</a></li>
       </ul>
     </div>
-
     <div class="cat-group">
       <div class="cat-head"><span>너 인디 좋아해?</span></div>
       <ul class="board-list">
@@ -340,11 +328,10 @@
   </aside>
 
   <main>
-    <div id="postViewSection">
+    <div id="postViewSection" style="display:none; margin-bottom:40px;">
       <div style="margin-bottom: 16px;">
         <button class="btn-list" onclick="backToList()" style="padding:10px 24px; font-size:14px; font-weight:700; border-radius:6px; background:var(--panel); border:1px solid var(--border); color:var(--text);">← 원래 화면으로 돌아가기</button>
       </div>
-      
       <div class="view-box">
         <div class="view-header">
           <h2 class="view-title" id="readTitle"></h2>
@@ -373,7 +360,7 @@
       </div>
     </div>
 
-    <div id="albumDetailSection">
+    <div id="albumDetailSection" style="display:none;">
       <button class="btn-list" onclick="backToList()" style="margin-bottom:24px;">← 뒤로가기</button>
       <div class="ad-header">
         <img id="adCover" src="">
@@ -382,7 +369,7 @@
           <div id="adArtist" class="ad-artist"></div>
           <div id="adScore" class="ad-score"></div>
           <div class="ad-actions">
-            <button class="write-btn" onclick="openWriteWithAlbumParams(document.getElementById('adTitle').innerText, document.getElementById('adArtist').innerText, document.getElementById('adCover').src)" style="background:var(--special);">나도 평가하기</button>
+            <button class="write-btn" onclick="openWriteWithAlbumParams($('adTitle').innerText, $('adArtist').innerText, $('adCover').src)" style="background:var(--special);">나도 평가하기</button>
           </div>
         </div>
       </div>
@@ -396,7 +383,6 @@
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
-      <!-- 🌟 일반 게시판 헤더 (토글 버튼 적용) -->
       <div id="generalBoardHeader" class="board-title-row">
         <h1 id="boardTitle">전체 게시판</h1>
         <div class="sort-btns">
@@ -406,7 +392,6 @@
         </div>
       </div>
 
-      <!-- 🌟 앨범 게시판 전용 헤더 (토글 버튼 적용) -->
       <div id="albumBoardHeader" style="display:none; flex-direction:column; gap:12px; margin-bottom:16px;">
         <div class="board-title-row" style="margin:0;">
           <h1 id="albumBoardTitle">앨범 평가</h1>
@@ -442,16 +427,14 @@
           </tbody>
         </table>
       </div>
-
       <div id="albumGrid"></div>
     </div>
 
-    <div id="writeSection">
+    <div id="writeSection" style="display:none;">
       <div class="write-header">
         <h2 id="writeSectionTitle">새 글 작성하기</h2>
       </div>
       <div class="write-body">
-        
         <div id="albumSearchWrap">
           <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">평가할 앨범 검색 (Apple Music)</div>
           <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
@@ -490,20 +473,14 @@
 
         <div class="write-row">
           <select id="postTag">
-            <optgroup label="너 평가 좋아해?">
-              <option value="앨범 평가">앨범 평가</option>
-            </optgroup>
-            <optgroup label="너 인디 좋아해?">
-              <option value="인디">인디</option>
-            </optgroup>
+            <optgroup label="너 평가 좋아해?"><option value="앨범 평가">앨범 평가</option></optgroup>
+            <optgroup label="너 인디 좋아해?"><option value="인디">인디</option></optgroup>
             <optgroup label="너 공연 좋아해?">
               <option value="공연 정보">공연 정보</option>
               <option value="공연 후기">공연 후기</option>
               <option value="같이 갈 사람">같이 갈 사람</option>
             </optgroup>
-            <optgroup label="너 자작곡 좋아해?">
-              <option value="자작곡">자작곡</option>
-            </optgroup>
+            <optgroup label="너 자작곡 좋아해?"><option value="자작곡">자작곡</option></optgroup>
             <optgroup label="너 수다 좋아해?">
               <option value="자유">자유</option>
               <option value="야구">야구</option>
@@ -537,18 +514,19 @@
     <p style="margin:0 0 8px 0;">타인의 명예를 훼손하거나 저작권을 침해하는 게시글은 통보 없이 삭제될 수 있으며, 이에 대한 법적 책임은 작성자 본인에게 있습니다.</p>
     <p style="margin:0;">
       관리자 이메일: bkseungah010223@gmail.com | 
-      <a onclick="document.getElementById('privacyModal').style.display='flex'">[개인정보 처리방침 및 이용약관]</a>
+      <a onclick="toggleModal('privacyModal', true)">[개인정보 처리방침 및 이용약관]</a>
     </p>
   </div>
 </footer>
 
+<!-- Modals -->
 <div class="modal" id="loginModal">
   <div class="modal-content small">
     <h2>로그인</h2>
     <input type="email" id="loginEmail" placeholder="이메일 (아이디)">
     <input type="password" id="loginPw" placeholder="비밀번호">
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('loginModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
+      <button class="btn-cancel" onclick="toggleModal('loginModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doLoginBtn" style="background:var(--music); color:var(--bg);">로그인</button>
     </div>
   </div>
@@ -559,14 +537,12 @@
     <h2>회원가입</h2>
     <input type="email" id="signupEmail" placeholder="사용할 이메일 (아이디)">
     <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)">
-    
     <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); margin-bottom:16px; cursor:pointer; line-height:1.4;">
       <input type="checkbox" id="signupConsent" style="width:auto; margin:2px 0 0 0;">
-      <span>[필수] 개인정보 수집 및 이용, 이용약관에 동의합니다. <a onclick="document.getElementById('privacyModal').style.display='flex'" style="color:var(--music); text-decoration:underline;">내용 보기</a></span>
+      <span>[필수] 개인정보 수집 및 이용약관 동의. <a onclick="toggleModal('privacyModal', true)" style="color:var(--music); text-decoration:underline;">내용 보기</a></span>
     </label>
-
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('signupModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
+      <button class="btn-cancel" onclick="toggleModal('signupModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doSignupBtn" style="background:var(--music); color:var(--bg);">가입하기</button>
     </div>
   </div>
@@ -577,7 +553,7 @@
     <h2>설정 (닉네임 변경)</h2>
     <input type="text" id="settingNickname" placeholder="새 닉네임 입력">
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('settingsModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
+      <button class="btn-cancel" onclick="toggleModal('settingsModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doSaveSettingsBtn" style="background:var(--music); color:var(--bg);">저장하기</button>
     </div>
   </div>
@@ -587,43 +563,37 @@
   <div class="modal-content" style="max-width:500px;">
     <h2>개인정보 처리방침 및 이용약관</h2>
     <div style="font-size:13px; color:var(--muted); line-height:1.6; max-height:300px; overflow-y:auto; background:var(--bg); padding:16px; border:1px solid var(--border); border-radius:4px; margin-bottom:16px;">
-      <strong>1. 수집하는 개인정보 항목</strong><br>
-      - 필수항목: 이메일, 비밀번호, 닉네임<br><br>
-      <strong>2. 개인정보의 수집 및 이용 목적</strong><br>
-      - 회원 식별, 게시판 서비스 제공 및 부정이용 방지<br><br>
-      <strong>3. 개인정보의 보유 및 이용 기간</strong><br>
-      - 회원 탈퇴 시 지체 없이 파기<br><br>
-      <strong>4. 이용자 의무</strong><br>
-      - 타인의 명예를 훼손하거나 저작권을 침해하는 불법적인 콘텐츠 게시를 금지하며, 적발 시 게시물 삭제 및 서비스 이용이 제한될 수 있습니다.
+      <strong>1. 수집하는 개인정보 항목</strong><br>- 필수항목: 이메일, 비밀번호, 닉네임<br><br>
+      <strong>2. 개인정보의 수집 및 이용 목적</strong><br>- 회원 식별, 게시판 서비스 제공<br><br>
+      <strong>3. 개인정보 보유 및 이용 기간</strong><br>- 회원 탈퇴 시 지체 없이 파기<br><br>
+      <strong>4. 이용자 의무</strong><br>- 불법 콘텐츠 게시 금지
     </div>
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('privacyModal').style.display='none'" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">닫기</button>
+      <button class="btn-cancel" onclick="toggleModal('privacyModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">닫기</button>
     </div>
   </div>
 </div>
 
 <script>
+  // --- 공통 유틸리티 ---
+  const $ = id => document.getElementById(id);
+  const toggleModal = (id, show) => $(id).style.display = show ? 'flex' : 'none';
+  const switchView = (view) => {
+    ['postViewSection', 'albumDetailSection', 'boardSection', 'writeSection'].forEach(id => {
+      $(id).style.display = (id === view + 'Section') ? 'block' : 'none';
+    });
+    window.scrollTo(0, 0);
+  };
+
   const SUPABASE_URL = 'https://jvitmimabxupkhrksudu.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY';
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const ADMIN_EMAIL = 'bkseungah010223@gmail.com'; 
 
-  let currentPosts = [];
-  let currentCategory = '전체'; 
-  
-  // 🌟 일반 정렬 토글 상태 변수
-  let genSortType = 'latest'; 
-  let genSortDir = 'desc';
-
-  // 🌟 앨범 정렬 토글 상태 변수
-  let albSortType = 'review';
-  let albSortDir = 'desc'; 
-
-  let currentReadPostId = null;
-  let currentUser = null; 
-  let isAdmin = false;
-  let isEditMode = false;
-  
+  let currentPosts = [], currentCategory = '전체'; 
+  let genSortType = 'latest', genSortDir = 'desc';
+  let albSortType = 'review', albSortDir = 'desc'; 
+  let currentReadPostId = null, currentUser = null, isAdmin = false, isEditMode = false;
   let tempAlbum = { title: null, artist: null, cover: null };
   let currentSelectedRating = 5;
 
@@ -636,36 +606,27 @@
 
   function imageUrl(value) {
     if (typeof value !== 'string' || !/^https:\/\//i.test(value) || /[\s<>"'\\]/.test(value)) return null;
-    try {
-      const url = new URL(value);
-      return url.protocol === 'https:' && url.hostname && !url.username && !url.password ? url.href : null;
-    } catch { return null; }
+    try { const url = new URL(value); return url.protocol === 'https:' && !url.username ? url.href : null; } catch { return null; }
   }
 
   function setImageSource(img, value) {
     const url = imageUrl(value);
-    if (url) img.src = url;
-    else img.removeAttribute('src');
+    if (url) img.src = url; else img.removeAttribute('src');
   }
 
   function youtubeId(value) {
     try {
       const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
-      if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.port) return null;
-      let id = null;
-      if (['youtube.com', 'www.youtube.com'].includes(url.hostname)) {
-        if (url.pathname === '/watch') id = url.searchParams.get('v');
-        else if (url.pathname.startsWith('/embed/')) id = url.pathname.slice(7);
-      } else if (['youtu.be', 'www.youtu.be'].includes(url.hostname)) {
-        id = url.pathname.slice(1);
-      }
+      if (!['https:', 'http:'].includes(url.protocol) || url.username) return null;
+      let id = ['youtube.com', 'www.youtube.com'].includes(url.hostname) ? 
+               (url.pathname === '/watch' ? url.searchParams.get('v') : (url.pathname.startsWith('/embed/') ? url.pathname.slice(7) : null)) :
+               (['youtu.be', 'www.youtu.be'].includes(url.hostname) ? url.pathname.slice(1) : null);
       return /^[a-zA-Z0-9_-]{11}$/.test(id ?? '') ? id : null;
     } catch { return null; }
   }
 
   function contentParts(value) {
-    const text = String(value ?? '');
-    const parts = [];
+    const text = String(value ?? ''), parts = [];
     const tokens = /\[img\]([\s\S]*?)\[\/img\]|(?:[a-z][a-z0-9+.-]*:\/\/|(?:www\.)?(?:youtube\.com|youtu\.be)\/)\S+/gi;
     let cursor = 0;
     for (const match of text.matchAll(tokens)) {
@@ -675,11 +636,9 @@
         parts.push(url ? { image: url } : { text: match[0] });
       } else {
         const candidate = match[0].replace(/[.,!?;:)]+$/, '');
-        const boundary = match.index === 0 || /[\s([{]/.test(text[match.index - 1]);
-        const id = boundary ? youtubeId(candidate) : null;
-        if (id) {
-          parts.push({ youtube: id }, { text: match[0].slice(candidate.length) });
-        } else parts.push({ text: match[0] });
+        const id = (match.index === 0 || /[\s([{]/.test(text[match.index - 1])) ? youtubeId(candidate) : null;
+        if (id) parts.push({ youtube: id }, { text: match[0].slice(candidate.length) });
+        else parts.push({ text: match[0] });
       }
       cursor = match.index + match[0].length;
     }
@@ -691,609 +650,383 @@
     const fragment = document.createDocumentFragment();
     for (const part of contentParts(value)) {
       if (part.image) {
-        const img = element('img');
-        setImageSource(img, part.image);
-        fragment.append(img);
+        const img = element('img'); setImageSource(img, part.image); fragment.append(img);
       } else if (part.youtube) {
-        const wrapper = element('div', 'yt-wrapper');
-        const iframe = element('iframe');
-        iframe.src = `https://www.youtube.com/embed/${part.youtube}`;
-        iframe.allowFullscreen = true;
-        wrapper.append(iframe);
-        fragment.append(wrapper);
+        const wrapper = element('div', 'yt-wrapper'), iframe = element('iframe');
+        iframe.src = `https://www.youtube.com/embed/${part.youtube}`; iframe.allowFullscreen = true;
+        wrapper.append(iframe); fragment.append(wrapper);
       } else fragment.append(document.createTextNode(part.text));
     }
     return fragment;
   }
 
-  function contentPreview(value) {
-    return contentParts(value).map(part => part.text ?? '').join('').substring(0, 150) + '...';
-  }
+  const contentPreview = value => contentParts(value).map(p => p.text ?? '').join('').substring(0, 150) + '...';
 
+  // --- 인증 및 계정 설정 ---
   client.auth.onAuthStateChange((event, session) => {
-    const authorInput = document.getElementById('postAuthor');
+    const authorInput = $('postAuthor');
     if (session) {
       currentUser = session.user;
       const nickname = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]; 
-      
       isAdmin = currentUser.email === ADMIN_EMAIL;
+      
       const status = element('span', '', `${isAdmin ? '[관리자] ' : ''}${nickname}`);
-      status.style.color = isAdmin ? 'var(--admin)' : 'var(--text)';
-      status.style.fontWeight = 'bold';
-      document.getElementById('userStatus').replaceChildren(status, '님');
+      status.style.cssText = `color: var(--${isAdmin ? 'admin' : 'text'}); font-weight:bold;`;
+      $('userStatus').replaceChildren(status, '님');
 
-      document.getElementById('showLoginBtn').style.display = 'none';
-      document.getElementById('showSignupBtn').style.display = 'none';
-      document.getElementById('showSettingsBtn').style.display = 'inline-block';
-      document.getElementById('logoutBtn').style.display = 'inline-block';
+      $('showLoginBtn').style.display = $('showSignupBtn').style.display = 'none';
+      $('showSettingsBtn').style.display = $('logoutBtn').style.display = 'inline-block';
       
       authorInput.value = nickname; 
-      authorInput.readOnly = false; 
-      authorInput.style.background = 'var(--bg)'; 
-      authorInput.style.color = 'var(--text)';
     } else {
       currentUser = null; isAdmin = false;
-      document.getElementById('userStatus').replaceChildren();
-      document.getElementById('showLoginBtn').style.display = 'inline-block';
-      document.getElementById('showSignupBtn').style.display = 'inline-block';
-      document.getElementById('showSettingsBtn').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'none';
-      authorInput.value = ''; authorInput.readOnly = false;
-      authorInput.style.background = 'var(--bg)'; authorInput.style.color = 'var(--text)';
+      $('userStatus').replaceChildren();
+      $('showLoginBtn').style.display = $('showSignupBtn').style.display = 'inline-block';
+      $('showSettingsBtn').style.display = $('logoutBtn').style.display = 'none';
+      authorInput.value = ''; 
     }
   });
 
-  document.getElementById('showSettingsBtn').onclick = () => {
-    const currentNick = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
-    document.getElementById('settingNickname').value = currentNick;
-    document.getElementById('settingsModal').style.display = 'flex';
+  window.openSettings = () => {
+    $('settingNickname').value = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
+    toggleModal('settingsModal', true);
   };
 
-  document.getElementById('doSaveSettingsBtn').addEventListener('click', async () => {
-    const newNick = document.getElementById('settingNickname').value.trim();
+  $('doSaveSettingsBtn').addEventListener('click', async () => {
+    const newNick = $('settingNickname').value.trim();
     if(!newNick) return alert('변경할 닉네임을 입력해주세요.');
-
-    const btn = document.getElementById('doSaveSettingsBtn');
-    btn.disabled = true; btn.textContent = '저장 중...';
-
-    const { data, error } = await client.auth.updateUser({
-      data: { nickname: newNick }
-    });
-
-    btn.disabled = false; btn.textContent = '저장하기';
-
-    if (error) {
-      alert('닉네임 변경에 실패했습니다: ' + error.message);
-    } else {
-      alert('닉네임이 성공적으로 변경되었습니다!');
-      document.getElementById('settingsModal').style.display = 'none';
-      location.reload(); 
-    }
+    $('doSaveSettingsBtn').disabled = true; $('doSaveSettingsBtn').textContent = '저장 중...';
+    const { error } = await client.auth.updateUser({ data: { nickname: newNick } });
+    $('doSaveSettingsBtn').disabled = false; $('doSaveSettingsBtn').textContent = '저장하기';
+    if (error) alert('실패: ' + error.message);
+    else { alert('변경 완료!'); toggleModal('settingsModal', false); location.reload(); }
   });
 
-  document.getElementById('doSignupBtn').addEventListener('click', async () => {
-    const email = document.getElementById('signupEmail').value; 
-    const password = document.getElementById('signupPw').value;
-    const consent = document.getElementById('signupConsent').checked;
-    
+  $('doSignupBtn').addEventListener('click', async () => {
+    const email = $('signupEmail').value, password = $('signupPw').value;
     if(!email || password.length < 6) return alert('이메일과 6자 이상 비밀번호가 필요합니다.');
-    if(!consent) return alert('서비스 이용을 위해 개인정보 수집 및 이용약관에 동의해주세요.');
-
+    if(!$('signupConsent').checked) return alert('약관에 동의해주세요.');
     const { error } = await client.auth.signUp({ email, password });
     if(error) alert('실패: ' + error.message);
-    else { alert('가입 완료'); document.getElementById('signupModal').style.display='none'; setTimeout(()=>client.auth.signInWithPassword({ email, password }), 1000); }
+    else { alert('가입 완료'); toggleModal('signupModal', false); setTimeout(()=>client.auth.signInWithPassword({ email, password }), 1000); }
   });
 
-  document.getElementById('doLoginBtn').addEventListener('click', async () => {
-    const email = document.getElementById('loginEmail').value; const password = document.getElementById('loginPw').value;
-    const { error } = await client.auth.signInWithPassword({ email, password });
-    if(error) alert('로그인 실패'); else document.getElementById('loginModal').style.display='none';
+  $('doLoginBtn').addEventListener('click', async () => {
+    const { error } = await client.auth.signInWithPassword({ email: $('loginEmail').value, password: $('loginPw').value });
+    if(error) alert('로그인 실패'); else toggleModal('loginModal', false);
   });
-  document.getElementById('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
-  document.getElementById('showLoginBtn').onclick = () => document.getElementById('loginModal').style.display='flex';
-  document.getElementById('showSignupBtn').onclick = () => {
-    document.getElementById('signupConsent').checked = false;
-    document.getElementById('signupModal').style.display='flex';
-  }
+  
+  $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
 
-  document.getElementById('postTag').addEventListener('change', (e) => {
-    if(e.target.value === '앨범 평가') {
-      document.getElementById('albumSearchWrap').style.display = 'block';
-    } else { 
-      document.getElementById('albumSearchWrap').style.display = 'none'; 
-      tempAlbum = { title: null, artist: null, cover: null }; 
-    }
+  // --- 글쓰기 & 앨범 검색 ---
+  $('postTag').addEventListener('change', (e) => {
+    const isAlbum = e.target.value === '앨범 평가';
+    $('albumSearchWrap').style.display = isAlbum ? 'block' : 'none';
+    if (!isAlbum) tempAlbum = { title: null, artist: null, cover: null }; 
   });
 
-  document.getElementById('btnSearchAlbum').addEventListener('click', async () => {
-    const query = document.getElementById('albumQuery').value.trim();
-    const searchType = document.getElementById('searchType').value;
-    
+  $('btnSearchAlbum').addEventListener('click', async () => {
+    const query = $('albumQuery').value.trim(), searchType = $('searchType').value;
     if(!query) return alert('검색어를 입력하세요.');
-    document.getElementById('albumResults').innerHTML = '<div style="color:var(--muted); font-size:12px;">앨범을 꼼꼼히 찾는 중입니다...</div>';
+    $('albumResults').innerHTML = '<div style="color:var(--muted); font-size:12px;">앨범 찾는 중...</div>';
     
     try {
       const queryTerm = encodeURIComponent(query).replace(/%20/g, '+');
-      let attrParam = '';
-      if(searchType !== 'all') attrParam = `&attribute=${searchType}`;
-
-      const resKR = await fetch(`https://itunes.apple.com/search?term=${queryTerm}&entity=album&country=KR${attrParam}&limit=30`);
-      const dataKR = await resKR.json();
+      const attrParam = searchType !== 'all' ? `&attribute=${searchType}` : '';
+      let res = await fetch(`https://itunes.apple.com/search?term=${queryTerm}&entity=album&country=KR${attrParam}&limit=30`);
+      let data = await res.json();
       
-      let finalResults = dataKR.results;
-      if(finalResults.length === 0) {
-        const resUS = await fetch(`https://itunes.apple.com/search?term=${queryTerm}&entity=album&country=US${attrParam}&limit=30`);
-        const dataUS = await resUS.json();
-        finalResults = dataUS.results;
+      if(data.results.length === 0) {
+        res = await fetch(`https://itunes.apple.com/search?term=${queryTerm}&entity=album&country=US${attrParam}&limit=30`);
+        data = await res.json();
       }
 
-      if(finalResults.length === 0) { 
-        document.getElementById('albumResults').innerHTML = `
-          <div style="color:var(--admin); font-size:13px; line-height:1.5;">
-            결과가 없습니다.<br>
-            <b>검색 꿀팁:</b><br>
-            - '부활' 밴드를 찾으시려면 드롭다운을 <b>[가수명만]</b>으로 변경하고 검색하세요.<br>
-            - 한글로 안 나오면 영문 <b>Boohwal, Jannabi</b> 등으로 검색해보세요.
-          </div>`; 
+      if(data.results.length === 0) { 
+        $('albumResults').innerHTML = `<div style="color:var(--admin); font-size:13px;">결과가 없습니다. [가수명만]으로 변경하거나 영문으로 검색해보세요.</div>`; 
         return; 
       }
 
-      document.getElementById('albumResults').replaceChildren(...finalResults.map(a => {
+      $('albumResults').replaceChildren(...data.results.map(a => {
         const coverUrl = typeof a.artworkUrl100 === 'string' ? a.artworkUrl100.replace('100x100bb', '300x300bb') : '';
         const card = element('div', 'search-item');
         card.addEventListener('click', () => selectAlbum(a.collectionName, a.artistName, coverUrl));
         const img = element('img');
-        img.addEventListener('error', () => {
-          img.src = 'https://via.placeholder.com/300x300?text=No+Image';
-        }, { once: true });
+        img.addEventListener('error', () => img.src = 'https://via.placeholder.com/300x300?text=No+Image', { once: true });
         setImageSource(img, coverUrl);
         card.append(img, element('div', 's-title', a.collectionName), element('div', 's-artist', a.artistName));
         return card;
       }));
-    } catch (err) {
-      document.getElementById('albumResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 서버 오류입니다. 잠시 후 다시 시도해주세요.</div>';
+    } catch {
+      $('albumResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 서버 오류입니다.</div>';
     }
   });
 
-  window.selectAlbum = function(title, artist, cover) {
-    cover = imageUrl(cover);
-    tempAlbum = { title, artist, cover }; 
-    
-    document.getElementById('selAlbumWrap').style.display = 'flex';
-    document.getElementById('starInputWrapper').style.display = 'flex';
-    
-    setImageSource(document.getElementById('selCover'), cover);
-    document.getElementById('selTitle').innerText = title;
-    document.getElementById('selArtist').innerText = artist;
+  window.selectAlbum = (title, artist, cover) => {
+    tempAlbum = { title, artist, cover: imageUrl(cover) }; 
+    $('selAlbumWrap').style.display = 'flex'; $('starInputWrapper').style.display = 'flex';
+    setImageSource($('selCover'), tempAlbum.cover);
+    $('selTitle').innerText = title; $('selArtist').innerText = artist;
     setStars(5); 
   };
 
-  document.getElementById('starsContainer').addEventListener('click', (e) => {
+  $('starsContainer').addEventListener('click', (e) => {
     if(e.target.classList.contains('star')) setStars(parseInt(e.target.dataset.value));
   });
 
   function setStars(val) {
     currentSelectedRating = val;
-    const stars = document.querySelectorAll('#starsContainer .star');
-    stars.forEach(s => {
-      s.style.color = parseInt(s.dataset.value) <= val ? 'var(--special)' : 'var(--border)';
-    });
+    document.querySelectorAll('#starsContainer .star').forEach(s => s.style.color = parseInt(s.dataset.value) <= val ? 'var(--special)' : 'var(--border)');
     const msgs = ['별로임 (1점)', '아쉬움 (2점)', '들을만함 (3점)', '훌륭함 (4점)', '명반! (5점)'];
-    const textEl = document.getElementById('starRatingText');
-    textEl.innerText = msgs[val-1];
-    textEl.style.color = val >= 4 ? 'var(--special)' : 'var(--text)';
+    $('starRatingText').innerText = msgs[val-1];
+    $('starRatingText').style.color = val >= 4 ? 'var(--special)' : 'var(--text)';
   }
 
-  document.getElementById('imageUpload').addEventListener('change', async (e) => {
+  $('imageUpload').addEventListener('change', async (e) => {
     const file = e.target.files[0]; if(!file) return;
-    const label = document.getElementById('btnImageUploadText'); label.innerText = '업로드 중...';
+    $('btnImageUploadText').innerText = '업로드 중...';
     const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
     const { error } = await client.storage.from('images').upload(fileName, file);
-    if (error) { alert('실패: ' + error.message); label.innerText = '사진 첨부'; return; }
-    const { data: publicUrlData } = client.storage.from('images').getPublicUrl(fileName);
-    document.getElementById('postContent').value += `\n[img]${publicUrlData.publicUrl}[/img]\n`;
-    label.innerText = '사진 첨부'; e.target.value = ''; 
+    if (error) return alert('실패: ' + error.message), $('btnImageUploadText').innerText = '사진 첨부';
+    $('postContent').value += `\n[img]${client.storage.from('images').getPublicUrl(fileName).data.publicUrl}[/img]\n`;
+    $('btnImageUploadText').innerText = '사진 첨부'; e.target.value = ''; 
   });
 
-  document.getElementById('openWriteBtn').onclick = () => {
+  $('openWriteBtn').onclick = () => {
     if (!currentUser) return alert('로그인 후 이용할 수 있습니다.');
     isEditMode = false;
-    document.getElementById('writeSectionTitle').textContent = '새 글 작성하기';
-    document.getElementById('savePostBtn').textContent = '등록하기';
-    document.getElementById('postTitle').value = '';
-    document.getElementById('postContent').value = '';
+    $('writeSectionTitle').textContent = '새 글 작성하기'; $('savePostBtn').textContent = '등록하기';
+    $('postTitle').value = ''; $('postContent').value = '';
     
-    let targetTag = currentCategory;
-    if (['전체'].includes(currentCategory)) targetTag = '인디';
-    const tagEl = document.getElementById('postTag');
-    tagEl.value = targetTag;
-    if (!tagEl.value) tagEl.value = '자유'; 
-    tagEl.dispatchEvent(new Event('change'));
+    let targetTag = ['전체'].includes(currentCategory) ? '인디' : currentCategory;
+    $('postTag').value = targetTag || '자유';
+    $('postTag').dispatchEvent(new Event('change'));
 
-    document.getElementById('albumResults').replaceChildren();
-    document.getElementById('albumQuery').value = '';
-    document.getElementById('selAlbumWrap').style.display = 'none';
-    document.getElementById('starInputWrapper').style.display = 'none';
+    $('albumResults').replaceChildren(); $('albumQuery').value = '';
+    $('selAlbumWrap').style.display = 'none'; $('starInputWrapper').style.display = 'none';
     tempAlbum = { title: null, artist: null, cover: null };
 
-    document.getElementById('boardSection').style.display = 'none';
-    document.getElementById('postViewSection').style.display = 'none';
-    document.getElementById('albumDetailSection').style.display = 'none';
-    document.getElementById('writeSection').style.display = 'block';
-    window.scrollTo(0, 0); 
+    switchView('write'); 
   };
 
-  window.openWriteWithAlbumParams = function(title, artist, cover) {
-    document.getElementById('openWriteBtn').click();
-    document.getElementById('postTag').value = '앨범 평가';
-    document.getElementById('postTag').dispatchEvent(new Event('change'));
+  window.openWriteWithAlbumParams = (title, artist, cover) => {
+    $('openWriteBtn').click();
+    $('postTag').value = '앨범 평가'; $('postTag').dispatchEvent(new Event('change'));
     selectAlbum(title, artist, cover);
   };
 
+  // --- 게시판 목록 & 정렬 ---
   async function fetchPosts() {
     const { data, error } = await client.from('posts').select('*').order('id', { ascending: false });
-    if (!error && data) { currentPosts = data; }
+    if (!error && data) currentPosts = data;
     renderPosts(); 
   }
 
-  // 🌟 일반 게시판 정렬 토글 로직
-  window.toggleSort = function(type) {
-    if (genSortType === type) {
-      genSortDir = genSortDir === 'desc' ? 'asc' : 'desc'; // 한 번 더 누르면 토글
-    } else {
-      genSortType = type;
-      genSortDir = 'desc'; // 새로운 버튼 누르면 기본 내림차순(desc)
-    }
-
-    // 텍스트 및 활성화 상태 변경
-    const btnLatest = document.getElementById('btnSortLatest');
-    btnLatest.className = genSortType === 'latest' ? 'active' : '';
-    btnLatest.innerText = genSortType === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순';
-
-    const btnPopular = document.getElementById('btnSortPopular');
-    btnPopular.className = genSortType === 'popular' ? 'active' : '';
-    btnPopular.innerText = genSortType === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순';
-
+  window.toggleSort = (type) => {
+    genSortDir = genSortType === type ? (genSortDir === 'desc' ? 'asc' : 'desc') : 'desc';
+    genSortType = type;
+    $('btnSortLatest').className = type === 'latest' ? 'active' : '';
+    $('btnSortLatest').innerText = type === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순';
+    $('btnSortPopular').className = type === 'popular' ? 'active' : '';
+    $('btnSortPopular').innerText = type === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순';
     renderPosts();
   };
 
-  // 🌟 앨범 게시판 전용 정렬 토글 로직
-  window.toggleAlbumSort = function(type) {
-    if (albSortType === type) {
-      albSortDir = albSortDir === 'desc' ? 'asc' : 'desc'; // 한 번 더 누르면 토글
-    } else {
-      albSortType = type;
-      albSortDir = 'desc'; // 새로운 버튼 누르면 기본 내림차순(desc)
-    }
-
-    // 텍스트 및 활성화 상태 변경
-    const btnReview = document.getElementById('btnSortAlbumReview');
-    btnReview.className = albSortType === 'review' ? 'active' : '';
-    btnReview.innerText = albSortType === 'review' && albSortDir === 'asc' ? '리뷰 적은순' : '리뷰 많은순';
-
-    const btnDate = document.getElementById('btnSortAlbumDate');
-    btnDate.className = albSortType === 'date' ? 'active' : '';
-    btnDate.innerText = albSortType === 'date' && albSortDir === 'asc' ? '오래된순' : '최신순';
-
-    const btnRating = document.getElementById('btnSortAlbumRating');
-    btnRating.className = albSortType === 'rating' ? 'active' : '';
-    btnRating.innerText = albSortType === 'rating' && albSortDir === 'asc' ? '평점 낮은순' : '평점 높은순';
-
+  window.toggleAlbumSort = (type) => {
+    albSortDir = albSortType === type ? (albSortDir === 'desc' ? 'asc' : 'desc') : 'desc';
+    albSortType = type;
+    $('btnSortAlbumReview').className = type === 'review' ? 'active' : '';
+    $('btnSortAlbumReview').innerText = type === 'review' && albSortDir === 'asc' ? '리뷰 적은순' : '리뷰 많은순';
+    $('btnSortAlbumDate').className = type === 'date' ? 'active' : '';
+    $('btnSortAlbumDate').innerText = type === 'date' && albSortDir === 'asc' ? '오래된순' : '최신순';
+    $('btnSortAlbumRating').className = type === 'rating' ? 'active' : '';
+    $('btnSortAlbumRating').innerText = type === 'rating' && albSortDir === 'asc' ? '평점 낮은순' : '평점 높은순';
     renderPosts();
   };
 
   function renderPosts() {
-    const widgetArea = document.getElementById('topWidgetArea');
+    const widgetArea = $('topWidgetArea');
+    const hotPosts = [...currentPosts].filter(p => p.recs > 0 || p.views > 5).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
     
-    let hotPosts = [...currentPosts].filter(p => p.recs > 0 || p.views > 5).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
     if (hotPosts.length) {
       widgetArea.replaceChildren(...hotPosts.map((post, i) => {
         const card = element('div', 'widget-card');
-        card.addEventListener('click', () => openPostView(post.id));
+        card.onclick = () => openPostView(post.id);
         const stats = element('div', 'widget-stats');
-        const recs = element('span', '', `추천 ${Number(post.recs || 0)}`);
-        recs.style.color = 'var(--music)';
-        const author = element('span', '', post.author || 'ㅇㅇ');
-        author.style.marginLeft = 'auto';
-        stats.append(element('span', '', `조회 ${Number(post.views || 0)}`), recs, author);
+        const recs = element('span', '', `추천 ${post.recs || 0}`); recs.style.color = 'var(--music)';
+        const author = element('span', '', post.author || 'ㅇㅇ'); author.style.marginLeft = 'auto';
+        stats.append(element('span', '', `조회 ${post.views || 0}`), recs, author);
         card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', post.title), stats);
         return card;
       }));
-    } else widgetArea.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">아직 핫게시글이 없습니다.</div>';
+    } else widgetArea.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">핫게시글이 없습니다.</div>';
 
     if (currentCategory === '앨범 평가') {
-      document.getElementById('postTableArea').style.display = 'none';
-      const albumGrid = document.getElementById('albumGrid');
-      albumGrid.style.display = 'grid';
+      $('postTableArea').style.display = 'none'; $('albumGrid').style.display = 'grid';
 
-      const evalPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title);
       const stats = Object.create(null);
-      evalPosts.forEach(p => {
-        const key = JSON.stringify([p.album_title, p.album_artist, p.album_cover]);
+      currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title).forEach(p => {
+        const key = `${p.album_title}|${p.album_artist}|${p.album_cover}`; // 속도 개선 (문자열 결합)
         if(!stats[key]) stats[key] = { count:0, totalScore:0, title:p.album_title, artist:p.album_artist, cover:p.album_cover, maxId: p.id };
-        stats[key].count += 1;
-        stats[key].totalScore += Number(p.rating || 0);
+        stats[key].count += 1; stats[key].totalScore += Number(p.rating || 0);
         if (p.id > stats[key].maxId) stats[key].maxId = p.id;
       });
 
       let sortedAlbums = Object.values(stats); 
-      
-      const searchKeyword = document.getElementById('albumBoardSearchInput').value.trim().toLowerCase();
-      if (searchKeyword) {
-        sortedAlbums = sortedAlbums.filter(a => a.title.toLowerCase().includes(searchKeyword) || a.artist.toLowerCase().includes(searchKeyword));
-      }
+      const keyword = $('albumBoardSearchInput').value.trim().toLowerCase();
+      if (keyword) sortedAlbums = sortedAlbums.filter(a => a.title.toLowerCase().includes(keyword) || a.artist.toLowerCase().includes(keyword));
 
-      // 🌟 앨범 토글 정렬 적용 (오름차순/내림차순)
       sortedAlbums.sort((a, b) => {
-        const avgA = a.totalScore / a.count;
-        const avgB = b.totalScore / b.count;
-        let diff = 0;
-        
-        if (albSortType === 'rating') diff = avgB - avgA;
-        else if (albSortType === 'date') diff = b.maxId - a.maxId;
-        else diff = b.count - a.count; // review 
-
-        return albSortDir === 'desc' ? diff : -diff; // desc면 그대로, asc면 반대
+        const diff = albSortType === 'rating' ? (b.totalScore/b.count) - (a.totalScore/a.count) : 
+                     (albSortType === 'date' ? b.maxId - a.maxId : b.count - a.count);
+        return albSortDir === 'desc' ? diff : -diff; 
       });
       
-      if(sortedAlbums.length === 0) {
-        albumGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted); font-size:15px;">검색된 앨범이 없습니다. 명반을 직접 추가해 보세요!</div>';
+      if(!sortedAlbums.length) {
+        $('albumGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted);">검색된 앨범이 없습니다. 명반을 직접 추가해 보세요!</div>';
       } else {
-        albumGrid.replaceChildren(...sortedAlbums.map(a => {
-          const avg = (a.totalScore / a.count).toFixed(1);
-          const card = element('div', 'album-card');
-          card.addEventListener('click', () => openAlbumDetail(a.title, a.artist));
-          const img = element('img');
-          img.loading = 'lazy';
-          setImageSource(img, a.cover);
+        $('albumGrid').replaceChildren(...sortedAlbums.map(a => {
+          const card = element('div', 'album-card'); card.onclick = () => openAlbumDetail(a.title, a.artist);
+          const img = element('img'); img.loading = 'lazy'; setImageSource(img, a.cover);
           const info = element('div', 'album-card-info');
-          const rating = element('div', 'album-card-rating', `★ ${Number(avg)} `);
-          rating.append(element('span', '', `(${Number(a.count)}명)`));
+          const rating = element('div', 'album-card-rating', `★ ${(a.totalScore/a.count).toFixed(1)} `);
+          rating.append(element('span', '', `(${a.count}명)`));
           info.append(element('div', 'album-card-title', a.title), element('div', 'album-card-artist', a.artist), rating);
           card.append(img, info);
           return card;
         }));
       }
     } else {
-      document.getElementById('albumGrid').style.display = 'none';
-      document.getElementById('postTableArea').style.display = 'block';
+      $('albumGrid').style.display = 'none'; $('postTableArea').style.display = 'block';
+      const tbody = $('postList');
       
-      const tbody = document.getElementById('postList');
-      
-      let filtered;
-      if (currentCategory === '전체') {
-        filtered = [...currentPosts];
-      } else if (currentCategory === '인디') {
-        filtered = currentPosts.filter(p => ['국내 인디', '해외 인디', '인디'].includes(p.tag));
-      } else {
-        filtered = currentPosts.filter(p => p.tag === currentCategory);
-      }
+      let filtered = currentCategory === '전체' ? [...currentPosts] : 
+                     (currentCategory === '인디' ? currentPosts.filter(p => ['국내 인디', '해외 인디', '인디'].includes(p.tag)) : 
+                     currentPosts.filter(p => p.tag === currentCategory));
 
-      // 🌟 일반 토글 정렬 적용 (오름차순/내림차순)
       filtered.sort((a, b) => {
-        let diff = 0;
-        if (genSortType === 'popular') {
-          if (b.recs !== a.recs) diff = (b.recs || 0) - (a.recs || 0);
-          else if (b.views !== a.views) diff = (b.views || 0) - (a.views || 0);
-          else diff = b.id - a.id;
-        } else {
-          diff = b.id - a.id; // latest
-        }
+        let diff = genSortType === 'popular' ? ((b.recs !== a.recs ? (b.recs||0) - (a.recs||0) : (b.views !== a.views ? (b.views||0) - (a.views||0) : b.id - a.id))) : (b.id - a.id);
         return genSortDir === 'desc' ? diff : -diff;
       });
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글이 없습니다.</td></tr>';
       } else {
         const total = filtered.length;
         tbody.replaceChildren(...filtered.map((post, i) => {
-          // 역방향 정렬 시 글 번호도 거꾸로 나오지 않도록 단순 인덱스 활용 (가장 최신글이 큰 번호를 갖게 할 수도 있지만 편의상 위에서부터 카운트다운)
           const displayNum = genSortDir === 'desc' ? total - i : i + 1;
-
-          const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
           const row = element('tr');
-          const tag = element('td', 'col-tag');
-          tag.append(element('span', `tag${post.recs >= 3 ? ' hot' : ''}`, post.tag));
+          const tag = element('td', 'col-tag'); tag.append(element('span', `tag${post.recs >= 3 ? ' hot' : ''}`, post.tag));
           const title = element('td', 'col-title title-cell');
-          const link = element('a', '', post.title);
-          link.href = '#';
-          link.addEventListener('click', event => { event.preventDefault(); openPostView(post.id); });
+          const link = element('a', '', post.title); link.href = '#'; link.onclick = e => { e.preventDefault(); openPostView(post.id); };
           title.append(link);
-          if (post.album_title) {
-            const rating = element('span', '', `★ ${Number(post.rating)}`);
-            rating.style.cssText = 'color:var(--special); font-size:11px; margin-left:6px;';
-            title.append(rating);
-          }
-          if (post.recs > 0) title.append(element('span', 'rec-count', `[${Number(post.recs)}]`));
-          const recs = element('td', 'col-stats tabular', Number(post.recs || 0));
-          recs.style.cssText = 'color:var(--music); font-weight:600;';
-          row.append(
-            element('td', 'col-num tabular', displayNum), 
-            tag, 
-            title,
-            element('td', 'col-author', post.author || 'ㅇㅇ'), 
-            element('td', 'col-date', date),
-            element('td', 'col-stats tabular', Number(post.views || 0)), 
-            recs
-          );
+          if (post.album_title) title.append(element('span', '', `★ ${post.rating}`).cloneNode(true)); // Simplified rating span
+          if (post.recs > 0) title.append(element('span', 'rec-count', `[${post.recs}]`));
+          const recs = element('td', 'col-stats tabular', post.recs || 0); recs.style.cssText = 'color:var(--music); font-weight:600;';
+          row.append(element('td', 'col-num tabular', displayNum), tag, title, element('td', 'col-author', post.author || 'ㅇㅇ'), 
+                     element('td', 'col-date', new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' })),
+                     element('td', 'col-stats tabular', post.views || 0), recs);
           return row;
         }));
       }
     }
   }
 
-  window.openAlbumDetail = function(title, artist) {
-    
+  window.openAlbumDetail = (title, artist) => {
     const albumPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title === title && p.album_artist === artist);
-    if(albumPosts.length === 0) return;
-
-    const cover = albumPosts[0].album_cover;
-    const totalScore = albumPosts.reduce((acc, cur) => acc + Number(cur.rating || 0), 0);
-    const avg = (totalScore / albumPosts.length).toFixed(1);
-
-    setImageSource(document.getElementById('adCover'), cover);
-    document.getElementById('adTitle').innerText = title;
-    document.getElementById('adArtist').innerText = artist;
-    document.getElementById('adScore').replaceChildren(`★ ${Number(avg)} `, element('span', '', `(${Number(albumPosts.length)}명 참여)`));
-
-    document.getElementById('adReviews').replaceChildren(...albumPosts.map(p => {
-      const card = element('div', 'review-card');
-      card.addEventListener('click', () => openPostView(p.id));
-      const header = element('div', 'rc-header');
-      header.append(element('span', 'rc-author', p.author || 'ㅇㅇ(유동)'), element('span', 'rc-stars', `★ ${Number(p.rating)}`));
+    if(!albumPosts.length) return;
+    
+    setImageSource($('adCover'), albumPosts[0].album_cover);
+    $('adTitle').innerText = title; $('adArtist').innerText = artist;
+    $('adScore').replaceChildren(`★ ${(albumPosts.reduce((s, p) => s + Number(p.rating||0), 0) / albumPosts.length).toFixed(1)} `, element('span', '', `(${albumPosts.length}명 참여)`));
+    $('adReviews').replaceChildren(...albumPosts.map(p => {
+      const card = element('div', 'review-card'); card.onclick = () => openPostView(p.id);
+      const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', p.author || 'ㅇㅇ(유동)'), element('span', 'rc-stars', `★ ${p.rating}`));
       card.append(header, element('div', 'rc-title', p.title), element('div', 'rc-content', contentPreview(p.content)));
       return card;
     }));
-
-    document.getElementById('boardSection').style.display = 'none';
-    document.getElementById('writeSection').style.display = 'none';
-    document.getElementById('postViewSection').style.display = 'none';
-    document.getElementById('albumDetailSection').style.display = 'block';
-    window.scrollTo(0, 0);
+    switchView('albumDetail');
   };
 
   function changeBoard(category) {
-    backToList(); 
     currentCategory = category;
+    const isAlbum = category === '앨범 평가';
     
-    if (category === '앨범 평가') {
-      document.getElementById('generalBoardHeader').style.display = 'none';
-      document.getElementById('albumBoardHeader').style.display = 'flex';
-    } else {
-      document.getElementById('generalBoardHeader').style.display = 'flex';
-      document.getElementById('albumBoardHeader').style.display = 'none';
-      document.getElementById('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
-    }
+    $('generalBoardHeader').style.display = isAlbum ? 'none' : 'flex';
+    $('albumBoardHeader').style.display = isAlbum ? 'flex' : 'none';
+    if (!isAlbum) $('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
     
-    document.querySelectorAll('.sidebar a').forEach(link => {
-      if (link.getAttribute('onclick') === `changeBoard('${category}')`) link.classList.add('active');
-      else link.classList.remove('active');
-    });
+    document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick').includes(`'${category}'`)));
+    $('albumBoardSearchInput').value = ''; 
     
-    document.getElementById('albumBoardSearchInput').value = ''; 
+    genSortType = 'latest'; genSortDir = 'desc'; albSortType = 'review'; albSortDir = 'desc';
+    $('btnSortLatest').innerText = '최신순'; $('btnSortPopular').innerText = '인기순';
+    $('btnSortAlbumReview').innerText = '리뷰 많은순'; $('btnSortAlbumDate').innerText = '최신순'; $('btnSortAlbumRating').innerText = '평점 높은순';
     
-    // 게시판 변경 시 초기값으로 셋팅
-    genSortType = 'latest'; genSortDir = 'desc';
-    albSortType = 'review'; albSortDir = 'desc';
-    
-    document.getElementById('btnSortLatest').innerText = '최신순';
-    document.getElementById('btnSortPopular').innerText = '인기순';
-    document.getElementById('btnSortAlbumReview').innerText = '리뷰 많은순';
-    document.getElementById('btnSortAlbumDate').innerText = '최신순';
-    document.getElementById('btnSortAlbumRating').innerText = '평점 높은순';
-
-    renderPosts(); 
+    backToList();
   }
 
   async function openPostView(postId) {
-    const post = currentPosts.find(p => p.id === postId);
-    if(!post) return;
+    const post = currentPosts.find(p => p.id === postId); if(!post) return;
     currentReadPostId = postId;
     
-    document.getElementById('readTitle').textContent = post.title;
-    document.getElementById('readTag').textContent = post.tag;
-    document.getElementById('readAuthor').textContent = post.author || 'ㅇㅇ';
-    document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
-    document.getElementById('readContent').replaceChildren(formatContent(post.content));
-    
-    document.getElementById('readViews').textContent = (post.views || 0) + 1;
-    document.getElementById('readRecs').textContent = post.recs || 0;
-    document.getElementById('btnRecCount').textContent = post.recs || 0;
-    
-    document.getElementById('adminEditBtn').style.display = isAdmin ? 'inline-block' : 'none';
-    document.getElementById('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
+    $('readTitle').textContent = post.title; $('readTag').textContent = post.tag;
+    $('readAuthor').textContent = post.author || 'ㅇㅇ'; $('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
+    $('readContent').replaceChildren(formatContent(post.content));
+    $('readViews').textContent = (post.views || 0) + 1;
+    $('readRecs').textContent = $('btnRecCount').textContent = post.recs || 0;
+    $('adminEditBtn').style.display = $('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
 
-    const btnEvalSame = document.getElementById('btnEvalSame');
     if(post.tag === '앨범 평가' && post.album_title) {
-      btnEvalSame.style.display = 'inline-block';
-      btnEvalSame.onclick = () => {
-        openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover);
-      };
-    } else {
-      btnEvalSame.style.display = 'none';
-    }
+      $('btnEvalSame').style.display = 'inline-block';
+      $('btnEvalSame').onclick = () => openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover);
+    } else $('btnEvalSame').style.display = 'none';
 
-    document.getElementById('writeSection').style.display = 'none';
-    document.getElementById('albumDetailSection').style.display = 'none';
-    document.getElementById('postViewSection').style.display = 'block';
-    document.getElementById('boardSection').style.display = 'block';
-    
-    window.scrollTo(0, 0); 
+    switchView('postView');
     await client.rpc('increment_views', { post_id: postId });
   }
 
-  function backToList() {
-    document.getElementById('postViewSection').style.display = 'none';
-    document.getElementById('writeSection').style.display = 'none';
-    document.getElementById('albumDetailSection').style.display = 'none';
-    document.getElementById('boardSection').style.display = 'block';
-    renderPosts(); 
-    window.scrollTo(0, 0);
-  }
+  window.backToList = () => { renderPosts(); switchView('board'); };
 
-  document.getElementById('recommendBtn').addEventListener('click', async () => {
-    if(!currentReadPostId) return;
-    if (localStorage.getItem('rec_' + currentReadPostId)) return alert('이미 추천했습니다.');
-    const post = currentPosts.find(p => p.id === currentReadPostId);
-    post.recs = (post.recs || 0) + 1;
-    document.getElementById('readRecs').textContent = post.recs;
-    document.getElementById('btnRecCount').textContent = post.recs;
-    localStorage.setItem('rec_' + currentReadPostId, 'true'); 
-    alert('추천 완료!');
+  $('recommendBtn').addEventListener('click', async () => {
+    if(!currentReadPostId || localStorage.getItem('rec_' + currentReadPostId)) return alert(currentReadPostId ? '이미 추천했습니다.' : '');
+    const post = currentPosts.find(p => p.id === currentReadPostId); post.recs = (post.recs || 0) + 1;
+    $('readRecs').textContent = $('btnRecCount').textContent = post.recs;
+    localStorage.setItem('rec_' + currentReadPostId, 'true'); alert('추천 완료!');
     await client.rpc('increment_recs', { post_id: currentReadPostId });
   });
 
-  document.getElementById('adminEditBtn').addEventListener('click', () => {
+  $('adminEditBtn').addEventListener('click', () => {
     const post = currentPosts.find(p => p.id === currentReadPostId);
-    isEditMode = true; 
-    document.getElementById('writeSectionTitle').textContent = '게시글 수정하기';
-    document.getElementById('savePostBtn').textContent = '수정 완료';
-    document.getElementById('postTag').value = post.tag;
-    document.getElementById('postTitle').value = post.title;
-    document.getElementById('postContent').value = post.content;
-    document.getElementById('albumSearchWrap').style.display = 'none';
-    if(isAdmin) document.getElementById('postAuthor').value = post.author || 'ㅇㅇ';
-    document.getElementById('postViewSection').style.display = 'none';
-    document.getElementById('boardSection').style.display = 'none';
-    document.getElementById('writeSection').style.display = 'block';
+    isEditMode = true; $('writeSectionTitle').textContent = '게시글 수정하기'; $('savePostBtn').textContent = '수정 완료';
+    $('postTag').value = post.tag; $('postTitle').value = post.title; $('postContent').value = post.content;
+    $('albumSearchWrap').style.display = 'none';
+    if(isAdmin) $('postAuthor').value = post.author || 'ㅇㅇ';
+    switchView('write');
   });
 
-  document.getElementById('adminDeleteBtn').addEventListener('click', async () => {
-    if(!confirm('정말 삭제하시겠습니까?')) return;
+  $('adminDeleteBtn').addEventListener('click', async () => {
+    if(!confirm('삭제하시겠습니까?')) return;
     const { error } = await client.from('posts').delete().eq('id', currentReadPostId);
     if (!error) { alert('삭제됨'); backToList(); fetchPosts(); }
   });
 
-  document.getElementById('savePostBtn').addEventListener('click', async () => {
+  $('savePostBtn').addEventListener('click', async () => {
     if (!currentUser) return alert('로그인 후 이용할 수 있습니다.');
-
-    const tag = document.getElementById('postTag').value;
-    const author = document.getElementById('postAuthor').value.trim() || 'ㅇㅇ(유동)';
-    const title = document.getElementById('postTitle').value;
-    const content = document.getElementById('postContent').value;
-
+    const tag = $('postTag').value, title = $('postTitle').value, content = $('postContent').value, author = $('postAuthor').value.trim() || 'ㅇㅇ(유동)';
     if (!title.trim()) return alert('제목을 입력해주세요.'); 
     if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
 
-    const btn = document.getElementById('savePostBtn');
-    btn.disabled = true; btn.textContent = '처리 중...';
-
+    $('savePostBtn').disabled = true; $('savePostBtn').textContent = '처리 중...';
+    let error;
     if (isEditMode) {
-      const { error } = await client.from('posts').update({ tag, author, title, content }).eq('id', currentReadPostId);
-      btn.disabled = false;
-      if (!error) { alert('수정됨'); backToList(); fetchPosts(); } else alert('실패');
+      ({ error } = await client.from('posts').update({ tag, author, title, content }).eq('id', currentReadPostId));
     } else {
-      const postData = { tag, author, title, content };
-      if (tag === '앨범 평가') {
-        postData.album_title = tempAlbum.title;
-        postData.album_artist = tempAlbum.artist;
-        postData.album_cover = tempAlbum.cover;
-        postData.rating = currentSelectedRating; 
-      }
-      const { error } = await client.from('posts').insert([postData]);
-      btn.disabled = false;
-      if (!error) { alert('등록됨'); backToList(); fetchPosts(); } else alert('실패: ' + error.message);
+      const postData = { tag, author, title, content, ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating }) };
+      ({ error } = await client.from('posts').insert([postData]));
     }
+    
+    $('savePostBtn').disabled = false;
+    if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); backToList(); fetchPosts(); } else alert('실패: ' + (error.message || ''));
   });
 
   fetchPosts();
