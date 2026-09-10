@@ -20,9 +20,6 @@
     --music-hover: #06B6D4; 
     --admin: #F43F5E; 
     --special: #8B5CF6;
-    
-    /* 디시인사이드 포인트 컬러 */
-    --dc-blue: #3b4890;
   }
   *{box-sizing:border-box;}
   body{ margin:0; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px; -webkit-font-smoothing: antialiased; display:flex; flex-direction:column; min-height:100vh;}
@@ -71,10 +68,10 @@
   .sort-btns button:hover { color:var(--text); }
 
   /* =========================================
-     디시인사이드 스타일 테이블 디자인 적용
+     게시판 테이블 디자인
      ========================================= */
   .post-table-wrap { overflow-x:auto; }
-  .dc-table { width:100%; border-collapse:collapse; border-top:2px solid var(--dc-blue); text-align:center; min-width:650px; }
+  .dc-table { width:100%; border-collapse:collapse; border-top:2px solid var(--music); text-align:center; min-width:650px; }
   .dc-table th { background:var(--panel-alt); color:var(--text); font-weight:normal; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
   .dc-table td { padding:8px 0; border-bottom:1px solid var(--border); vertical-align:middle; font-size:13px; color:var(--text); }
   .dc-table tbody tr:hover { background:var(--panel); }
@@ -91,24 +88,19 @@
   .dc-title-link:hover { text-decoration:underline; }
   .dc-comment-count { color:#d31900; font-weight:bold; font-size:11px; margin-left:5px; }
 
-/* 디시 스타일 하단 컨트롤 */
+  /* 하단 컨트롤 */
   .board-footer { margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
   .pagination { display: flex; gap: 3px; }
   .page-btn { border: 1px solid var(--border); background: var(--panel); padding: 5px 10px; cursor: pointer; color: var(--text); font-family:inherit; transition: 0.2s; }
   .page-btn:hover { border-color: var(--music); }
-  
-  /* 페이지 활성화 버튼을 프로젝트 포인트 컬러로 변경 */
   .page-btn.active { border: 1px solid var(--music); color: var(--bg); background: var(--music); font-weight: bold; }
   
   .bottom-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; }
   .dc-search-box { display: flex; gap: 5px; }
   .dc-search-box select, .dc-search-box input { padding: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 2px; font-family:inherit; }
   
-  /* 검색 버튼은 너무 튀지 않게 다크모드 서브 컬러로 변경 */
   .btn-dc-search { background: var(--panel-alt); color: var(--text); border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit; transition: 0.2s; }
   .btn-dc-search:hover { background: var(--border); color: var(--music); }
-  
-  /* 글쓰기 버튼을 프로젝트 포인트 컬러로 변경 */
   .btn-dc-write { background: var(--music); color: var(--bg); border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit; transition: 0.2s; }
   .btn-dc-write:hover { background: var(--music-hover); }
 
@@ -207,7 +199,7 @@
   .footer-inner a:hover { color:var(--text); }
 
   /* =========================================
-     📱 모바일 반응형 (완벽한 DC 모바일 UI 적용)
+     📱 모바일 반응형
      ========================================= */
   @media (max-width: 840px) {
     .shell { grid-template-columns: 1fr; padding: 0; gap: 0; }
@@ -241,16 +233,16 @@
       display: block;
     }
     .board-list li a.active { 
-      background: var(--dc-blue); 
-      border-color: var(--dc-blue); 
-      color: white; 
+      background: var(--music); 
+      border-color: var(--music); 
+      color: var(--bg); 
       font-weight: bold; 
     }
     
     .board-title-row { padding: 12px; margin: 0; }
     .widget-container { padding: 0 12px; }
 
-    .post-table-wrap { overflow-x: hidden; margin-top: 0; border-top: 2px solid var(--dc-blue); }
+    .post-table-wrap { overflow-x: hidden; margin-top: 0; border-top: 2px solid var(--music); }
     .dc-table { display: block; min-width: 0; border: none; }
     .dc-table thead { display: none; }
     .dc-table tbody { display: block; width: 100%; }
