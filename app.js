@@ -21,7 +21,7 @@ let albSortType = 'review', albSortDir = 'desc';
 let currentReadPostId = null, currentUser = null, isAdmin = false, isEditMode = false;
 let tempAlbum = { title: null, artist: null, cover: null };
 let currentSelectedRating = 5;
-let currentComments = []; // 현재 게시글의 댓글 목록
+let currentComments = [];
 
 // --- 요소 생성 및 포맷팅 ---
 function element(tag, className = '', text = null) {
@@ -115,7 +115,7 @@ client.auth.onAuthStateChange((event, session) => {
 });
 
 window.openSettings = () => {
-  $('settingNickname').value = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
+  $('settingNickname').value = currentUser?.user_metadata?.nickname || currentUser?.email?.split('@')[0] || '';
   toggleModal('settingsModal', true);
 };
 
@@ -357,25 +357,15 @@ function renderPosts() {
         if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`)); 
         
         const authorCell = element('td', 'col-author', post.author || 'ㅇㅇ');
-        
         const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
         const dateCell = element('td', 'col-date', dateFormatted);
-        
         const viewsCell = element('td', 'col-views tabular', post.views || 0);
         
         const recsVal = post.recs || 0;
         const recsCell = element('td', 'col-likes tabular', recsVal);
         if(recsVal > 0) recsCell.style.cssText = 'color:#d31900; font-weight:bold;'; 
         
-        row.append(
-          element('td', 'col-id tabular', displayNum), 
-          tag, 
-          titleCell, 
-          authorCell, 
-          dateCell, 
-          viewsCell, 
-          recsCell
-        );
+        row.append(element('td', 'col-id tabular', displayNum), tag, titleCell, authorCell, dateCell, viewsCell, recsCell);
         return row;
       }));
     }
@@ -406,7 +396,7 @@ function changeBoard(category) {
   $('albumBoardHeader').style.display = isAlbum ? 'flex' : 'none';
   if (!isAlbum) $('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
   
-  document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick').includes(`'${category}'`)));
+  document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick')?.includes(`'${category}'`)));
   $('albumBoardSearchInput').value = ''; 
   
   genSortType = 'latest'; genSortDir = 'desc'; albSortType = 'review'; albSortDir = 'desc';
@@ -417,7 +407,6 @@ function changeBoard(category) {
 }
 
 // --- 댓글 및 대댓글 기능 ---
-
 async function fetchAndRenderComments() {
   if (!currentReadPostId) return;
   const { data, error } = await client.from('comments').select('*').eq('post_id', currentReadPostId).order('id', { ascending: true });
@@ -460,7 +449,7 @@ function createCommentElement(comment, isReply) {
   const actions = element('div', 'ci-actions');
   if (!isReply) {
     const replyBtn = element('button', '', '답글');
-    replyBtn.onclick = () => toggleReplyForm(comment.id, li);
+    replyBtn.onclick = () => toggleReplyForm(comment.id);
     actions.append(replyBtn);
   }
   
@@ -492,11 +481,10 @@ function createCommentElement(comment, isReply) {
   return li;
 }
 
-window.toggleReplyForm = (commentId, liElement) => {
+window.toggleReplyForm = (commentId) => {
   const form = $(`replyForm_${commentId}`);
   const isVisible = form.style.display === 'block';
   document.querySelectorAll('.reply-write-form').forEach(el => el.style.display = 'none');
-  
   if (!isVisible) {
     form.style.display = 'block';
     $(`replyContent_${commentId}`).focus();
@@ -537,7 +525,7 @@ window.submitComment = async (parentId = null) => {
 
 $('btnSubmitComment').addEventListener('click', () => submitComment(null));
 
-// --- 게시물 열람 함수 업데이트 ---
+// --- 게시물 열람 함수 ---
 async function openPostView(postId) {
   const post = currentPosts.find(p => p.id === postId); if(!post) return;
   currentReadPostId = postId;
@@ -559,8 +547,6 @@ async function openPostView(postId) {
   $('commentContent').value = '';
 
   switchView('postView');
-  
-  // 댓글 불러오기 실행
   await fetchAndRenderComments();
   await client.rpc('increment_views', { post_id: postId });
 }
@@ -568,7 +554,7 @@ async function openPostView(postId) {
 window.backToList = () => { renderPosts(); switchView('board'); };
 
 $('recommendBtn').addEventListener('click', async () => {
-  if(!currentReadPostId || localStorage.getItem('rec_' + currentReadPostId)) return alert(currentReadPostId ? '이미 추천했습니다.' : '');
+  if(!currentReadPostId || localStorage.getItem('rec_' + currentReadPostId)) return alert('이미 추천했습니다.');
   const post = currentPosts.find(p => p.id === currentReadPostId); post.recs = (post.recs || 0) + 1;
   $('readRecs').textContent = $('btnRecCount').textContent = post.recs;
   localStorage.setItem('rec_' + currentReadPostId, 'true'); alert('추천 완료!');
@@ -587,7 +573,7 @@ $('adminEditBtn').addEventListener('click', () => {
 $('adminDeleteBtn').addEventListener('click', async () => {
   if(!confirm('삭제하시겠습니까?')) return;
   const { error } = await client.from('posts').delete().eq('id', currentReadPostId);
-  if (!error) { alert('삭제됨'); backToList(); fetchPosts(); }
+  if (!error) { alert('삭제됨'); backToList(); fetchPosts(); } else { alert('삭제 실패: ' + error.message); }
 });
 
 $('savePostBtn').addEventListener('click', async () => {
