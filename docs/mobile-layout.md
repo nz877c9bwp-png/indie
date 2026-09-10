@@ -5,8 +5,8 @@
 실서비스에서 390px 화면의 문서 폭이 696px까지 늘어났다. `1fr` grid track의 자동 최소 너비, 게시판 표의 600px 최소 너비, 고정 폭 열, 가로로 나열된 메뉴/HOT 카드가 작은 화면을 밀어냈다.
 
 - Grid track을 `minmax(0, 1fr)`로, 자식 요소를 `min-width:0`으로 설정했다.
-- 표의 최소 너비를 없애고 고정 table layout과 비율 기반 desktop 열/작은 화면의 제한된 열 너비를 사용한다. 기존 정보와 링크는 유지하며 긴 텍스트는 줄바꿈한다.
-- 작은 화면의 메뉴는 줄바꿈하고 600px 이하 HOT 카드는 세로로 배치한다. 페이지 전체의 `overflow-x:hidden`으로 문제를 숨기지 않았다.
+- 표는 고정 table layout과 600px 최소 너비를 사용한다. 좁은 화면에서는 표 영역 안에서 가로 스크롤하며, 긴 텍스트는 셀 안에서 줄바꿈한다.
+- 작은 화면의 게시판 메뉴와 HOT 카드는 원래 의도대로 가로로 나열한다. 메뉴·HOT·표 각각에 `overflow-x:auto`와 `overscroll-behavior-x:contain`을 적용해 영역 내부에서만 가로 스크롤한다. HOT 카드 폭은 240px이다. 페이지 전체의 `overflow-x:hidden`으로 문제를 숨기지 않았다.
 - 긴 닉네임은 헤더 안에서 말줄임하고, 긴 제목·작성자·URL은 콘텐츠 영역 안에서 줄바꿈한다.
 - 선택 앨범, 별점, 글쓰기 도구/버튼과 모달이 좁거나 낮은 화면에도 들어가도록 크기와 줄바꿈을 조정했다. 모달은 필요 시 세로로 스크롤한다.
 - 모바일 제목 22→18px, 앨범명 26→20px, 평균 평점 24→20px, 리뷰 제목 16→14px로 줄였다. 본문은 14px/1.7 line-height, 입력창은 16px로 유지한다.
@@ -15,10 +15,10 @@
 ## 검증
 
 - `npm test`: **44/44 PASS**: 기존 기능·XSS 테스트.
-- `npm run test:layout`: **39/39 PASS**: 3개 엔진(Chromium/Firefox/WebKit) × 13개 케이스.
+- `npm run test:layout`: **51/51 PASS**: 3개 엔진(Chromium/Firefox/WebKit) × 17개 케이스.
 - `npm run test:baseline`: **4/4 PASS**.
 - 12개 화면 크기: 320×568, 360×800, 375×667, 390×844, 430×932, 600×800, 768×1024, 840×900, 841×900, 844×390, 1024×768, 1440×900.
-- 추가 케이스: 화면 회전/resize, 모바일 font-size, 확대 허용 viewport 설정, 200% CSS zoom.
+- 추가 케이스: 화면 회전/resize, 모바일 font-size, 확대 허용 viewport 설정, 200% CSS zoom. 320/390/600/840px에서 각 가로 영역의 끝까지 스크롤한 뒤 문서 폭 유지와 HOT·게시글 클릭도 확인한다.
 - 목록·상세·이미지·YouTube·앨범·리뷰·미리 선택된 글쓰기·검색 결과·설정/로그인/회원가입/약관 모달에서 문서와 주요 컨테이너의 가로 넘침 및 viewport 밖의 조작 요소를 검사한다.
 - 긴 한글/띄어쓰기 없는 문자열/닉네임과 1600px 이미지로 확인했다. 테스트는 로컬 mock만 사용한다.
 - 실제 fork Pages에서도 모바일 목록/게시글/앨범 상세의 문서 폭이 viewport와 일치하는지 확인했다.
@@ -29,11 +29,13 @@
 
 미리보기: https://thirdcat.github.io/indie/
 
-`thirdcat/indie`의 `preview` 브랜치에는 `index.html`과 `.nojekyll`만 배포한다. 원본 도메인의 `CNAME`을 포함하지 않으며 GitHub Pages custom domain은 설정하지 않는다. 모바일 소스 변경은 별도 `fix/mobile-layout` 브랜치에서 원본 main으로 PR을 보낸다. 미리보기 배포 브랜치를 원본 main에 병합하지 않는다.
+`thirdcat/indie`의 `preview` 브랜치에는 `index.html`과 `.nojekyll`만 배포한다. 원본 도메인의 `CNAME`을 포함하지 않으며 GitHub Pages custom domain은 설정하지 않는다. 모바일 소스 변경은 fork의 `fix/mobile-layout` 브랜치에서 관리한다. 사용자가 미리보기를 확인하고 요청한 뒤 원본 main으로 PR을 보낸다. 미리보기 배포 브랜치를 원본 main에 병합하지 않는다.
 
 미리보기는 원본과 같은 Supabase를 사용하므로 글·계정·이미지 데이터가 공유되고, 글을 열면 조회수가 증가할 수 있다. UI 변경만 미리보기에서 확인하며 서버 정책·HTTPS 설정은 이 변경에 포함하지 않는다.
 
-## 실제 미리보기 화면
+## 화면 예시
+
+게시판 이미지는 로컬 mock 데이터로 촬영했다.
 
 ![모바일 게시판](screenshots/mobile-board.png)
 
