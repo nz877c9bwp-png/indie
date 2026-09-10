@@ -25,7 +25,7 @@ Stored XSS, 즉 “게시글에 단순 글자가 아니라 실행 가능한 HTML
 
 ## 기존 기능 영향
 
-게시글 목록·상세·HOT·앨범 평가·평균 평점·앨범 상세·리뷰·글쓰기·화면 전환·정상 HTTPS 이미지·YouTube embed를 확인했다. 작은따옴표, `%`, `:::`가 포함된 앨범 이름도 안전하게 선택·이동한다. 최신 main의 푸터·개인정보 모달·회원가입 약관 동의를 보존하고 전용 회귀 테스트를 추가했다. CSS/디자인과 Supabase schema/API 필드는 변경하지 않았다.
+게시글 목록·상세·HOT·앨범 평가·평균 평점·앨범 상세·리뷰·글쓰기·화면 전환·정상 HTTPS 이미지·YouTube embed를 확인했다. 작은따옴표, `%`, `:::`가 포함된 앨범 이름도 안전하게 선택·이동한다. 최신 main의 푸터·개인정보 모달·회원가입 약관 동의·사이드바 순서·“나도 평가하기” 기능을 보존했다. 새 앨범 글쓰기 진입점에도 원래 문자열을 안전하게 전달하고 전용 회귀·보안 테스트를 추가했다. CSS/디자인과 Supabase schema/API 필드는 변경하지 않았다.
 
 HTTP/상대 URL/잘못된 이미지 URL은 표시하지 않는다. YouTube는 watch/embed/youtu.be 형식을 지원하며 잘못된 host/ID와 미지원 형식은 글자로 남는다. 원래 handler가 없는 헤더 게시글 검색은 구현하지 않았다. 테스트한 검색은 앨범 검색이다.
 
@@ -39,7 +39,7 @@ npm run test:baseline
 git diff --check
 ```
 
-- Chromium 데스크톱/모바일 viewport에서 21개 시나리오씩 실행했다.
+- Chromium 데스크톱/모바일 viewport에서 22개 시나리오씩 실행했다.
 - 목록/상세/HOT 클릭, 앨범 평균·리뷰, 글쓰기, 검색·선택·평점, mock 업로드/저장/수정/추천, 빈 상태를 확인했다.
 - HTML/script/img-event/SVG/srcdoc/quote 탈출/JS 문자열/실행 scheme/malformed URL/중첩 media를 검사했다.
 - 수정 전 기준 커밋을 격리 환경에서 재생하여 XSS 3건과 기존 escape 보호 대조 1건을 검증했다.
@@ -47,7 +47,7 @@ git diff --check
 
 ## 테스트 결과
 
-**PASS — 수정본 42/42, baseline 4/4, diff whitespace 검사 통과.**
+**PASS — 수정본 44/44, baseline 4/4, diff whitespace 검사 통과.**
 
 수정본에서 공격자 JavaScript/alert/dialog, 공격자가 만든 event attribute·예상하지 않은 scriptable element, 임의 iframe URL이 없었다. runtime exception, browser console error, 예상하지 않은 네트워크 요청도 0건이었다. 정상 기능의 예상 alert는 별도로 검증했다.
 

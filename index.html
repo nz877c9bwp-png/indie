@@ -168,7 +168,6 @@
   .yt-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
   .yt-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
-  /* 🌟 사이트 하단 법적 고지 푸터 CSS */
   .site-footer { border-top:1px solid var(--border); padding:30px 20px; text-align:center; color:var(--muted); font-size:12px; line-height:1.6; margin-top:auto; background:var(--panel);}
   .footer-inner { max-width:1180px; margin:0 auto; }
   .footer-inner a { color:var(--muted); text-decoration:underline; cursor:pointer;}
@@ -206,7 +205,7 @@
     .view-content-area { padding:20px 16px; }
     .view-header { padding:16px; }
     .view-footer { flex-direction:column; gap:12px; padding:16px; }
-    .view-controls { width:100%; display:flex; justify-content:center;}
+    .view-controls { width:100%; display:flex; justify-content:center; flex-wrap:wrap;}
     .btn-recommend { width:100%; justify-content:center; padding:12px;}
     
     .modal-content { width:95%; padding:20px; }
@@ -246,18 +245,21 @@
 
 <div class="shell">
   <aside class="sidebar">
-    <div class="cat-group">
-      <div class="cat-head"><span style="color:var(--special);">너 평가 좋아해?</span></div>
-      <ul class="board-list">
-        <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">앨범 평가</a></li>
-      </ul>
-    </div>
-    
+    <!-- 🌟 전체 게시판을 맨 위로 이동 -->
     <div class="cat-group">
       <ul class="board-list" style="padding-top:6px;">
         <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">전체 게시판</a></li>
       </ul>
     </div>
+
+    <!-- 🌟 특별한 색상 제거, 다른 카테고리와 동일하게 변경 -->
+    <div class="cat-group">
+      <div class="cat-head"><span>너 평가 좋아해?</span></div>
+      <ul class="board-list">
+        <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">앨범 평가</a></li>
+      </ul>
+    </div>
+
     <div class="cat-group">
       <div class="cat-head"><span>너 인디 좋아해?</span></div>
       <ul class="board-list">
@@ -320,6 +322,9 @@
         <div class="view-footer">
           <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
           <div class="view-controls">
+            <!-- 🌟 게시글 내 "나도 평가하기" 버튼 추가 -->
+            <button class="write-btn" id="btnEvalSame" style="display:none; background:var(--special);">나도 평가하기</button>
+
             <button class="btn-admin-edit" id="adminEditBtn" style="display:none;">수정</button>
             <button class="btn-admin-delete" id="adminDeleteBtn" style="display:none;">삭제</button>
             <button class="btn-list" onclick="backToList()">목록으로</button>
@@ -337,7 +342,8 @@
           <div id="adArtist" class="ad-artist"></div>
           <div id="adScore" class="ad-score"></div>
           <div class="ad-actions">
-            <button class="write-btn" onclick="openWriteWithPreSelectedAlbum()" style="background:var(--special);">이 앨범 평가 남기기</button>
+            <!-- 🌟 앨범 상세 탭 "나도 평가하기" 텍스트 변경 및 로직 통일 -->
+            <button class="write-btn" onclick="openWriteWithAlbumParams(document.getElementById('adTitle').innerText, document.getElementById('adArtist').innerText, document.getElementById('adCover').src)" style="background:var(--special);">나도 평가하기</button>
           </div>
         </div>
       </div>
@@ -468,7 +474,6 @@
   </main>
 </div>
 
-<!-- 🌟 사이트 하단 법적 고지 및 처리방침 푸터 -->
 <footer class="site-footer">
   <div class="footer-inner">
     <p style="margin:0 0 8px 0; color:var(--text); font-weight:bold;">너 평가 좋아해?</p>
@@ -492,7 +497,6 @@
   </div>
 </div>
 
-<!-- 🌟 필수 약관 동의가 추가된 회원가입 모달 -->
 <div class="modal" id="signupModal">
   <div class="modal-content small">
     <h2>회원가입</h2>
@@ -522,7 +526,6 @@
   </div>
 </div>
 
-<!-- 🌟 개인정보 처리방침 텍스트 모달 -->
 <div class="modal" id="privacyModal">
   <div class="modal-content" style="max-width:500px;">
     <h2>개인정보 처리방침 및 이용약관</h2>
@@ -704,7 +707,6 @@
     }
   });
 
-  // 🌟 회원가입 시 동의 여부 체크 로직 추가
   document.getElementById('doSignupBtn').addEventListener('click', async () => {
     const email = document.getElementById('signupEmail').value; 
     const password = document.getElementById('signupPw').value;
@@ -726,7 +728,7 @@
   document.getElementById('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
   document.getElementById('showLoginBtn').onclick = () => document.getElementById('loginModal').style.display='flex';
   document.getElementById('showSignupBtn').onclick = () => {
-    document.getElementById('signupConsent').checked = false; // 열 때마다 동의 초기화
+    document.getElementById('signupConsent').checked = false;
     document.getElementById('signupModal').style.display='flex';
   }
 
@@ -748,11 +750,8 @@
     
     try {
       const queryTerm = encodeURIComponent(query).replace(/%20/g, '+');
-      
       let attrParam = '';
-      if(searchType !== 'all') {
-        attrParam = `&attribute=${searchType}`;
-      }
+      if(searchType !== 'all') attrParam = `&attribute=${searchType}`;
 
       const resKR = await fetch(`https://itunes.apple.com/search?term=${queryTerm}&entity=album&country=KR${attrParam}&limit=30`);
       const dataKR = await resKR.json();
@@ -769,7 +768,7 @@
           <div style="color:var(--admin); font-size:13px; line-height:1.5;">
             결과가 없습니다.<br>
             <b>검색 꿀팁:</b><br>
-            - '부활' 밴드를 찾으시려면 드롭다운을 <b>[가수명만]</b>으로 변경하고 검색하세요. (종교 앨범 제외)<br>
+            - '부활' 밴드를 찾으시려면 드롭다운을 <b>[가수명만]</b>으로 변경하고 검색하세요.<br>
             - 한글로 안 나오면 영문 <b>Boohwal, Jannabi</b> 등으로 검색해보세요.
           </div>`; 
         return; 
@@ -854,6 +853,14 @@
     document.getElementById('albumDetailSection').style.display = 'none';
     document.getElementById('writeSection').style.display = 'block';
     window.scrollTo(0, 0); 
+  };
+
+  // 🌟 인자로 앨범 정보를 받아 바로 글쓰기 창으로 넘어가는 통합 함수
+  window.openWriteWithAlbumParams = function(title, artist, cover) {
+    document.getElementById('openWriteBtn').click();
+    document.getElementById('postTag').value = '앨범 평가';
+    document.getElementById('postTag').dispatchEvent(new Event('change'));
+    selectAlbum(title, artist, cover);
   };
 
   async function fetchPosts() {
@@ -983,17 +990,6 @@
     window.scrollTo(0, 0);
   };
 
-  window.openWriteWithPreSelectedAlbum = function() {
-    document.getElementById('openWriteBtn').click();
-    document.getElementById('postTag').value = '앨범 평가';
-    document.getElementById('postTag').dispatchEvent(new Event('change'));
-    
-    const title = document.getElementById('adTitle').innerText;
-    const artist = document.getElementById('adArtist').innerText;
-    const cover = document.getElementById('adCover').src;
-    selectAlbum(title, artist, cover);
-  };
-
   function changeBoard(category) {
     backToList(); 
     currentCategory = category;
@@ -1023,6 +1019,17 @@
     
     document.getElementById('adminEditBtn').style.display = isAdmin ? 'inline-block' : 'none';
     document.getElementById('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
+
+    // 🌟 앨범 평가글일 경우 '나도 평가하기' 버튼 노출 및 앨범 정보 연동
+    const btnEvalSame = document.getElementById('btnEvalSame');
+    if(post.tag === '앨범 평가' && post.album_title) {
+      btnEvalSame.style.display = 'inline-block';
+      btnEvalSame.onclick = () => {
+        openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover);
+      };
+    } else {
+      btnEvalSame.style.display = 'none';
+    }
 
     document.getElementById('writeSection').style.display = 'none';
     document.getElementById('albumDetailSection').style.display = 'none';

@@ -265,3 +265,31 @@ test('regression: upstream footer and signup consent remain intact', async ({ pa
   await expect(page.locator('#signupConsent')).not.toBeChecked();
   await assertClean(page, state, ['서비스 이용을 위해 개인정보 수집 및 이용약관에 동의해주세요.']);
 });
+
+test('regression/security: upstream same-album review action preserves literal metadata', async ({ page }) => {
+  const title = "'-alert(921)-' <svg onload=alert(922)> 100% ::: 앨범";
+  const artist = "Artist's <img src=x onerror=alert(923)>";
+  const state = await boot(page, { posts: [normalPosts[0], { ...normalPosts[1], album_title: title, album_artist: artist }] });
+  await expect(page.locator('.sidebar a').first()).toHaveText('전체 게시판');
+  await page.locator('#postList a').first().click();
+  await expect(page.locator('#btnEvalSame')).toBeHidden();
+  await page.locator('#postList a').nth(1).click();
+  await expect(page.locator('#btnEvalSame')).toBeVisible();
+  await page.locator('#btnEvalSame').click();
+  await expect(page.locator('#writeSection')).toBeVisible();
+  await expect(page.locator('#postTag')).toHaveValue('앨범 평가');
+  await expect(page.locator('#selTitle')).toHaveText(title);
+  await expect(page.locator('#selArtist')).toHaveText(artist);
+  await expect(page.locator('#selCover')).toHaveAttribute('src', 'https://assets.test/cover.png');
+  await expect(page.locator('#starRatingText')).toHaveText('명반! (5점)');
+  await expect(page.locator('#selAlbumWrap svg, #selAlbumWrap [onerror]')).toHaveCount(0);
+  await page.locator('.btn-cancel-write').click();
+  await page.locator('.sidebar a').filter({ hasText: /^앨범 평가$/ }).click();
+  await page.locator('.album-card').click();
+  await page.locator('#albumDetailSection .write-btn').click();
+  await expect(page.locator('#selTitle')).toHaveText(title);
+  await expect(page.locator('#selArtist')).toHaveText(artist);
+  await page.evaluate(() => openWriteWithAlbumParams('test', 'artist', 'javascript:alert(924)'));
+  await expect(page.locator('#selCover')).not.toHaveAttribute('src');
+  await assertClean(page, state);
+});

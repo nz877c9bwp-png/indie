@@ -41,6 +41,7 @@ U = 사용자 입력·DB·외부 API·Auth metadata로서 신뢰하지 않는 �
 | Storage publicUrl → textarea.value → 저장된 본문 | U | textarea 단계는 아니오 | 저장 후 본문 media renderer가 신뢰 경계 | 본문 경로 참조 | 본문 경로 참조 |
 | 검색어/searchType → iTunes 요청 | U/고정 select | DOM 삽입 없음 | 검색어는 URL 인코딩; 응답은 위 검색 경로 | 해당 없음 | origin은 고정 |
 | API 오류 → alert, 선택 category → boardTitle | U/T | 아니오 | alert의 내용/innerText는 HTML 실행 안 함 | 없음 | 해당 없음 |
+| 앨범 상세·게시글의 나도 평가하기 → 글쓰기 | U | 아니오: DOM에서 읽은 값/closure 인자를 value·text로 전달 | 최신 main 통합 후 hostile metadata로 실행 없음 확인 | 문자열을 handler 소스로 생성하지 않음 | 표지는 imageUrl로 검증 |
 | 고정 HTML/inline onclick/href/빈 상태 | T | 예 | 사용자 값 보간 없음 | 사용자 유래 주입 없음 | 기존 javascript:void(0)은 고정 코드 |
 
 헤더의 일반 “게시글 검색” input/button에는 원래 검색 handler가 없다. 이번에 기능을 추가하거나 정상 검색이 된다고 보고하지 않았다. 테스트의 검색은 **앨범 검색**이다.
@@ -75,7 +76,7 @@ baseline의 PASS는 **취약한 구버전에서 예상한 재현 결과를 확�
 
 | 실행 | 결과 |
 | --- | --- |
-| `npm test` | **PASS: 42/42**, 21개 시나리오 × 2 viewport |
+| `npm test` | **PASS: 44/44**, 22개 시나리오 × 2 viewport |
 | `npm run test:baseline` | **PASS: 4/4**, 구버전 실행 경로 3개 + 기존 escape 보호 대조 1개 |
 | `git diff --check` | **PASS** |
 
@@ -122,4 +123,10 @@ baseline의 PASS는 **취약한 구버전에서 예상한 재현 결과를 확�
 
 판단: **이번 frontend XSS 패치 범위에서는 테스트를 통과하여 사용자 코드 검토 후 merge 가능한 상태**다. Supabase의 인가/정책까지 안전하다는 판정은 아니다. main에 직접 push하거나 merge하지 않는다.
 
-PR 게시 전 `origin/main`의 `cfb05d6` 위로 rebase했다. upstream의 푸터·개인정보 모달·회원가입 약관 동의 기능을 보존했으며 전용 회귀 테스트를 추가했다. 최종 통합 상태에서 수정본 42개와 baseline 4개가 통과했다.
+PR 게시 전 `origin/main`의 `cfb05d6` 위로 rebase했다. upstream의 푸터·개인정보 모달·회원가입 약관 동의 기능을 보존했으며 전용 회귀 테스트를 추가했다. 해당 통합 시점에 수정본 42개와 baseline 4개가 통과했다.
+
+### PR #2 충돌 해결
+
+PR 게시 후 main에 `0212d5e`가 추가되어 앨범 글쓰기 함수의 수정/삭제 충돌이 발생했다. main을 `security/xss-fix`에 병합하여 새 `openWriteWithAlbumParams`와 “나도 평가하기” 버튼, 사이드바 순서, 모바일 버튼 줄바꿈을 유지했다. 삭제된 구 함수는 복구하지 않았다. 새 함수의 `selectAlbum` 호출은 URL 인코딩 없이 원래 문자열을 전달하도록 맞췄다. 그렇지 않으면 보안 패치의 DOM text renderer에서 한글·특수문자가 퍼센트 인코딩된 채 표시된다.
+
+신규 버튼의 표시 조건, 글쓰기 이동·앨범 선택·평점, 상세 화면 진입점, scriptable 앨범명/가수명, 잘못된 표지 scheme을 데스크톱·모바일에서 추가 검증했다. 통합 결과는 `npm test` **44/44 PASS**, `npm run test:baseline` **4/4 PASS**다. main에는 직접 push/merge하지 않고 PR 브랜치만 업데이트한다.
