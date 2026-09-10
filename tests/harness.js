@@ -30,7 +30,7 @@ async function boot(page, { posts = normalPosts, albums = [], baseline = false, 
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ results: albums }) });
     }
     if (url.hostname === 'assets.test') {
-      return route.fulfill({ contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64') });
+      return route.fulfill({ contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNQuvwOAAL+AeSGuPZQAAAAAElFTkSuQmCC', 'base64') });
     }
     if (url.hostname === 'www.youtube.com' && url.pathname.startsWith('/embed/')) {
       return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Mock YouTube</title>' });

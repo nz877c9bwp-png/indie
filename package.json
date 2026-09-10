@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "test": "playwright test --project=chromium --project=mobile",
+    "test:layout": "playwright test --project=layout-chromium --project=layout-firefox --project=layout-webkit",
     "test:baseline": "playwright test --project=baseline"
   },
   "devDependencies": {
