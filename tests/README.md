@@ -24,3 +24,18 @@ The harness fulfills the page at a synthetic `http://127.0.0.1:8000` URL; no HTT
 The tests prove DOM/URL behavior and mocked call shapes, not live backend authorization, real uploads, CDN availability or YouTube playback. Expected application dialogs (e.g. save success) are asserted separately from attack dialogs. Generated output and dependencies are gitignored. There is no coverage percentage requirement.
 
 Recorded results and the complete source-to-sink inventory are in [the security review](../docs/security-xss-review.md).
+
+## Responsive layout checks
+
+```sh
+npx playwright install --with-deps chromium firefox webkit
+npm run test:layout
+```
+
+The layout suite checks 320, 360, 375, 390, 430, 600, 768, 840, 841, 844, 1024 and 1440 CSS-pixel widths across Chromium, Firefox and WebKit. It covers long unbroken text, large images, navigation, album/review screens, forms and modals. It asserts that the document and layout containers have no horizontal overflow and that controls stay inside the viewport. A separate case covers resizing and 200% CSS zoom; this does not replace physical-device or native pinch-zoom testing.
+
+## Phone and tablet profiles
+
+Run `npm run test:devices` for 24 portrait/landscape configurations using Playwright device descriptors and representative tablet/split-window CSS viewports. Apple profiles use WebKit; Android profiles use Chromium, with touch and mobile viewport emulation enabled. Screenshots are written under `test-results/devices/` (other test runs may clear this directory).
+
+This checks populated/empty board column widths, isolated menu/HOT scrolling, touch navigation, post media, album screens, writing/search and modals. All network requests use local mocks, including fonts and backend services. Device names identify emulator presets, not physical-device certification. See `docs/device-layout-check.md` for results and limitations.
