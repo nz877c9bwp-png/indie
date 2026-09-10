@@ -59,8 +59,14 @@
   .hot-badge { color:var(--music); font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block;}
   .widget-title { font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;}
   .widget-stats { font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center;}
-  .board-title-row{ display:flex; align-items:baseline; justify-content:space-between; margin:0 0 12px; }
+  .board-title-row{ display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; }
   .board-title-row h1{ font-size:19px; margin:0; font-weight:700; }
+
+  /* 🌟 정렬 버튼 CSS 추가 */
+  .sort-btns { display:flex; gap:10px; font-size:13px; align-items:center; }
+  .sort-btns button { background:none; border:none; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; padding:0; font-family:inherit; transition:0.2s; }
+  .sort-btns button.active { color:var(--text); font-weight:800; }
+  .sort-btns button:hover { color:var(--text); }
 
   .post-table-wrap { overflow-x:auto; }
   .post-table{ width:100%; border-collapse:collapse; border-top:2px solid var(--border); border-bottom:1px solid var(--border); min-width:600px;}
@@ -175,7 +181,7 @@
 
 
   /* =========================================
-     📱 완벽한 모바일 반응형 (가로 스크롤 완전 제거)
+     📱 완벽한 모바일 반응형 (디시인사이드 스타일)
      ========================================= */
   @media (max-width: 840px) {
     .shell { grid-template-columns: 1fr; padding: 12px; gap: 16px; }
@@ -196,25 +202,50 @@
     .widget-container { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; overflow-x:visible; scroll-snap-type:none; padding-bottom:0; }
     .widget-card { min-width:0; margin-bottom:0; }
 
+    /* 🌟 일반 게시글 리스트 DC 모바일 스타일 개편 */
     .post-table-wrap { overflow-x:visible; margin-top:8px; }
-    .post-table { display:block; min-width:0; border:none; }
+    .post-table { display:block; min-width:0; border:none; border-top:2px solid var(--border); }
     .post-table thead { display:none; }
-    .post-table tbody { display:flex; flex-direction:column; gap:10px; }
-    .post-table tr { display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px; margin:0; }
+    .post-table tbody { display:block; }
+    .post-table tr { 
+        display:grid; 
+        grid-template-columns: auto max-content max-content max-content 1fr;
+        grid-template-areas:
+            "tag title title title title"
+            "author date views recs .";
+        padding: 12px 8px; 
+        border-bottom: 1px solid var(--border); 
+        align-items: center; 
+        column-gap: 6px; 
+        row-gap: 8px; 
+        background: transparent;
+        margin:0;
+    }
     .post-table tr:hover { background:var(--panel); }
-    .post-table td { display:block; padding:0; border:none; text-align:left; width:auto; font-size:13px; }
+    .post-table td { padding:0; border:none; font-size:12px; }
     
     .col-num { display:none; }
-    .col-tag { margin-bottom:10px; display:inline-block; }
-    .col-title { font-size:15px; font-weight:700; margin-bottom:12px; line-height:1.4; }
-    .col-author { font-size:12px; color:var(--muted); display:inline-block; }
-    .col-date { font-size:12px; color:var(--muted); display:inline-block; margin-left:8px; }
-    .col-date::before { content:'|'; margin-right:8px; color:var(--border); }
+    .col-tag { grid-area: tag; margin-right:4px; }
+    .col-title { 
+        grid-area: title; 
+        font-size: 15px; 
+        font-weight: 500;
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        min-width: 0; 
+    }
+    .col-author { grid-area: author; color: var(--muted); }
+    .col-date { grid-area: date; color: var(--muted); }
     
-    .col-stats { font-size:12px; display:inline-block; margin-top:8px; color:var(--muted); }
-    .col-stats:nth-last-child(2)::before { content:'조회 '; }
-    .col-stats:last-child { margin-left:12px; }
-    .col-stats:last-child::before { content:'추천 '; }
+    /* Javascript가 생성하는 nth-child 기준으로 조회/추천 매핑 */
+    .post-table td:nth-child(6) { grid-area: views; color: var(--muted); }
+    .post-table td:nth-child(7) { grid-area: recs; color: var(--music); font-weight: 600; }
+    
+    /* 텍스트 구분선 및 모바일용 라벨 삽입 */
+    .col-date::before { content: '| '; margin-right: 4px; color: var(--border); }
+    .post-table td:nth-child(6)::before { content: '| 조회 '; margin-right: 4px; color: var(--border); }
+    .post-table td:nth-child(7)::before { content: '| 추천 '; margin-right: 4px; color: var(--border); }
 
     #albumGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:12px;}
     
@@ -281,7 +312,6 @@
       </ul>
     </div>
 
-    <!-- 🌟 사이드바 노출 목록 간소화 (인디 통합, 불필요한 탭 숨김) -->
     <div class="cat-group">
       <div class="cat-head"><span>너 인디 좋아해?</span></div>
       <ul class="board-list">
@@ -370,8 +400,14 @@
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
+      <!-- 🌟 게시판 제목 및 정렬(최신순/인기순) 버튼 추가 -->
       <div class="board-title-row">
         <h1 id="boardTitle">전체 게시판</h1>
+        <div class="sort-btns">
+          <button id="btnSortLatest" class="active" onclick="changeSort('latest')">최신순</button>
+          <span style="color:var(--border); font-size:11px;">|</span>
+          <button id="btnSortPopular" onclick="changeSort('popular')">인기순</button>
+        </div>
       </div>
       
       <div class="post-table-wrap" id="postTableArea">
@@ -439,7 +475,6 @@
         </div>
 
         <div class="write-row">
-          <!-- 🌟 글 작성 시에는 기존의 모든 옵션(국내/해외 인디, 데모 등)을 자유롭게 선택 가능 -->
           <select id="postTag">
             <optgroup label="너 평가 좋아해?" style="color:var(--special);">
               <option value="앨범 평가">앨범 평가</option>
@@ -567,6 +602,7 @@
 
   let currentPosts = [];
   let currentCategory = '전체'; 
+  let currentSort = 'latest'; // 🌟 현재 정렬 상태 (최신순 기본)
   let currentReadPostId = null;
   let currentUser = null; 
   let isAdmin = false;
@@ -851,12 +887,11 @@
     document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
     
-    // 🌟 글쓰기 시 카테고리가 꼬이지 않도록 안전장치 적용
     let targetTag = currentCategory;
     if (['전체', '인디'].includes(currentCategory)) targetTag = '국내 인디';
     const tagEl = document.getElementById('postTag');
     tagEl.value = targetTag;
-    if (!tagEl.value) tagEl.value = '자유'; // 숨겨진 탭에서 글을 썼을 경우 대비
+    if (!tagEl.value) tagEl.value = '자유'; 
     tagEl.dispatchEvent(new Event('change'));
 
     document.getElementById('albumResults').replaceChildren();
@@ -884,6 +919,14 @@
     if (!error && data) { currentPosts = data; }
     renderPosts(); 
   }
+
+  // 🌟 정렬 변경 함수
+  window.changeSort = function(type) {
+    currentSort = type;
+    document.getElementById('btnSortLatest').classList.toggle('active', type === 'latest');
+    document.getElementById('btnSortPopular').classList.toggle('active', type === 'popular');
+    renderPosts();
+  };
 
   function renderPosts() {
     const widgetArea = document.getElementById('topWidgetArea');
@@ -913,12 +956,19 @@
       const stats = Object.create(null);
       evalPosts.forEach(p => {
         const key = JSON.stringify([p.album_title, p.album_artist, p.album_cover]);
-        if(!stats[key]) stats[key] = { count:0, totalScore:0, title:p.album_title, artist:p.album_artist, cover:p.album_cover };
+        if(!stats[key]) stats[key] = { count:0, totalScore:0, title:p.album_title, artist:p.album_artist, cover:p.album_cover, maxId: p.id };
         stats[key].count += 1;
         stats[key].totalScore += Number(p.rating || 0);
+        if (p.id > stats[key].maxId) stats[key].maxId = p.id;
       });
 
-      const sortedAlbums = Object.values(stats).sort((a,b) => b.count - a.count); 
+      const sortedAlbums = Object.values(stats); 
+      // 🌟 앨범 평가 탭 정렬 적용 (인기순: 평가 많은 순, 최신순: 최근 평가된 순)
+      if (currentSort === 'popular') {
+        sortedAlbums.sort((a,b) => b.count - a.count);
+      } else {
+        sortedAlbums.sort((a,b) => b.maxId - a.maxId);
+      }
       
       if(sortedAlbums.length === 0) {
         albumGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted); font-size:15px;">아직 평가된 앨범이 없습니다. 명반을 직접 추가해 보세요!</div>';
@@ -944,14 +994,24 @@
       
       const tbody = document.getElementById('postList');
       
-      // 🌟 '인디' 선택 시 국내 인디와 해외 인디 글이 모두 보이도록 필터링 규칙 수정
       let filtered;
       if (currentCategory === '전체') {
-        filtered = currentPosts;
+        filtered = [...currentPosts];
       } else if (currentCategory === '인디') {
         filtered = currentPosts.filter(p => ['국내 인디', '해외 인디'].includes(p.tag));
       } else {
         filtered = currentPosts.filter(p => p.tag === currentCategory);
+      }
+
+      // 🌟 일반 게시판 리스트 정렬 로직 적용
+      if (currentSort === 'popular') {
+        filtered.sort((a, b) => {
+          if (b.recs !== a.recs) return (b.recs || 0) - (a.recs || 0);
+          if (b.views !== a.views) return (b.views || 0) - (a.views || 0);
+          return b.id - a.id;
+        });
+      } else {
+        filtered.sort((a, b) => b.id - a.id);
       }
 
       if (filtered.length === 0) {
@@ -976,9 +1036,15 @@
           if (post.recs > 0) title.append(element('span', 'rec-count', `[${Number(post.recs)}]`));
           const recs = element('td', 'col-stats tabular', Number(post.recs || 0));
           recs.style.cssText = 'color:var(--music); font-weight:600;';
-          row.append(element('td', 'col-num tabular', total - i), tag, title,
-            element('td', 'col-author', post.author || 'ㅇㅇ'), element('td', 'col-date', date),
-            element('td', 'col-stats tabular', Number(post.views || 0)), recs);
+          row.append(
+            element('td', 'col-num tabular', total - i), 
+            tag, 
+            title,
+            element('td', 'col-author', post.author || 'ㅇㅇ'), 
+            element('td', 'col-date', date),
+            element('td', 'col-stats tabular', Number(post.views || 0)), 
+            recs
+          );
           return row;
         }));
       }
