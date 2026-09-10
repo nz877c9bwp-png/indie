@@ -353,7 +353,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 
   .post-table-wrap { margin: 0 20px; border-radius:0; box-shadow:none; width: auto; box-sizing: border-box; }
   .view-box, #writeSection, #albumDetailSection { margin: 0 20px; width: auto; }
-  .table-scroll { overflow-x: visible; border-radius: 0; }
+  .table-scroll { overflow-x: visible; overflow-y: visible; border-radius: 0; }
   .dc-table { display: block; min-width: 0; border: none; width: 100%; box-sizing: border-box; }
   .dc-table thead { display: none; }
   .dc-table tbody { display: block; width: 100%; box-sizing: border-box; }
