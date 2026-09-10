@@ -180,7 +180,7 @@
 
 
   /* =========================================
-     📱 완벽한 모바일 반응형 (디시인사이드 스타일)
+     📱 완벽한 모바일 반응형
      ========================================= */
   @media (max-width: 840px) {
     .shell { grid-template-columns: 1fr; padding: 12px; gap: 16px; }
@@ -396,28 +396,26 @@
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
-      <!-- 🌟 일반 게시판 헤더 -->
+      <!-- 🌟 일반 게시판 헤더 (토글 버튼 적용) -->
       <div id="generalBoardHeader" class="board-title-row">
         <h1 id="boardTitle">전체 게시판</h1>
         <div class="sort-btns">
-          <button id="btnSortLatest" class="active" onclick="changeSort('latest')">최신순</button>
+          <button id="btnSortLatest" class="active" onclick="toggleSort('latest')">최신순</button>
           <span style="color:var(--border); font-size:11px;">|</span>
-          <button id="btnSortPopular" onclick="changeSort('popular')">인기순</button>
+          <button id="btnSortPopular" onclick="toggleSort('popular')">인기순</button>
         </div>
       </div>
 
-      <!-- 🌟 앨범 게시판 전용 헤더 (검색 기능 및 평점 정렬 기능 포함) -->
+      <!-- 🌟 앨범 게시판 전용 헤더 (토글 버튼 적용) -->
       <div id="albumBoardHeader" style="display:none; flex-direction:column; gap:12px; margin-bottom:16px;">
         <div class="board-title-row" style="margin:0;">
           <h1 id="albumBoardTitle">앨범 평가</h1>
           <div class="sort-btns">
-            <button id="btnSortAlbumPopular" class="active" onclick="changeAlbumSort('popular')">리뷰순</button>
+            <button id="btnSortAlbumReview" class="active" onclick="toggleAlbumSort('review')">리뷰 많은순</button>
             <span style="color:var(--border); font-size:11px;">|</span>
-            <button id="btnSortAlbumLatest" onclick="changeAlbumSort('latest')">최신순</button>
+            <button id="btnSortAlbumDate" onclick="toggleAlbumSort('date')">최신순</button>
             <span style="color:var(--border); font-size:11px;">|</span>
-            <button id="btnSortAlbumHigh" onclick="changeAlbumSort('high')">평점 높은순</button>
-            <span style="color:var(--border); font-size:11px;">|</span>
-            <button id="btnSortAlbumLow" onclick="changeAlbumSort('low')">평점 낮은순</button>
+            <button id="btnSortAlbumRating" onclick="toggleAlbumSort('rating')">평점 높은순</button>
           </div>
         </div>
         <div style="display:flex; gap:8px;">
@@ -491,7 +489,6 @@
         </div>
 
         <div class="write-row">
-          <!-- 🌟 보라색 속성을 제거하여 깔끔하고 통일감 있게 구현 -->
           <select id="postTag">
             <optgroup label="너 평가 좋아해?">
               <option value="앨범 평가">앨범 평가</option>
@@ -613,8 +610,15 @@
 
   let currentPosts = [];
   let currentCategory = '전체'; 
-  let currentSort = 'latest'; 
-  let currentAlbumSort = 'popular'; // 🌟 앨범게시판 전용 정렬 상태 변수 추가
+  
+  // 🌟 일반 정렬 토글 상태 변수
+  let genSortType = 'latest'; 
+  let genSortDir = 'desc';
+
+  // 🌟 앨범 정렬 토글 상태 변수
+  let albSortType = 'review';
+  let albSortDir = 'desc'; 
+
   let currentReadPostId = null;
   let currentUser = null; 
   let isAdmin = false;
@@ -932,21 +936,49 @@
     renderPosts(); 
   }
 
-  // 🌟 일반 게시판 정렬 변경
-  window.changeSort = function(type) {
-    currentSort = type;
-    document.getElementById('btnSortLatest').classList.toggle('active', type === 'latest');
-    document.getElementById('btnSortPopular').classList.toggle('active', type === 'popular');
+  // 🌟 일반 게시판 정렬 토글 로직
+  window.toggleSort = function(type) {
+    if (genSortType === type) {
+      genSortDir = genSortDir === 'desc' ? 'asc' : 'desc'; // 한 번 더 누르면 토글
+    } else {
+      genSortType = type;
+      genSortDir = 'desc'; // 새로운 버튼 누르면 기본 내림차순(desc)
+    }
+
+    // 텍스트 및 활성화 상태 변경
+    const btnLatest = document.getElementById('btnSortLatest');
+    btnLatest.className = genSortType === 'latest' ? 'active' : '';
+    btnLatest.innerText = genSortType === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순';
+
+    const btnPopular = document.getElementById('btnSortPopular');
+    btnPopular.className = genSortType === 'popular' ? 'active' : '';
+    btnPopular.innerText = genSortType === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순';
+
     renderPosts();
   };
 
-  // 🌟 앨범게시판 전용 정렬 변경 함수
-  window.changeAlbumSort = function(type) {
-    currentAlbumSort = type;
-    document.getElementById('btnSortAlbumPopular').classList.toggle('active', type === 'popular');
-    document.getElementById('btnSortAlbumLatest').classList.toggle('active', type === 'latest');
-    document.getElementById('btnSortAlbumHigh').classList.toggle('active', type === 'high');
-    document.getElementById('btnSortAlbumLow').classList.toggle('active', type === 'low');
+  // 🌟 앨범 게시판 전용 정렬 토글 로직
+  window.toggleAlbumSort = function(type) {
+    if (albSortType === type) {
+      albSortDir = albSortDir === 'desc' ? 'asc' : 'desc'; // 한 번 더 누르면 토글
+    } else {
+      albSortType = type;
+      albSortDir = 'desc'; // 새로운 버튼 누르면 기본 내림차순(desc)
+    }
+
+    // 텍스트 및 활성화 상태 변경
+    const btnReview = document.getElementById('btnSortAlbumReview');
+    btnReview.className = albSortType === 'review' ? 'active' : '';
+    btnReview.innerText = albSortType === 'review' && albSortDir === 'asc' ? '리뷰 적은순' : '리뷰 많은순';
+
+    const btnDate = document.getElementById('btnSortAlbumDate');
+    btnDate.className = albSortType === 'date' ? 'active' : '';
+    btnDate.innerText = albSortType === 'date' && albSortDir === 'asc' ? '오래된순' : '최신순';
+
+    const btnRating = document.getElementById('btnSortAlbumRating');
+    btnRating.className = albSortType === 'rating' ? 'active' : '';
+    btnRating.innerText = albSortType === 'rating' && albSortDir === 'asc' ? '평점 낮은순' : '평점 높은순';
+
     renderPosts();
   };
 
@@ -986,21 +1018,22 @@
 
       let sortedAlbums = Object.values(stats); 
       
-      // 🌟 앨범 검색창 키워드 필터링 적용
       const searchKeyword = document.getElementById('albumBoardSearchInput').value.trim().toLowerCase();
       if (searchKeyword) {
         sortedAlbums = sortedAlbums.filter(a => a.title.toLowerCase().includes(searchKeyword) || a.artist.toLowerCase().includes(searchKeyword));
       }
 
-      // 🌟 평점 오름차순/내림차순, 리뷰순, 최신순 로직 적용
+      // 🌟 앨범 토글 정렬 적용 (오름차순/내림차순)
       sortedAlbums.sort((a, b) => {
         const avgA = a.totalScore / a.count;
         const avgB = b.totalScore / b.count;
+        let diff = 0;
         
-        if (currentAlbumSort === 'high') return avgB - avgA;
-        if (currentAlbumSort === 'low') return avgA - avgB;
-        if (currentAlbumSort === 'latest') return b.maxId - a.maxId;
-        return b.count - a.count; // popular(기본)
+        if (albSortType === 'rating') diff = avgB - avgA;
+        else if (albSortType === 'date') diff = b.maxId - a.maxId;
+        else diff = b.count - a.count; // review 
+
+        return albSortDir === 'desc' ? diff : -diff; // desc면 그대로, asc면 반대
       });
       
       if(sortedAlbums.length === 0) {
@@ -1036,21 +1069,27 @@
         filtered = currentPosts.filter(p => p.tag === currentCategory);
       }
 
-      if (currentSort === 'popular') {
-        filtered.sort((a, b) => {
-          if (b.recs !== a.recs) return (b.recs || 0) - (a.recs || 0);
-          if (b.views !== a.views) return (b.views || 0) - (a.views || 0);
-          return b.id - a.id;
-        });
-      } else {
-        filtered.sort((a, b) => b.id - a.id);
-      }
+      // 🌟 일반 토글 정렬 적용 (오름차순/내림차순)
+      filtered.sort((a, b) => {
+        let diff = 0;
+        if (genSortType === 'popular') {
+          if (b.recs !== a.recs) diff = (b.recs || 0) - (a.recs || 0);
+          else if (b.views !== a.views) diff = (b.views || 0) - (a.views || 0);
+          else diff = b.id - a.id;
+        } else {
+          diff = b.id - a.id; // latest
+        }
+        return genSortDir === 'desc' ? diff : -diff;
+      });
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
       } else {
         const total = filtered.length;
         tbody.replaceChildren(...filtered.map((post, i) => {
+          // 역방향 정렬 시 글 번호도 거꾸로 나오지 않도록 단순 인덱스 활용 (가장 최신글이 큰 번호를 갖게 할 수도 있지만 편의상 위에서부터 카운트다운)
+          const displayNum = genSortDir === 'desc' ? total - i : i + 1;
+
           const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
           const row = element('tr');
           const tag = element('td', 'col-tag');
@@ -1069,7 +1108,7 @@
           const recs = element('td', 'col-stats tabular', Number(post.recs || 0));
           recs.style.cssText = 'color:var(--music); font-weight:600;';
           row.append(
-            element('td', 'col-num tabular', total - i), 
+            element('td', 'col-num tabular', displayNum), 
             tag, 
             title,
             element('td', 'col-author', post.author || 'ㅇㅇ'), 
@@ -1113,7 +1152,6 @@
     window.scrollTo(0, 0);
   };
 
-  // 🌟 게시판 변경 시 UI 전환 로직 (앨범평가 헤더 토글)
   function changeBoard(category) {
     backToList(); 
     currentCategory = category;
@@ -1133,6 +1171,17 @@
     });
     
     document.getElementById('albumBoardSearchInput').value = ''; 
+    
+    // 게시판 변경 시 초기값으로 셋팅
+    genSortType = 'latest'; genSortDir = 'desc';
+    albSortType = 'review'; albSortDir = 'desc';
+    
+    document.getElementById('btnSortLatest').innerText = '최신순';
+    document.getElementById('btnSortPopular').innerText = '인기순';
+    document.getElementById('btnSortAlbumReview').innerText = '리뷰 많은순';
+    document.getElementById('btnSortAlbumDate').innerText = '최신순';
+    document.getElementById('btnSortAlbumRating').innerText = '평점 높은순';
+
     renderPosts(); 
   }
 
