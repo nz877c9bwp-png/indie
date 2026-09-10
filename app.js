@@ -866,3 +866,53 @@ history.replaceState({ view: 'board', category: '전체' }, '', location.pathnam
 
 // 초기화
 fetchPosts();
+
+// PC 화면에서 사이드바가 스크롤을 스프링처럼 관성 있게 따라오도록 처리
+(function initSidebarSpring() {
+  const sidebar = document.querySelector('.sidebar');
+  const mainEl = document.querySelector('.shell > main');
+  if (!sidebar || !mainEl) return;
+
+  const DESKTOP_QUERY = window.matchMedia('(min-width: 841px)');
+  const TOP_GAP = 20;
+  const STIFFNESS = 0.14;
+  const DAMPING = 0.72;
+
+  let current = 0, velocity = 0;
+  let baseTop = 0, maxTranslate = 0;
+
+  // 사이드바 자체의 transform을 잠깐 없앤 상태로 재보정해야 밀린 위치가 기준점에 섞이지 않는다.
+  function measure() {
+    const prevTransform = sidebar.style.transform;
+    sidebar.style.transform = 'none';
+    baseTop = sidebar.getBoundingClientRect().top + window.scrollY;
+    const colBottom = mainEl.getBoundingClientRect().bottom + window.scrollY;
+    maxTranslate = Math.max(0, (colBottom - sidebar.offsetHeight) - baseTop);
+    sidebar.style.transform = prevTransform;
+  }
+
+  function tick() {
+    if (DESKTOP_QUERY.matches) {
+      const header = document.querySelector('header');
+      const headerH = header ? header.getBoundingClientRect().height : 0;
+      const target = Math.max(0, Math.min((window.scrollY + headerH + TOP_GAP) - baseTop, maxTranslate));
+
+      velocity += (target - current) * STIFFNESS;
+      velocity *= DAMPING;
+      current += velocity;
+      if (Math.abs(target - current) < 0.05 && Math.abs(velocity) < 0.05) { current = target; velocity = 0; }
+
+      sidebar.style.transform = current !== 0 ? `translateY(${current.toFixed(2)}px)` : '';
+    } else if (sidebar.style.transform) {
+      sidebar.style.transform = '';
+      current = velocity = 0;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('resize', measure);
+  new ResizeObserver(measure).observe(mainEl);
+
+  measure();
+  requestAnimationFrame(tick);
+})();
