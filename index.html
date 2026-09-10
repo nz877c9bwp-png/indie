@@ -19,7 +19,10 @@
     --music: #22D3EE; 
     --music-hover: #06B6D4; 
     --admin: #F43F5E; 
-    --special: #8B5CF6; 
+    --special: #8B5CF6;
+    
+    /* 디시인사이드 포인트 컬러 */
+    --dc-blue: #3b4890;
   }
   *{box-sizing:border-box;}
   body{ margin:0; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; font-size:14px; letter-spacing:-0.3px; -webkit-font-smoothing: antialiased; display:flex; flex-direction:column; min-height:100vh;}
@@ -67,24 +70,39 @@
   .sort-btns button.active { color:var(--text); font-weight:800; }
   .sort-btns button:hover { color:var(--text); }
 
+  /* =========================================
+     디시인사이드 스타일 테이블 디자인 적용
+     ========================================= */
   .post-table-wrap { overflow-x:auto; }
-  .post-table{ width:100%; border-collapse:collapse; border-top:2px solid var(--border); border-bottom:1px solid var(--border); min-width:600px;}
-  .post-table th{ background:var(--panel); color:var(--muted); font-weight:600; font-size:12px; padding:10px; text-align:center; border-bottom:1px solid var(--border); }
-  .post-table td{ padding:10px; vertical-align:middle; border-bottom:1px solid var(--border); font-size:13px;}
-  .post-table tbody tr:hover{background:var(--panel-alt);}
+  .dc-table { width:100%; border-collapse:collapse; border-top:2px solid var(--dc-blue); text-align:center; min-width:650px; }
+  .dc-table th { background:var(--panel-alt); color:var(--text); font-weight:normal; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .dc-table td { padding:8px 0; border-bottom:1px solid var(--border); vertical-align:middle; font-size:13px; color:var(--text); }
+  .dc-table tbody tr:hover { background:var(--panel); }
   
-  .col-num{width:50px; text-align:center; color:var(--muted-2);}
-  .col-tag{width:90px; text-align:center;}
-  .col-title{text-align:left;}
-  .col-author{width:110px; text-align:center; color:var(--muted);}
-  .col-date{width:80px; text-align:center; color:var(--muted);}
-  .col-stats{width:60px; text-align:center; color:var(--muted); font-size:12px;}
-  
-  .tag{ display:inline-block; font-size:11px; font-weight:700; padding:4px 6px; color:var(--text); background:var(--panel-alt); border-radius:3px; white-space:nowrap;}
-  .tag.hot { background:var(--music); color:var(--bg); }
-  .title-cell a:hover { text-decoration: underline; color: var(--music); }
-  .title-cell .rec-count { color:var(--music); font-weight:bold; font-size:12px; margin-left:6px;}
+  .col-id { width: 8%; color:var(--muted); }
+  .col-category { width: 12%; }
+  .col-title { width: auto; text-align:left; padding-left:10px !important; }
+  .col-author { width: 12%; color:var(--muted); }
+  .col-date { width: 10%; color:var(--muted); }
+  .col-views { width: 8%; color:var(--muted); }
+  .col-likes { width: 8%; color:var(--muted); }
 
+  .dc-title-link { color:var(--text); text-decoration:none; }
+  .dc-title-link:hover { text-decoration:underline; }
+  .dc-comment-count { color:#d31900; font-weight:bold; font-size:11px; margin-left:5px; }
+
+  /* 디시 스타일 하단 컨트롤 */
+  .board-footer { margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+  .pagination { display: flex; gap: 3px; }
+  .page-btn { border: 1px solid var(--border); background: var(--panel); padding: 5px 10px; cursor: pointer; color: var(--text); font-family:inherit; }
+  .page-btn.active { border: 1px solid var(--dc-blue); color: white; background: var(--dc-blue); font-weight: bold; }
+  .bottom-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .dc-search-box { display: flex; gap: 5px; }
+  .dc-search-box select, .dc-search-box input { padding: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 2px; font-family:inherit; }
+  .btn-dc-search { background: var(--dc-blue); color: white; border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit;}
+  .btn-dc-write { background: var(--dc-blue); color: white; border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit;}
+
+  /* 앨범 그리드 및 기타 컴포넌트 */
   #albumGrid { display:none; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:16px; margin-top:20px;}
   .album-card { background:var(--panel); border:1px solid var(--border); border-radius:8px; overflow:hidden; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column;}
   .album-card:hover { border-color:var(--special); transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.4); }
@@ -180,7 +198,7 @@
 
 
   /* =========================================
-     📱 모바일 반응형
+     📱 모바일 반응형 (디시 테이블 구조 대응)
      ========================================= */
   @media (max-width: 840px) {
     .shell { grid-template-columns: 1fr; padding: 12px; gap: 16px; }
@@ -202,10 +220,10 @@
     .widget-card { min-width:0; margin-bottom:0; }
 
     .post-table-wrap { overflow-x:visible; margin-top:8px; }
-    .post-table { display:block; min-width:0; border:none; border-top:2px solid var(--border); }
-    .post-table thead { display:none; }
-    .post-table tbody { display:block; }
-    .post-table tr { 
+    .dc-table { display:block; min-width:0; border:none; border-top:2px solid var(--dc-blue); }
+    .dc-table thead { display:none; }
+    .dc-table tbody { display:block; }
+    .dc-table tr { 
         display:grid; 
         grid-template-columns: auto max-content max-content max-content 1fr;
         grid-template-areas:
@@ -219,21 +237,26 @@
         background: transparent;
         margin:0;
     }
-    .post-table tr:hover { background:var(--panel); }
-    .post-table td { padding:0; border:none; font-size:12px; }
+    .dc-table tr:hover { background:var(--panel); }
+    .dc-table td { padding:0; border:none; font-size:12px; text-align:left; }
     
-    .col-num { display:none; }
-    .col-tag { grid-area: tag; margin-right:4px; }
-    .col-title { grid-area: title; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .col-id { display:none; }
+    .col-category { grid-area: tag; margin-right:4px; font-weight:bold; }
+    .col-title { grid-area: title; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding-left:0 !important; }
     .col-author { grid-area: author; color: var(--muted); }
     .col-date { grid-area: date; color: var(--muted); }
     
-    .post-table td:nth-child(6) { grid-area: views; color: var(--muted); }
-    .post-table td:nth-child(7) { grid-area: recs; color: var(--music); font-weight: 600; }
+    .dc-table td:nth-child(6) { grid-area: views; color: var(--muted); }
+    .dc-table td:nth-child(7) { grid-area: recs; color: var(--dc-blue); font-weight: 600; }
     
     .col-date::before { content: '| '; margin-right: 4px; color: var(--border); }
-    .post-table td:nth-child(6):before { content: '| 조회 '; margin-right: 4px; color: var(--border); }
-    .post-table td:nth-child(7):before { content: '| 추천 '; margin-right: 4px; color: var(--border); }
+    .dc-table td:nth-child(6):before { content: '| 조회 '; margin-right: 4px; color: var(--border); }
+    .dc-table td:nth-child(7):before { content: '| 추천 '; margin-right: 4px; color: var(--border); }
+
+    .bottom-controls { flex-direction:column; gap:10px; }
+    .dc-search-box { width: 100%; }
+    .dc-search-box input { flex:1; }
+    .btn-dc-write { width: 100%; padding: 10px; }
 
     #albumGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:12px;}
     
@@ -409,23 +432,45 @@
         </div>
       </div>
       
+      <!-- 디시인사이드 스타일이 적용된 게시판 영역 -->
       <div class="post-table-wrap" id="postTableArea">
-        <table class="post-table">
+        <table class="dc-table">
           <thead>
             <tr>
-              <th class="col-num">번호</th>
-              <th class="col-tag">분류</th>
+              <th class="col-id">번호</th>
+              <th class="col-category">말머리</th>
               <th class="col-title">제목</th>
               <th class="col-author">글쓴이</th>
-              <th class="col-date">날짜</th>
-              <th class="col-stats">조회</th>
-              <th class="col-stats">추천</th>
+              <th class="col-date">작성일</th>
+              <th class="col-views">조회</th>
+              <th class="col-likes">추천</th>
             </tr>
           </thead>
           <tbody id="postList">
             <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글을 불러오는 중...</td></tr>
           </tbody>
         </table>
+        
+        <!-- 디시인사이드 스타일 하단 페이징/컨트롤 -->
+        <div class="board-footer" id="boardFooter" style="display:none;">
+          <div class="pagination">
+            <button class="page-btn">&lt;</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">&gt;</button>
+          </div>
+          <div class="bottom-controls">
+            <div class="dc-search-box">
+              <select>
+                <option value="all">제목+내용</option>
+                <option value="title">제목</option>
+                <option value="author">글쓴이</option>
+              </select>
+              <input type="text" placeholder="검색어 입력" />
+              <button class="btn-dc-search">검색</button>
+            </div>
+            <button class="btn-dc-write" onclick="$('openWriteBtn').click()">글쓰기</button>
+          </div>
+        </div>
       </div>
       <div id="albumGrid"></div>
     </div>
@@ -865,7 +910,7 @@
 
       const stats = Object.create(null);
       currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title).forEach(p => {
-        const key = `${p.album_title}|${p.album_artist}|${p.album_cover}`; // 속도 개선 (문자열 결합)
+        const key = `${p.album_title}|${p.album_artist}|${p.album_cover}`; 
         if(!stats[key]) stats[key] = { count:0, totalScore:0, title:p.album_title, artist:p.album_artist, cover:p.album_cover, maxId: p.id };
         stats[key].count += 1; stats[key].totalScore += Number(p.rating || 0);
         if (p.id > stats[key].maxId) stats[key].maxId = p.id;
@@ -910,21 +955,49 @@
 
       if (!filtered.length) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글이 없습니다.</td></tr>';
+        $('boardFooter').style.display = 'none';
       } else {
+        $('boardFooter').style.display = 'flex';
         const total = filtered.length;
+        
         tbody.replaceChildren(...filtered.map((post, i) => {
           const displayNum = genSortDir === 'desc' ? total - i : i + 1;
           const row = element('tr');
-          const tag = element('td', 'col-tag'); tag.append(element('span', `tag${post.recs >= 3 ? ' hot' : ''}`, post.tag));
-          const title = element('td', 'col-title title-cell');
-          const link = element('a', '', post.title); link.href = '#'; link.onclick = e => { e.preventDefault(); openPostView(post.id); };
-          title.append(link);
-          if (post.album_title) title.append(element('span', '', `★ ${post.rating}`).cloneNode(true)); // Simplified rating span
-          if (post.recs > 0) title.append(element('span', 'rec-count', `[${post.recs}]`));
-          const recs = element('td', 'col-stats tabular', post.recs || 0); recs.style.cssText = 'color:var(--music); font-weight:600;';
-          row.append(element('td', 'col-num tabular', displayNum), tag, title, element('td', 'col-author', post.author || 'ㅇㅇ'), 
-                     element('td', 'col-date', new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' })),
-                     element('td', 'col-stats tabular', post.views || 0), recs);
+          
+          const tag = element('td', 'col-category');
+          tag.append(element('span', `tag${post.recs >= 3 ? ' hot' : ''}`, post.tag));
+          
+          // DC Style 타이틀 및 댓글 렌더링
+          const titleCell = element('td', 'col-title');
+          const link = element('a', 'dc-title-link', post.title); 
+          link.href = '#'; link.onclick = e => { e.preventDefault(); openPostView(post.id); };
+          titleCell.append(link);
+          
+          if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`)); 
+          // 댓글 기능이 추가되면 사용할 디시스타일 빨간 [N] UI 배치
+          titleCell.append(element('span', 'dc-comment-count', `[0]`)); 
+          
+          const authorCell = element('td', 'col-author', post.author || 'ㅇㅇ');
+          
+          // DC Style 간결한 날짜 렌더링
+          const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
+          const dateCell = element('td', 'col-date', dateFormatted);
+          
+          const viewsCell = element('td', 'col-views tabular', post.views || 0);
+          
+          const recsVal = post.recs || 0;
+          const recsCell = element('td', 'col-likes tabular', recsVal);
+          if(recsVal > 0) recsCell.style.cssText = 'color:#d31900; font-weight:bold;'; // 디시처럼 추천수 강조
+          
+          row.append(
+            element('td', 'col-id tabular', displayNum), 
+            tag, 
+            titleCell, 
+            authorCell, 
+            dateCell, 
+            viewsCell, 
+            recsCell
+          );
           return row;
         }));
       }
