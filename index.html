@@ -77,7 +77,7 @@
   <main>
     <div id="postViewSection" style="display:none; margin-bottom:40px;">
       <div style="margin-bottom: 16px;">
-        <button class="btn-list" onclick="backToList()" style="padding:10px 24px; font-size:14px; font-weight:700; border-radius:6px; background:var(--panel); border:1px solid var(--border); color:var(--text);">← 원래 화면으로 돌아가기</button>
+        <button class="btn-list" onclick="history.back()" style="padding:10px 24px; font-size:14px; font-weight:700; border-radius:6px; background:var(--panel); border:1px solid var(--border); color:var(--text);">← 원래 화면으로 돌아가기</button>
       </div>
       <div class="view-box">
         <div class="view-header">
@@ -119,14 +119,14 @@
             <button class="write-btn" id="btnEvalSame" style="display:none; background:var(--special);">나도 평가하기</button>
             <button class="btn-admin-edit" id="adminEditBtn" style="display:none;">수정</button>
             <button class="btn-admin-delete" id="adminDeleteBtn" style="display:none;">삭제</button>
-            <button class="btn-list" onclick="backToList()">목록으로</button>
+            <button class="btn-list" onclick="history.back()">목록으로</button>
           </div>
         </div>
       </div>
     </div>
 
     <div id="albumDetailSection" style="display:none;">
-      <button class="btn-list" onclick="backToList()" style="margin-bottom:24px;">← 뒤로가기</button>
+      <button class="btn-list" onclick="history.back()" style="margin-bottom:24px;">← 뒤로가기</button>
       <div class="ad-header">
         <img id="adCover" src="">
         <div class="ad-info">
@@ -298,7 +298,7 @@
       </div>
       
       <div class="write-footer">
-        <button class="btn-cancel-write" onclick="backToList()">취소</button>
+        <button class="btn-cancel-write" onclick="history.back()">취소</button>
         <button class="btn-submit-write" id="savePostBtn">등록하기</button>
       </div>
     </div>

@@ -288,7 +288,8 @@ $('openWriteBtn').onclick = () => {
   $('selAlbumWrap').style.display = 'none'; $('starInputWrapper').style.display = 'none';
   tempAlbum = { title: null, artist: null, cover: null };
 
-  switchView('write'); 
+  switchView('write');
+  history.pushState({ view: 'write' }, '', '#write');
 };
 
 window.openWriteWithAlbumParams = (title, artist, cover) => {
@@ -422,13 +423,15 @@ function renderPosts() {
       tbody.replaceChildren(...pagePosts.map((post, i) => {
         const displayNum = genSortDir === 'desc' ? total - (startIdx + i) : startIdx + i + 1;
         const row = element('tr');
-        
+        row.style.cursor = 'pointer';
+        row.onclick = e => { e.preventDefault(); openPostView(post.id); };
+
         const tag = element('td', 'col-category');
-        tag.append(element('span', `tag${post.recs >= 3 ? ' hot' : ''}`, post.tag));
-        
+        tag.append(element('span', 'tag', post.tag));
+
         const titleCell = element('td', 'col-title');
-        const link = element('a', 'dc-title-link', escapeHTML(post.title)); 
-        link.href = '#'; link.onclick = e => { e.preventDefault(); openPostView(post.id); };
+        const link = element('a', 'dc-title-link', escapeHTML(post.title));
+        link.href = '#';
         titleCell.append(link);
         
         if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`)); 
@@ -479,7 +482,7 @@ function renderPagination(totalPages) {
   area.append(next);
 }
 
-window.openAlbumDetail = (title, artist) => {
+window.openAlbumDetail = (title, artist, pushHistory = true) => {
   const albumPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title === title && p.album_artist === artist);
   if(!albumPosts.length) return;
   
@@ -493,9 +496,10 @@ window.openAlbumDetail = (title, artist) => {
     return card;
   }));
   switchView('albumDetail');
+  if (pushHistory) history.pushState({ view: 'albumDetail', albumTitle: title, albumArtist: artist }, '', '#album');
 };
 
-function changeBoard(category) {
+function changeBoard(category, pushHistory = true) {
   currentCategory = category;
   const isAlbum = category === '앨범 평가';
   const isBaseball = category === '야구';
@@ -517,6 +521,7 @@ function changeBoard(category) {
   $('btnSortAlbumReview').innerText = '리뷰 많은순'; $('btnSortAlbumDate').innerText = '최신순'; $('btnSortAlbumRating').innerText = '평점 높은순';
   
   backToList();
+  if (pushHistory) history.pushState({ view: 'board', category }, '', '#board-' + encodeURIComponent(category));
 }
 
 // --- 댓글 및 대댓글 기능 ---
@@ -656,9 +661,10 @@ window.submitComment = async (parentId = null) => {
 $('btnSubmitComment').addEventListener('click', () => submitComment(null));
 
 // --- 게시물 열람 함수 ---
-async function openPostView(postId) {
+async function openPostView(postId, pushHistory = true) {
   const post = currentPosts.find(p => p.id === postId); if(!post) return;
   currentReadPostId = postId;
+  if (pushHistory) history.pushState({ view: 'postView', postId }, '', '#post-' + postId);
   
   $('readTitle').textContent = post.title; $('readTag').textContent = post.tag;
   $('readAuthor').textContent = post.author || 'ㅇㅇ';
@@ -688,11 +694,18 @@ async function openPostView(postId) {
   switchView('postView');
   await fetchAndRenderComments();
   
-  // 조회수 DB 함수 직접 호출 (안전한 카운팅)
-  await client.rpc('increment_views', { p_id: postId });
+  // 조회수 DB 함수 직접 호출 (안전한 카운팅). 뒤로/앞으로가기로 복원될 땐 중복 카운트하지 않음.
+  if (pushHistory) await client.rpc('increment_views', { p_id: postId });
 }
 
 window.backToList = () => { renderPosts(); switchView('board'); };
+
+// 글 삭제/저장처럼 지금 보던 대상이 사라지거나 바뀌는 액션 후 목록으로 돌아갈 때 씀.
+// 뒤로가기를 눌러도 없어진 글로 돌아가지 않도록 현재 히스토리 항목 자체를 목록으로 교체한다.
+function returnToBoardAfterAction() {
+  backToList();
+  history.replaceState({ view: 'board', category: currentCategory }, '', '#board-' + encodeURIComponent(currentCategory));
+}
 
 $('btnPostSearch').addEventListener('click', () => {
   postSearchType = $('postSearchType').value;
@@ -747,6 +760,7 @@ $('adminEditBtn').addEventListener('click', () => {
   if (post.tag === '야구') $('postTeam').value = post.team || '';
   $('postAuthor').value = post.author || 'ㅇㅇ';
   switchView('write');
+  history.pushState({ view: 'write' }, '', '#write');
 });
 
 $('adminDeleteBtn').addEventListener('click', async () => {
@@ -756,14 +770,14 @@ $('adminDeleteBtn').addEventListener('click', async () => {
   if (isAdmin || isAuthor) {
     if(!confirm('삭제하시겠습니까?')) return;
     const { error } = await client.from('posts').delete().eq('id', currentReadPostId);
-    if (!error) { alert('삭제됨'); backToList(); fetchPosts(); } else { alert('삭제 실패(권한 부족): ' + error.message); }
+    if (!error) { alert('삭제됨'); returnToBoardAfterAction(); fetchPosts(); } else { alert('삭제 실패(권한 부족): ' + error.message); }
   } else {
     // 유동(비로그인) 글: 작성 시 입력한 비밀번호로만 삭제 가능
     const pw = prompt('삭제하려면 글 작성 시 입력한 비밀번호를 입력하세요.');
     if (pw === null) return;
     const { data, error } = await client.rpc('delete_post_with_password', { p_id: currentReadPostId, p_password: pw });
     if (error || !data) alert('비밀번호가 틀렸거나 삭제할 수 없습니다.');
-    else { alert('삭제됨'); backToList(); fetchPosts(); }
+    else { alert('삭제됨'); returnToBoardAfterAction(); fetchPosts(); }
   }
 });
 
@@ -797,8 +811,23 @@ $('savePostBtn').addEventListener('click', async () => {
   }
 
   $('savePostBtn').disabled = false;
-  if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); backToList(); fetchPosts(); } else alert('실패: 권한이 없거나 오류가 발생했습니다.');
+  if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); returnToBoardAfterAction(); fetchPosts(); } else alert('실패: 권한이 없거나 오류가 발생했습니다.');
 });
+
+// 브라우저 뒤로가기/앞으로가기 지원
+window.addEventListener('popstate', (e) => {
+  const state = e.state;
+  if (!state || state.view === 'board') {
+    changeBoard(state?.category || '전체', false);
+  } else if (state.view === 'postView') {
+    openPostView(state.postId, false);
+  } else if (state.view === 'albumDetail') {
+    openAlbumDetail(state.albumTitle, state.albumArtist, false);
+  } else if (state.view === 'write') {
+    switchView('write');
+  }
+});
+history.replaceState({ view: 'board', category: '전체' }, '', location.pathname + location.search);
 
 // 초기화
 fetchPosts();

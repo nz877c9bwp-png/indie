@@ -118,7 +118,7 @@ header{ border-bottom:1px solid var(--border); background:var(--panel-glass); ba
 .dc-table { width:100%; border-collapse:collapse; text-align:center; min-width:650px; }
 .dc-table th { background:var(--panel-alt); color:var(--muted); font-weight:600; padding:12px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
 .dc-table td { padding:11px 0; border-bottom:1px solid var(--border); vertical-align:middle; font-size:13px; color:var(--text); }
-.dc-table tbody tr { transition:background 0.15s; }
+.dc-table tbody tr { transition:background 0.15s; cursor:pointer; }
 .dc-table tbody tr:hover { background:var(--panel-alt); }
 .dc-table tbody tr:last-child td { border-bottom:none; }
 
