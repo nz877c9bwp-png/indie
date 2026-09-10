@@ -75,6 +75,7 @@ header{ border-bottom:1px solid var(--border); background:var(--panel-glass); ba
 .write-btn:active { transform:translateY(0); }
 
 .shell{ max-width:1180px; margin:0 auto; padding:20px; display:grid; grid-template-columns:230px 1fr; gap:24px; flex:1; width:100%; box-sizing:border-box;}
+.shell > * { min-width: 0; }
 
 .sidebar{ background:var(--panel); border:1px solid var(--border); align-self:start; border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm);}
 .cat-group{border-bottom:1px solid var(--border);}
@@ -113,7 +114,7 @@ header{ border-bottom:1px solid var(--border); background:var(--panel-glass); ba
 .team-tab-btn.active{ background:var(--team-color, var(--music)); border-color:var(--team-color, var(--music)); color:#fff; }
 
 /* 게시판 테이블 */
-.post-table-wrap { width:100%; overflow:hidden; box-sizing:border-box; background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); }
+.post-table-wrap { width:100%; overflow-x:auto; overflow-y:hidden; box-sizing:border-box; background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); }
 .dc-table { width:100%; border-collapse:collapse; text-align:center; min-width:650px; }
 .dc-table th { background:var(--panel-alt); color:var(--muted); font-weight:600; padding:12px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
 .dc-table td { padding:11px 0; border-bottom:1px solid var(--border); vertical-align:middle; font-size:13px; color:var(--text); }
@@ -255,6 +256,8 @@ header{ border-bottom:1px solid var(--border); background:var(--panel-glass); ba
 @media (max-width: 840px) {
   body { overflow-x: hidden; width: 100%; }
   .shell { grid-template-columns: 1fr; padding: 0; gap: 0; width: 100%; max-width: 100%; box-sizing: border-box; }
+  .shell > * { min-width: 0; }
+  main { max-width: 100%; overflow-x: hidden; }
 
   .header-inner { flex-direction: column; align-items: center; gap: 12px; padding: 12px; width: 100%; box-sizing: border-box; }
   .brand { text-align: center; }
