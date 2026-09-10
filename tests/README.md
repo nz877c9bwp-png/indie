@@ -33,3 +33,9 @@ npm run test:layout
 ```
 
 The layout suite checks 320, 360, 375, 390, 430, 600, 768, 840, 841, 844, 1024 and 1440 CSS-pixel widths across Chromium, Firefox and WebKit. It covers long unbroken text, large images, navigation, album/review screens, forms and modals. It asserts that the document and layout containers have no horizontal overflow and that controls stay inside the viewport. A separate case covers resizing and 200% CSS zoom; this does not replace physical-device or native pinch-zoom testing.
+
+## Phone and tablet profiles
+
+Run `npm run test:devices` for 24 portrait/landscape configurations using Playwright device descriptors and representative tablet/split-window CSS viewports. Apple profiles use WebKit; Android profiles use Chromium, with touch and mobile viewport emulation enabled. Screenshots are written under `test-results/devices/` (other test runs may clear this directory).
+
+This checks populated/empty board column widths, isolated menu/HOT scrolling, touch navigation, post media, album screens, writing/search and modals. All network requests use local mocks, including fonts and backend services. Device names identify emulator presets, not physical-device certification. See `docs/device-layout-check.md` for results and limitations.
