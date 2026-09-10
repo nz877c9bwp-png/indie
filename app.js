@@ -27,6 +27,9 @@ let currentPosts = [], currentCategory = '전체';
 let genSortType = 'latest', genSortDir = 'desc';
 let albSortType = 'review', albSortDir = 'desc'; 
 let currentReadPostId = null, currentUser = null, isAdmin = false, isEditMode = false;
+let currentPage = 1;
+const POSTS_PER_PAGE = 20;
+let postSearchType = 'all', postSearchKeyword = '';
 let tempAlbum = { title: null, artist: null, cover: null };
 let currentSelectedRating = 5;
 let currentComments = [];
@@ -304,6 +307,7 @@ async function fetchPosts() {
 window.toggleSort = (type) => {
   genSortDir = genSortType === type ? (genSortDir === 'desc' ? 'asc' : 'desc') : 'desc';
   genSortType = type;
+  currentPage = 1;
   $('btnSortLatest').className = type === 'latest' ? 'active' : '';
   $('btnSortLatest').innerText = type === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순';
   $('btnSortPopular').className = type === 'popular' ? 'active' : '';
@@ -389,6 +393,15 @@ function renderPosts() {
       filtered = filtered.filter(p => p.team === baseballTeamFilter);
     }
 
+    if (postSearchKeyword) {
+      const kw = postSearchKeyword.toLowerCase();
+      filtered = filtered.filter(p => {
+        if (postSearchType === 'title') return (p.title || '').toLowerCase().includes(kw);
+        if (postSearchType === 'author') return (p.author || '').toLowerCase().includes(kw);
+        return (p.title || '').toLowerCase().includes(kw) || (p.content || '').toLowerCase().includes(kw);
+      });
+    }
+
     filtered.sort((a, b) => {
       let diff = genSortType === 'popular' ? ((b.recs !== a.recs ? (b.recs||0) - (a.recs||0) : (b.views !== a.views ? (b.views||0) - (a.views||0) : b.id - a.id))) : (b.id - a.id);
       return genSortDir === 'desc' ? diff : -diff;
@@ -397,12 +410,17 @@ function renderPosts() {
     if (!filtered.length) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글이 없습니다.</td></tr>';
       $('boardFooter').style.display = 'none';
+      $('paginationArea').replaceChildren();
     } else {
       $('boardFooter').style.display = 'flex';
       const total = filtered.length;
-      
-      tbody.replaceChildren(...filtered.map((post, i) => {
-        const displayNum = genSortDir === 'desc' ? total - i : i + 1;
+      const totalPages = Math.max(1, Math.ceil(total / POSTS_PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const startIdx = (currentPage - 1) * POSTS_PER_PAGE;
+      const pagePosts = filtered.slice(startIdx, startIdx + POSTS_PER_PAGE);
+
+      tbody.replaceChildren(...pagePosts.map((post, i) => {
+        const displayNum = genSortDir === 'desc' ? total - (startIdx + i) : startIdx + i + 1;
         const row = element('tr');
         
         const tag = element('td', 'col-category');
@@ -430,8 +448,35 @@ function renderPosts() {
         row.append(element('td', 'col-id tabular', displayNum), tag, titleCell, authorCell, dateCell, viewsCell, recsCell);
         return row;
       }));
+      renderPagination(totalPages);
     }
   }
+}
+
+function renderPagination(totalPages) {
+  const area = $('paginationArea');
+  area.replaceChildren();
+
+  const prev = element('button', 'page-btn', '<');
+  prev.disabled = currentPage === 1;
+  prev.onclick = () => { currentPage--; renderPosts(); };
+  area.append(prev);
+
+  const windowSize = 10;
+  let start = Math.max(1, currentPage - Math.floor(windowSize / 2));
+  let end = Math.min(totalPages, start + windowSize - 1);
+  start = Math.max(1, end - windowSize + 1);
+
+  for (let p = start; p <= end; p++) {
+    const btn = element('button', `page-btn${p === currentPage ? ' active' : ''}`, String(p));
+    btn.onclick = () => { currentPage = p; renderPosts(); };
+    area.append(btn);
+  }
+
+  const next = element('button', 'page-btn', '>');
+  next.disabled = currentPage === totalPages;
+  next.onclick = () => { currentPage++; renderPosts(); };
+  area.append(next);
 }
 
 window.openAlbumDetail = (title, artist) => {
@@ -462,8 +507,11 @@ function changeBoard(category) {
   if (!isAlbum) $('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
   
   document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick')?.includes(`'${category}'`)));
-  $('albumBoardSearchInput').value = ''; 
-  
+  $('albumBoardSearchInput').value = '';
+  postSearchType = 'all'; postSearchKeyword = '';
+  $('postSearchType').value = 'all'; $('postSearchInput').value = '';
+  currentPage = 1;
+
   genSortType = 'latest'; genSortDir = 'desc'; albSortType = 'review'; albSortDir = 'desc';
   $('btnSortLatest').innerText = '최신순'; $('btnSortPopular').innerText = '인기순';
   $('btnSortAlbumReview').innerText = '리뷰 많은순'; $('btnSortAlbumDate').innerText = '최신순'; $('btnSortAlbumRating').innerText = '평점 높은순';
@@ -629,6 +677,25 @@ async function openPostView(postId) {
 }
 
 window.backToList = () => { renderPosts(); switchView('board'); };
+
+$('btnPostSearch').addEventListener('click', () => {
+  postSearchType = $('postSearchType').value;
+  postSearchKeyword = $('postSearchInput').value.trim();
+  currentPage = 1;
+  renderPosts();
+});
+
+$('headerSearchBtn').addEventListener('click', () => {
+  const keyword = $('headerSearchInput').value.trim();
+  if (!keyword) return;
+  changeBoard('전체');
+  postSearchType = 'all';
+  postSearchKeyword = keyword;
+  $('postSearchType').value = 'all';
+  $('postSearchInput').value = keyword;
+  currentPage = 1;
+  renderPosts();
+});
 
 // 추천 로직 전면 개편 (서버 검증 방식)
 $('recommendBtn').addEventListener('click', async () => {

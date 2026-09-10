@@ -93,6 +93,8 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 .page-btn { border: 1px solid var(--border); background: var(--panel); padding: 5px 10px; cursor: pointer; color: var(--text); font-family:inherit; transition: 0.2s; }
 .page-btn:hover { border-color: var(--music); }
 .page-btn.active { border: 1px solid var(--music); color: var(--bg); background: var(--music); font-weight: bold; }
+.page-btn:disabled { opacity: 0.4; cursor: default; }
+.page-btn:disabled:hover { border-color: var(--border); }
 
 .bottom-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; box-sizing:border-box; }
 .dc-search-box { display: flex; gap: 5px; }
