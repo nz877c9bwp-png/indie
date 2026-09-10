@@ -181,12 +181,15 @@
     .user-actions { justify-content:center; }
     .search { max-width:100%; order:3; } 
 
-    .sidebar { display:flex; flex-direction:row; overflow-x:auto; border-radius:8px; margin-bottom:0; white-space:nowrap; scroll-snap-type:x mandatory;}
-    .cat-group { flex:0 0 auto; border-bottom:none; border-right:1px solid var(--border); scroll-snap-align:start;}
-    .cat-group:last-child { border-right:none; }
+    /* 🌟 모바일 사이드바 바둑판(Grid) 스타일로 변경 */
+    .sidebar { display:grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap:6px; background:transparent; border:none; padding:0; border-radius:0;}
+    .cat-group { display:contents; }
     .cat-head { display:none; } 
-    .board-list { display:flex; padding:0; gap:4px;}
-    .board-list li a { padding:12px 16px; font-size:14px;}
+    .board-list { display:contents; }
+    .board-list li { display:block; }
+    .board-list li a { padding:8px 4px; font-size:12px; letter-spacing:-0.5px; text-align:center; background:var(--panel); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; height:100%; transition:0.2s;}
+    .board-list li a.active { background:var(--bg); border-color:var(--music); color:var(--music); font-weight:bold; }
+    /* 🌟 여기까지 변경됨 */
     
     .col-num, .col-date, .col-stats { display:none; }
     .col-tag { width:70px; }
@@ -225,7 +228,6 @@
 
 <header>
   <div class="header-inner">
-    <!-- 타이틀, 헤더 로고 수정 완료 -->
     <div class="brand display" onclick="location.reload()">너 <span style="color:var(--music)">인디</span> 좋아해<span style="color:var(--music)">?</span></div>
     
     <div class="search">
@@ -246,14 +248,12 @@
 
 <div class="shell">
   <aside class="sidebar">
-    <!-- 🌟 전체 게시판을 맨 위로 이동 -->
     <div class="cat-group">
       <ul class="board-list" style="padding-top:6px;">
         <li><a href="javascript:void(0);" class="active" onclick="changeBoard('전체')">전체 게시판</a></li>
       </ul>
     </div>
 
-    <!-- 🌟 특별한 색상 제거, 다른 카테고리와 동일하게 변경 -->
     <div class="cat-group">
       <div class="cat-head"><span>너 평가 좋아해?</span></div>
       <ul class="board-list">
@@ -323,9 +323,7 @@
         <div class="view-footer">
           <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
           <div class="view-controls">
-            <!-- 🌟 게시글 내 "나도 평가하기" 버튼 추가 -->
             <button class="write-btn" id="btnEvalSame" style="display:none; background:var(--special);">나도 평가하기</button>
-
             <button class="btn-admin-edit" id="adminEditBtn" style="display:none;">수정</button>
             <button class="btn-admin-delete" id="adminDeleteBtn" style="display:none;">삭제</button>
             <button class="btn-list" onclick="backToList()">목록으로</button>
@@ -343,7 +341,6 @@
           <div id="adArtist" class="ad-artist"></div>
           <div id="adScore" class="ad-score"></div>
           <div class="ad-actions">
-            <!-- 🌟 앨범 상세 탭 "나도 평가하기" 텍스트 변경 및 로직 통일 -->
             <button class="write-btn" onclick="openWriteWithAlbumParams(document.getElementById('adTitle').innerText, document.getElementById('adArtist').innerText, document.getElementById('adCover').src)" style="background:var(--special);">나도 평가하기</button>
           </div>
         </div>
@@ -477,7 +474,6 @@
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <!-- 푸터 커뮤니티 이름 수정 완료 -->
     <p style="margin:0 0 8px 0; color:var(--text); font-weight:bold;">너 인디 좋아해?</p>
     <p style="margin:0 0 8px 0;">타인의 명예를 훼손하거나 저작권을 침해하는 게시글은 통보 없이 삭제될 수 있으며, 이에 대한 법적 책임은 작성자 본인에게 있습니다.</p>
     <p style="margin:0;">
@@ -563,7 +559,6 @@
   let tempAlbum = { title: null, artist: null, cover: null };
   let currentSelectedRating = 5;
 
-  // Untrusted strings must remain text, never HTML or event-handler source.
   function element(tag, className = '', text = null) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -600,7 +595,6 @@
     } catch { return null; }
   }
 
-  // Parse media markers once so URLs inside [img] cannot become nested HTML.
   function contentParts(value) {
     const text = String(value ?? '');
     const parts = [];
@@ -857,7 +851,6 @@
     window.scrollTo(0, 0); 
   };
 
-  // 🌟 인자로 앨범 정보를 받아 바로 글쓰기 창으로 넘어가는 통합 함수
   window.openWriteWithAlbumParams = function(title, artist, cover) {
     document.getElementById('openWriteBtn').click();
     document.getElementById('postTag').value = '앨범 평가';
@@ -1022,7 +1015,6 @@
     document.getElementById('adminEditBtn').style.display = isAdmin ? 'inline-block' : 'none';
     document.getElementById('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
 
-    // 🌟 앨범 평가글일 경우 '나도 평가하기' 버튼 노출 및 앨범 정보 연동
     const btnEvalSame = document.getElementById('btnEvalSame');
     if(post.tag === '앨범 평가' && post.album_title) {
       btnEvalSame.style.display = 'inline-block';
