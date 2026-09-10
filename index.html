@@ -59,11 +59,11 @@
   .hot-badge { color:var(--music); font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block;}
   .widget-title { font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;}
   .widget-stats { font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center;}
-  .board-title-row{ display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; }
+  .board-title-row{ display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; flex-wrap:wrap; gap:12px; }
   .board-title-row h1{ font-size:19px; margin:0; font-weight:700; }
 
-  .sort-btns { display:flex; gap:10px; font-size:13px; align-items:center; }
-  .sort-btns button { background:none; border:none; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; padding:0; font-family:inherit; transition:0.2s; }
+  .sort-btns { display:flex; gap:10px; font-size:13px; align-items:center; flex-wrap:wrap;}
+  .sort-btns button { background:none; border:none; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; padding:0; font-family:inherit; transition:0.2s; white-space:nowrap; }
   .sort-btns button.active { color:var(--text); font-weight:800; }
   .sort-btns button:hover { color:var(--text); }
 
@@ -396,12 +396,33 @@
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
-      <div class="board-title-row">
+      <!-- 🌟 일반 게시판 헤더 -->
+      <div id="generalBoardHeader" class="board-title-row">
         <h1 id="boardTitle">전체 게시판</h1>
         <div class="sort-btns">
           <button id="btnSortLatest" class="active" onclick="changeSort('latest')">최신순</button>
           <span style="color:var(--border); font-size:11px;">|</span>
           <button id="btnSortPopular" onclick="changeSort('popular')">인기순</button>
+        </div>
+      </div>
+
+      <!-- 🌟 앨범 게시판 전용 헤더 (검색 기능 및 평점 정렬 기능 포함) -->
+      <div id="albumBoardHeader" style="display:none; flex-direction:column; gap:12px; margin-bottom:16px;">
+        <div class="board-title-row" style="margin:0;">
+          <h1 id="albumBoardTitle">앨범 평가</h1>
+          <div class="sort-btns">
+            <button id="btnSortAlbumPopular" class="active" onclick="changeAlbumSort('popular')">리뷰순</button>
+            <span style="color:var(--border); font-size:11px;">|</span>
+            <button id="btnSortAlbumLatest" onclick="changeAlbumSort('latest')">최신순</button>
+            <span style="color:var(--border); font-size:11px;">|</span>
+            <button id="btnSortAlbumHigh" onclick="changeAlbumSort('high')">평점 높은순</button>
+            <span style="color:var(--border); font-size:11px;">|</span>
+            <button id="btnSortAlbumLow" onclick="changeAlbumSort('low')">평점 낮은순</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="albumBoardSearchInput" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none; font-size:13px; font-family:inherit;">
+          <button onclick="renderPosts()" style="padding:8px 16px; background:var(--music); border:none; color:var(--bg); border-radius:4px; cursor:pointer; font-weight:bold; font-family:inherit; transition:0.2s;">검색</button>
         </div>
       </div>
       
@@ -470,8 +491,8 @@
         </div>
 
         <div class="write-row">
+          <!-- 🌟 보라색 속성을 제거하여 깔끔하고 통일감 있게 구현 -->
           <select id="postTag">
-            <!-- 🌟 보라색 속성(style="color:var(--special);")을 제거하여 다른 게시판과 동일하게 만듦 -->
             <optgroup label="너 평가 좋아해?">
               <option value="앨범 평가">앨범 평가</option>
             </optgroup>
@@ -593,6 +614,7 @@
   let currentPosts = [];
   let currentCategory = '전체'; 
   let currentSort = 'latest'; 
+  let currentAlbumSort = 'popular'; // 🌟 앨범게시판 전용 정렬 상태 변수 추가
   let currentReadPostId = null;
   let currentUser = null; 
   let isAdmin = false;
@@ -910,10 +932,21 @@
     renderPosts(); 
   }
 
+  // 🌟 일반 게시판 정렬 변경
   window.changeSort = function(type) {
     currentSort = type;
     document.getElementById('btnSortLatest').classList.toggle('active', type === 'latest');
     document.getElementById('btnSortPopular').classList.toggle('active', type === 'popular');
+    renderPosts();
+  };
+
+  // 🌟 앨범게시판 전용 정렬 변경 함수
+  window.changeAlbumSort = function(type) {
+    currentAlbumSort = type;
+    document.getElementById('btnSortAlbumPopular').classList.toggle('active', type === 'popular');
+    document.getElementById('btnSortAlbumLatest').classList.toggle('active', type === 'latest');
+    document.getElementById('btnSortAlbumHigh').classList.toggle('active', type === 'high');
+    document.getElementById('btnSortAlbumLow').classList.toggle('active', type === 'low');
     renderPosts();
   };
 
@@ -951,15 +984,27 @@
         if (p.id > stats[key].maxId) stats[key].maxId = p.id;
       });
 
-      const sortedAlbums = Object.values(stats); 
-      if (currentSort === 'popular') {
-        sortedAlbums.sort((a,b) => b.count - a.count);
-      } else {
-        sortedAlbums.sort((a,b) => b.maxId - a.maxId);
+      let sortedAlbums = Object.values(stats); 
+      
+      // 🌟 앨범 검색창 키워드 필터링 적용
+      const searchKeyword = document.getElementById('albumBoardSearchInput').value.trim().toLowerCase();
+      if (searchKeyword) {
+        sortedAlbums = sortedAlbums.filter(a => a.title.toLowerCase().includes(searchKeyword) || a.artist.toLowerCase().includes(searchKeyword));
       }
+
+      // 🌟 평점 오름차순/내림차순, 리뷰순, 최신순 로직 적용
+      sortedAlbums.sort((a, b) => {
+        const avgA = a.totalScore / a.count;
+        const avgB = b.totalScore / b.count;
+        
+        if (currentAlbumSort === 'high') return avgB - avgA;
+        if (currentAlbumSort === 'low') return avgA - avgB;
+        if (currentAlbumSort === 'latest') return b.maxId - a.maxId;
+        return b.count - a.count; // popular(기본)
+      });
       
       if(sortedAlbums.length === 0) {
-        albumGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted); font-size:15px;">아직 평가된 앨범이 없습니다. 명반을 직접 추가해 보세요!</div>';
+        albumGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted); font-size:15px;">검색된 앨범이 없습니다. 명반을 직접 추가해 보세요!</div>';
       } else {
         albumGrid.replaceChildren(...sortedAlbums.map(a => {
           const avg = (a.totalScore / a.count).toFixed(1);
@@ -1068,15 +1113,26 @@
     window.scrollTo(0, 0);
   };
 
+  // 🌟 게시판 변경 시 UI 전환 로직 (앨범평가 헤더 토글)
   function changeBoard(category) {
     backToList(); 
     currentCategory = category;
-    document.getElementById('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
+    
+    if (category === '앨범 평가') {
+      document.getElementById('generalBoardHeader').style.display = 'none';
+      document.getElementById('albumBoardHeader').style.display = 'flex';
+    } else {
+      document.getElementById('generalBoardHeader').style.display = 'flex';
+      document.getElementById('albumBoardHeader').style.display = 'none';
+      document.getElementById('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
+    }
     
     document.querySelectorAll('.sidebar a').forEach(link => {
       if (link.getAttribute('onclick') === `changeBoard('${category}')`) link.classList.add('active');
       else link.classList.remove('active');
     });
+    
+    document.getElementById('albumBoardSearchInput').value = ''; 
     renderPosts(); 
   }
 
