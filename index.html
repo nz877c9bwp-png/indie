@@ -259,7 +259,7 @@
         <li><a href="javascript:void(0);" onclick="changeBoard('앨범 평가')">앨범 평가</a></li>
       </ul>
     </div>
-    
+
     <div class="cat-group">
       <div class="cat-head"><span>너 인디 좋아해?</span></div>
       <ul class="board-list">
@@ -324,7 +324,7 @@
           <div class="view-controls">
             <!-- 🌟 게시글 내 "나도 평가하기" 버튼 추가 -->
             <button class="write-btn" id="btnEvalSame" style="display:none; background:var(--special);">나도 평가하기</button>
-            
+
             <button class="btn-admin-edit" id="adminEditBtn" style="display:none;">수정</button>
             <button class="btn-admin-delete" id="adminDeleteBtn" style="display:none;">삭제</button>
             <button class="btn-list" onclick="backToList()">목록으로</button>
@@ -561,8 +561,89 @@
   let tempAlbum = { title: null, artist: null, cover: null };
   let currentSelectedRating = 5;
 
-  function esc(s){ 
-    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); 
+  // Untrusted strings must remain text, never HTML or event-handler source.
+  function element(tag, className = '', text = null) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== null) node.textContent = String(text ?? '');
+    return node;
+  }
+
+  function imageUrl(value) {
+    if (typeof value !== 'string' || !/^https:\/\//i.test(value) || /[\s<>"'\\]/.test(value)) return null;
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && url.hostname && !url.username && !url.password ? url.href : null;
+    } catch { return null; }
+  }
+
+  function setImageSource(img, value) {
+    const url = imageUrl(value);
+    if (url) img.src = url;
+    else img.removeAttribute('src');
+  }
+
+  function youtubeId(value) {
+    try {
+      const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+      if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.port) return null;
+      let id = null;
+      if (['youtube.com', 'www.youtube.com'].includes(url.hostname)) {
+        if (url.pathname === '/watch') id = url.searchParams.get('v');
+        else if (url.pathname.startsWith('/embed/')) id = url.pathname.slice(7);
+      } else if (['youtu.be', 'www.youtu.be'].includes(url.hostname)) {
+        id = url.pathname.slice(1);
+      }
+      return /^[a-zA-Z0-9_-]{11}$/.test(id ?? '') ? id : null;
+    } catch { return null; }
+  }
+
+  // Parse media markers once so URLs inside [img] cannot become nested HTML.
+  function contentParts(value) {
+    const text = String(value ?? '');
+    const parts = [];
+    const tokens = /\[img\]([\s\S]*?)\[\/img\]|(?:[a-z][a-z0-9+.-]*:\/\/|(?:www\.)?(?:youtube\.com|youtu\.be)\/)\S+/gi;
+    let cursor = 0;
+    for (const match of text.matchAll(tokens)) {
+      parts.push({ text: text.slice(cursor, match.index) });
+      if (match[1] !== undefined) {
+        const url = imageUrl(match[1]);
+        parts.push(url ? { image: url } : { text: match[0] });
+      } else {
+        const candidate = match[0].replace(/[.,!?;:)]+$/, '');
+        const boundary = match.index === 0 || /[\s([{]/.test(text[match.index - 1]);
+        const id = boundary ? youtubeId(candidate) : null;
+        if (id) {
+          parts.push({ youtube: id }, { text: match[0].slice(candidate.length) });
+        } else parts.push({ text: match[0] });
+      }
+      cursor = match.index + match[0].length;
+    }
+    parts.push({ text: text.slice(cursor) });
+    return parts;
+  }
+
+  function formatContent(value) {
+    const fragment = document.createDocumentFragment();
+    for (const part of contentParts(value)) {
+      if (part.image) {
+        const img = element('img');
+        setImageSource(img, part.image);
+        fragment.append(img);
+      } else if (part.youtube) {
+        const wrapper = element('div', 'yt-wrapper');
+        const iframe = element('iframe');
+        iframe.src = `https://www.youtube.com/embed/${part.youtube}`;
+        iframe.allowFullscreen = true;
+        wrapper.append(iframe);
+        fragment.append(wrapper);
+      } else fragment.append(document.createTextNode(part.text));
+    }
+    return fragment;
+  }
+
+  function contentPreview(value) {
+    return contentParts(value).map(part => part.text ?? '').join('').substring(0, 150) + '...';
   }
 
   client.auth.onAuthStateChange((event, session) => {
@@ -571,14 +652,12 @@
       currentUser = session.user;
       const nickname = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]; 
       
-      if (currentUser.email === ADMIN_EMAIL) {
-        isAdmin = true;
-        document.getElementById('userStatus').innerHTML = `<span style="color:var(--admin); font-weight:bold;">[관리자] ${esc(nickname)}</span>님`;
-      } else {
-        isAdmin = false;
-        document.getElementById('userStatus').innerHTML = `<span style="color:var(--text); font-weight:bold;">${esc(nickname)}</span>님`;
-      }
-      
+      isAdmin = currentUser.email === ADMIN_EMAIL;
+      const status = element('span', '', `${isAdmin ? '[관리자] ' : ''}${nickname}`);
+      status.style.color = isAdmin ? 'var(--admin)' : 'var(--text)';
+      status.style.fontWeight = 'bold';
+      document.getElementById('userStatus').replaceChildren(status, '님');
+
       document.getElementById('showLoginBtn').style.display = 'none';
       document.getElementById('showSignupBtn').style.display = 'none';
       document.getElementById('showSettingsBtn').style.display = 'inline-block';
@@ -590,7 +669,7 @@
       authorInput.style.color = 'var(--text)';
     } else {
       currentUser = null; isAdmin = false;
-      document.getElementById('userStatus').innerHTML = '';
+      document.getElementById('userStatus').replaceChildren();
       document.getElementById('showLoginBtn').style.display = 'inline-block';
       document.getElementById('showSignupBtn').style.display = 'inline-block';
       document.getElementById('showSettingsBtn').style.display = 'none';
@@ -695,32 +774,31 @@
         return; 
       }
 
-      document.getElementById('albumResults').innerHTML = finalResults.map(a => {
-        const coverUrl = a.artworkUrl100 ? a.artworkUrl100.replace('100x100bb', '300x300bb') : ''; 
-        const safeTitle = a.collectionName ? encodeURIComponent(a.collectionName) : '';
-        const safeArtist = a.artistName ? encodeURIComponent(a.artistName) : '';
-        return `
-          <div class="search-item" onclick="selectAlbum('${safeTitle}', '${safeArtist}', '${coverUrl}')">
-            <img src="${coverUrl}" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
-            <div class="s-title">${esc(a.collectionName)}</div>
-            <div class="s-artist">${esc(a.artistName)}</div>
-          </div>
-        `;
-      }).join('');
+      document.getElementById('albumResults').replaceChildren(...finalResults.map(a => {
+        const coverUrl = typeof a.artworkUrl100 === 'string' ? a.artworkUrl100.replace('100x100bb', '300x300bb') : '';
+        const card = element('div', 'search-item');
+        card.addEventListener('click', () => selectAlbum(a.collectionName, a.artistName, coverUrl));
+        const img = element('img');
+        img.addEventListener('error', () => {
+          img.src = 'https://via.placeholder.com/300x300?text=No+Image';
+        }, { once: true });
+        setImageSource(img, coverUrl);
+        card.append(img, element('div', 's-title', a.collectionName), element('div', 's-artist', a.artistName));
+        return card;
+      }));
     } catch (err) {
       document.getElementById('albumResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 서버 오류입니다. 잠시 후 다시 시도해주세요.</div>';
     }
   });
 
-  window.selectAlbum = function(safeTitle, safeArtist, cover) {
-    const title = decodeURIComponent(safeTitle);
-    const artist = decodeURIComponent(safeArtist);
+  window.selectAlbum = function(title, artist, cover) {
+    cover = imageUrl(cover);
     tempAlbum = { title, artist, cover }; 
     
     document.getElementById('selAlbumWrap').style.display = 'flex';
     document.getElementById('starInputWrapper').style.display = 'flex';
     
-    document.getElementById('selCover').src = cover;
+    setImageSource(document.getElementById('selCover'), cover);
     document.getElementById('selTitle').innerText = title;
     document.getElementById('selArtist').innerText = artist;
     setStars(5); 
@@ -764,7 +842,7 @@
     document.getElementById('postTag').value = currentCategory === '전체' ? '국내 인디' : (currentCategory === '앨범 평가' ? '앨범 평가' : currentCategory);
     document.getElementById('postTag').dispatchEvent(new Event('change'));
 
-    document.getElementById('albumResults').innerHTML = '';
+    document.getElementById('albumResults').replaceChildren();
     document.getElementById('albumQuery').value = '';
     document.getElementById('selAlbumWrap').style.display = 'none';
     document.getElementById('starInputWrapper').style.display = 'none';
@@ -782,7 +860,7 @@
     document.getElementById('openWriteBtn').click();
     document.getElementById('postTag').value = '앨범 평가';
     document.getElementById('postTag').dispatchEvent(new Event('change'));
-    selectAlbum(encodeURIComponent(title), encodeURIComponent(artist), cover);
+    selectAlbum(title, artist, cover);
   };
 
   async function fetchPosts() {
@@ -795,12 +873,20 @@
     const widgetArea = document.getElementById('topWidgetArea');
     
     let hotPosts = [...currentPosts].filter(p => p.recs > 0 || p.views > 5).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
-    widgetArea.innerHTML = hotPosts.length ? hotPosts.map((post, i) => `
-      <div class="widget-card" onclick="openPostView(${Number(post.id)})">
-        <span class="hot-badge">HOT ${i + 1}</span>
-        <div class="widget-title">${esc(post.title)}</div>
-        <div class="widget-stats"><span>조회 ${Number(post.views || 0)}</span><span style="color:var(--music)">추천 ${Number(post.recs || 0)}</span><span style="margin-left:auto;">${esc(post.author || 'ㅇㅇ')}</span></div>
-      </div>`).join('') : '<div style="color:var(--muted); font-size:13px; padding:10px;">아직 핫게시글이 없습니다.</div>';
+    if (hotPosts.length) {
+      widgetArea.replaceChildren(...hotPosts.map((post, i) => {
+        const card = element('div', 'widget-card');
+        card.addEventListener('click', () => openPostView(post.id));
+        const stats = element('div', 'widget-stats');
+        const recs = element('span', '', `추천 ${Number(post.recs || 0)}`);
+        recs.style.color = 'var(--music)';
+        const author = element('span', '', post.author || 'ㅇㅇ');
+        author.style.marginLeft = 'auto';
+        stats.append(element('span', '', `조회 ${Number(post.views || 0)}`), recs, author);
+        card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', post.title), stats);
+        return card;
+      }));
+    } else widgetArea.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">아직 핫게시글이 없습니다.</div>';
 
     if (currentCategory === '앨범 평가') {
       document.getElementById('postTableArea').style.display = 'none';
@@ -808,12 +894,12 @@
       albumGrid.style.display = 'grid';
 
       const evalPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title);
-      const stats = {};
+      const stats = Object.create(null);
       evalPosts.forEach(p => {
-        const key = `${p.album_title}:::${p.album_artist}:::${p.album_cover}`;
+        const key = JSON.stringify([p.album_title, p.album_artist, p.album_cover]);
         if(!stats[key]) stats[key] = { count:0, totalScore:0, title:p.album_title, artist:p.album_artist, cover:p.album_cover };
         stats[key].count += 1;
-        stats[key].totalScore += (p.rating || 0);
+        stats[key].totalScore += Number(p.rating || 0);
       });
 
       const sortedAlbums = Object.values(stats).sort((a,b) => b.count - a.count); 
@@ -821,19 +907,20 @@
       if(sortedAlbums.length === 0) {
         albumGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted); font-size:15px;">아직 평가된 앨범이 없습니다. 명반을 직접 추가해 보세요!</div>';
       } else {
-        albumGrid.innerHTML = sortedAlbums.map(a => {
+        albumGrid.replaceChildren(...sortedAlbums.map(a => {
           const avg = (a.totalScore / a.count).toFixed(1);
-          const safeKey = encodeURIComponent(`${a.title}:::${a.artist}`);
-          return `
-            <div class="album-card" onclick="openAlbumDetail('${safeKey}')">
-              <img src="${a.cover}" loading="lazy">
-              <div class="album-card-info">
-                <div class="album-card-title">${esc(a.title)}</div>
-                <div class="album-card-artist">${esc(a.artist)}</div>
-                <div class="album-card-rating">★ ${Number(avg)} <span>(${Number(a.count)}명)</span></div>
-              </div>
-            </div>`;
-        }).join('');
+          const card = element('div', 'album-card');
+          card.addEventListener('click', () => openAlbumDetail(a.title, a.artist));
+          const img = element('img');
+          img.loading = 'lazy';
+          setImageSource(img, a.cover);
+          const info = element('div', 'album-card-info');
+          const rating = element('div', 'album-card-rating', `★ ${Number(avg)} `);
+          rating.append(element('span', '', `(${Number(a.count)}명)`));
+          info.append(element('div', 'album-card-title', a.title), element('div', 'album-card-artist', a.artist), rating);
+          card.append(img, info);
+          return card;
+        }));
       }
     } else {
       document.getElementById('albumGrid').style.display = 'none';
@@ -846,51 +933,55 @@
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
       } else {
         const total = filtered.length;
-        tbody.innerHTML = filtered.map((post, i) => {
+        tbody.replaceChildren(...filtered.map((post, i) => {
           const date = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
-          const recBadge = (post.recs && post.recs > 0) ? `<span class="rec-count">[${Number(post.recs)}]</span>` : '';
-          const ratingBadge = post.album_title ? `<span style="color:var(--special); font-size:11px; margin-left:6px;">★ ${Number(post.rating)}</span>` : '';
-          return `
-            <tr>
-              <td class="col-num tabular">${total - i}</td>
-              <td class="col-tag"><span class="tag ${post.recs >= 3 ? 'hot' : ''}">${esc(post.tag)}</span></td>
-              <td class="col-title title-cell"><a href="javascript:void(0);" onclick="openPostView(${Number(post.id)})">${esc(post.title)}</a>${ratingBadge}${recBadge}</td>
-              <td class="col-author">${esc(post.author || 'ㅇㅇ')}</td>
-              <td class="col-date">${esc(date)}</td>
-              <td class="col-stats tabular">${Number(post.views || 0)}</td>
-              <td class="col-stats tabular" style="color:var(--music); font-weight:600;">${Number(post.recs || 0)}</td>
-            </tr>`;
-        }).join('');
+          const row = element('tr');
+          const tag = element('td', 'col-tag');
+          tag.append(element('span', `tag${post.recs >= 3 ? ' hot' : ''}`, post.tag));
+          const title = element('td', 'col-title title-cell');
+          const link = element('a', '', post.title);
+          link.href = '#';
+          link.addEventListener('click', event => { event.preventDefault(); openPostView(post.id); });
+          title.append(link);
+          if (post.album_title) {
+            const rating = element('span', '', `★ ${Number(post.rating)}`);
+            rating.style.cssText = 'color:var(--special); font-size:11px; margin-left:6px;';
+            title.append(rating);
+          }
+          if (post.recs > 0) title.append(element('span', 'rec-count', `[${Number(post.recs)}]`));
+          const recs = element('td', 'col-stats tabular', Number(post.recs || 0));
+          recs.style.cssText = 'color:var(--music); font-weight:600;';
+          row.append(element('td', 'col-num tabular', total - i), tag, title,
+            element('td', 'col-author', post.author || 'ㅇㅇ'), element('td', 'col-date', date),
+            element('td', 'col-stats tabular', Number(post.views || 0)), recs);
+          return row;
+        }));
       }
     }
   }
 
-  window.openAlbumDetail = function(safeKey) {
-    const decoded = decodeURIComponent(safeKey);
-    const [title, artist] = decoded.split(':::');
+  window.openAlbumDetail = function(title, artist) {
     
     const albumPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title === title && p.album_artist === artist);
     if(albumPosts.length === 0) return;
 
     const cover = albumPosts[0].album_cover;
-    const totalScore = albumPosts.reduce((acc, cur) => acc + (cur.rating || 0), 0);
+    const totalScore = albumPosts.reduce((acc, cur) => acc + Number(cur.rating || 0), 0);
     const avg = (totalScore / albumPosts.length).toFixed(1);
 
-    document.getElementById('adCover').src = cover;
+    setImageSource(document.getElementById('adCover'), cover);
     document.getElementById('adTitle').innerText = title;
     document.getElementById('adArtist').innerText = artist;
-    document.getElementById('adScore').innerHTML = `★ ${Number(avg)} <span>(${Number(albumPosts.length)}명 참여)</span>`;
+    document.getElementById('adScore').replaceChildren(`★ ${Number(avg)} `, element('span', '', `(${Number(albumPosts.length)}명 참여)`));
 
-    document.getElementById('adReviews').innerHTML = albumPosts.map(p => `
-      <div class="review-card" onclick="openPostView(${Number(p.id)})">
-        <div class="rc-header">
-          <span class="rc-author">${esc(p.author || 'ㅇㅇ(유동)')}</span>
-          <span class="rc-stars">★ ${Number(p.rating)}</span>
-        </div>
-        <div class="rc-title">${esc(p.title)}</div>
-        <div class="rc-content">${formatContent(p.content).replace(/<[^>]+>/g, '').substring(0, 150)}...</div>
-      </div>
-    `).join('');
+    document.getElementById('adReviews').replaceChildren(...albumPosts.map(p => {
+      const card = element('div', 'review-card');
+      card.addEventListener('click', () => openPostView(p.id));
+      const header = element('div', 'rc-header');
+      header.append(element('span', 'rc-author', p.author || 'ㅇㅇ(유동)'), element('span', 'rc-stars', `★ ${Number(p.rating)}`));
+      card.append(header, element('div', 'rc-title', p.title), element('div', 'rc-content', contentPreview(p.content)));
+      return card;
+    }));
 
     document.getElementById('boardSection').style.display = 'none';
     document.getElementById('writeSection').style.display = 'none';
@@ -911,15 +1002,6 @@
     renderPosts(); 
   }
 
-  function formatContent(text) {
-    if (!text) return '';
-    let safeText = esc(text);
-    safeText = safeText.replace(/\[img\](.*?)\[\/img\]/g, '<img src="$1">');
-    const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
-    safeText = safeText.replace(ytRegex, (match, videoId) => `<div class="yt-wrapper"><iframe src="https://www.youtube.com/embed/${esc(videoId)}" allowfullscreen></iframe></div>`);
-    return safeText.replace(/\n/g, '<br>');
-  }
-
   async function openPostView(postId) {
     const post = currentPosts.find(p => p.id === postId);
     if(!post) return;
@@ -929,7 +1011,7 @@
     document.getElementById('readTag').textContent = post.tag;
     document.getElementById('readAuthor').textContent = post.author || 'ㅇㅇ';
     document.getElementById('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
-    document.getElementById('readContent').innerHTML = formatContent(post.content);
+    document.getElementById('readContent').replaceChildren(formatContent(post.content));
     
     document.getElementById('readViews').textContent = (post.views || 0) + 1;
     document.getElementById('readRecs').textContent = post.recs || 0;
