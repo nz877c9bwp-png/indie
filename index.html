@@ -97,22 +97,20 @@
         
         <div class="view-content-area" id="readContent"></div>
         
-        <!-- [추가된 부분] 댓글 영역 시작 -->
+        <!-- 댓글 영역 시작 -->
         <div class="comment-section">
           <div class="comment-count">댓글 <span id="commentCount" style="color:var(--music)">0</span></div>
-          <ul class="comment-list" id="commentList">
-            <!-- 댓글이 여기에 표시됩니다 -->
-          </ul>
+          <ul class="comment-list" id="commentList"></ul>
           
           <div class="comment-write">
             <div class="cw-author"><input type="text" id="commentAuthor" placeholder="닉네임 (유동)"></div>
             <div class="cw-input">
-              <textarea id="commentContent" placeholder="타인의 권리를 침해하거나 명예를 훼손하는 댓글은 운영원칙 및 관련 법률에 제재를 받을 수 있습니다."></textarea>
+              <textarea id="commentContent" placeholder="타인의 권리를 침해하거나 명예를 훼손하는 댓글은 제재를 받을 수 있습니다."></textarea>
               <button id="btnSubmitComment">등록</button>
             </div>
           </div>
         </div>
-        <!-- [추가된 부분] 댓글 영역 끝 -->
+        <!-- 댓글 영역 끝 -->
 
         <div class="view-footer">
           <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
@@ -275,7 +273,7 @@
             </optgroup>
           </select>
           <input type="text" id="postAuthor" placeholder="작성자 (유동)">
-          <input type="text" id="postTitle" placeholder="제목을 입력해 주세요. (리뷰는 상세하게)">
+          <input type="text" id="postTitle" placeholder="제목을 입력해 주세요.">
         </div>
         
         <div class="write-toolbar">
@@ -297,7 +295,7 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <p style="margin:0 0 8px 0; color:var(--text); font-weight:bold;">너 인디 좋아해?</p>
-    <p style="margin:0 0 8px 0;">타인의 명예를 훼손하거나 저작권을 침해하는 게시글은 통보 없이 삭제될 수 있으며, 이에 대한 법적 책임은 작성자 본인에게 있습니다.</p>
+    <p style="margin:0 0 8px 0;">타인의 명예를 훼손하거나 저작권을 침해하는 게시글은 통보 없이 삭제될 수 있습니다.</p>
     <p style="margin:0;">
       관리자 이메일: bkseungah010223@gmail.com | 
       <a onclick="toggleModal('privacyModal', true)">[개인정보 처리방침 및 이용약관]</a>
