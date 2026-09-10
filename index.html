@@ -177,23 +177,25 @@
       </div>
       
       <div class="post-table-wrap" id="postTableArea">
-        <table class="dc-table">
-          <thead>
-            <tr>
-              <th class="col-id">번호</th>
-              <th class="col-category">말머리</th>
-              <th class="col-title">제목</th>
-              <th class="col-author">글쓴이</th>
-              <th class="col-date">작성일</th>
-              <th class="col-views">조회</th>
-              <th class="col-likes">추천</th>
-            </tr>
-          </thead>
-          <tbody id="postList">
-            <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글을 불러오는 중...</td></tr>
-          </tbody>
-        </table>
-        
+        <div class="table-scroll">
+          <table class="dc-table">
+            <thead>
+              <tr>
+                <th class="col-id">번호</th>
+                <th class="col-category">말머리</th>
+                <th class="col-title">제목</th>
+                <th class="col-author">글쓴이</th>
+                <th class="col-date">작성일</th>
+                <th class="col-views">조회</th>
+                <th class="col-likes">추천</th>
+              </tr>
+            </thead>
+            <tbody id="postList">
+              <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글을 불러오는 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <div class="board-footer" id="boardFooter" style="display:none;">
           <div class="pagination" id="paginationArea"></div>
           <div class="bottom-controls">
