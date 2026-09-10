@@ -173,6 +173,10 @@
   .footer-inner a { color:var(--muted); text-decoration:underline; cursor:pointer;}
   .footer-inner a:hover { color:var(--text); }
 
+
+  /* =========================================
+     📱 완벽한 모바일 반응형 (가로 스크롤 완전 제거)
+     ========================================= */
   @media (max-width: 840px) {
     .shell { grid-template-columns: 1fr; padding: 12px; gap: 16px; }
     
@@ -181,20 +185,40 @@
     .user-actions { justify-content:center; }
     .search { max-width:100%; order:3; } 
 
-    /* 🌟 모바일 사이드바 바둑판(Grid) 스타일로 변경 */
-    .sidebar { display:grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap:6px; background:transparent; border:none; padding:0; border-radius:0;}
+    /* 1. 사이드바 (분류) 탭: 텍스트 줄바꿈 강제 해제 및 완벽한 바둑판 배열 */
+    .sidebar { display:grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap:6px; background:transparent; border:none; padding:0; border-radius:0; white-space:normal; overflow:visible; }
     .cat-group { display:contents; }
     .cat-head { display:none; } 
     .board-list { display:contents; }
     .board-list li { display:block; }
-    .board-list li a { padding:8px 4px; font-size:12px; letter-spacing:-0.5px; text-align:center; background:var(--panel); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; height:100%; transition:0.2s;}
+    .board-list li a { padding:8px 4px; font-size:12px; letter-spacing:-0.5px; text-align:center; background:var(--panel); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; height:100%; transition:0.2s; white-space:normal; word-break:keep-all; }
     .board-list li a.active { background:var(--bg); border-color:var(--music); color:var(--music); font-weight:bold; }
-    /* 🌟 여기까지 변경됨 */
     
-    .col-num, .col-date, .col-stats { display:none; }
-    .col-tag { width:70px; }
-    .post-table td, .post-table th { padding:12px 8px; font-size:14px; }
-    .title-cell .rec-count { display:inline-block; margin-top:4px;}
+    /* 2. 핫게시글(위젯) 구역: 옆으로 넘기는 스크롤을 버리고 바둑판 정렬 */
+    .widget-container { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; overflow-x:visible; scroll-snap-type:none; padding-bottom:0; }
+    .widget-card { min-width:0; margin-bottom:0; }
+
+    /* 3. 일반 게시글 리스트(테이블): 검색 레이아웃처럼 모바일 카드 형태로 전환! */
+    .post-table-wrap { overflow-x:visible; margin-top:8px; }
+    .post-table { display:block; min-width:0; border:none; }
+    .post-table thead { display:none; } /* 표 머리글 숨김 */
+    .post-table tbody { display:flex; flex-direction:column; gap:10px; }
+    .post-table tr { display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px; margin:0; }
+    .post-table tr:hover { background:var(--panel); } /* 모바일에서는 hover 고정 */
+    .post-table td { display:block; padding:0; border:none; text-align:left; width:auto; font-size:13px; }
+    
+    .col-num { display:none; }
+    .col-tag { margin-bottom:10px; display:inline-block; }
+    .col-title { font-size:15px; font-weight:700; margin-bottom:12px; line-height:1.4; }
+    .col-author { font-size:12px; color:var(--muted); display:inline-block; }
+    .col-date { font-size:12px; color:var(--muted); display:inline-block; margin-left:8px; }
+    .col-date::before { content:'|'; margin-right:8px; color:var(--border); }
+    
+    /* JS에서 불러오는 조회/추천수 데이터 모바일용 라벨 렌더링 */
+    .col-stats { font-size:12px; display:inline-block; margin-top:8px; color:var(--muted); }
+    .col-stats:nth-last-child(2)::before { content:'조회 '; }
+    .col-stats:last-child { margin-left:12px; }
+    .col-stats:last-child::before { content:'추천 '; }
 
     #albumGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:12px;}
     
