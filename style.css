@@ -200,9 +200,11 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
   
   .search { max-width: 100%; order: 3; display: none; } 
 
-  /* 게시판목록: 폭에 맞춰 칸 수가 자동으로 늘었다 줄었다 하는 격자(grid) 형태 */
+  /* 게시판목록: 카테고리 구분과 상관없이 하나의 격자(grid)로 합쳐서, 각 줄이 동일한 칸 수로 꽉 채워지는 형태 */
   .sidebar { 
-    display: block;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+    gap: 8px;
     overflow-x: visible; 
     background: var(--panel); 
     border: none; 
@@ -212,19 +214,17 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
     width: 100%;
     box-sizing: border-box;
   }
+  /* cat-group과 board-list(ul) 자체를 렌더링에서 지우고, 그 안의 li들만 sidebar의 직계 grid 아이템으로 끌어올림 */
   .cat-group { display: contents; }
   .cat-head { display: none; } 
   .board-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-    gap: 8px;
+    display: contents;
     padding: 0;
     margin: 0;
-    width: 100%;
   }
   .board-list li { list-style: none; }
   .board-list li a { 
-    padding: 8px 10px; 
+    padding: 8px 6px; 
     font-size: 13px; 
     background: var(--bg); 
     border: 1px solid var(--border); 
@@ -316,8 +316,8 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 /* 아주 좁은 화면(작은 폰)에서 한층 더 촘촘하게 */
 @media (max-width: 380px) {
   .widget-container { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
-  .board-list { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; }
-  .board-list li a { padding: 6px 8px; font-size: 12px; }
+  .sidebar { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+  .board-list li a { padding: 6px 4px; font-size: 12px; }
 }
 
 .modal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); justify-content:center; align-items:center; z-index:100; backdrop-filter:blur(3px);}
