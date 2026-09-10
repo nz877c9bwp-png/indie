@@ -193,7 +193,6 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
   .header-inner { flex-direction:column; align-items:center; gap:12px; padding:12px;}
   .brand { text-align:center; }
   
-  /* 상단 메뉴 줄바꿈 허용 (긴 닉네임 짤림 방지) */
   .user-actions { justify-content:center; flex-wrap:wrap; white-space:normal; width:100%; gap:10px; }
   #userStatus { width:100%; text-align:center; display:block; word-break:break-all; margin-bottom:4px; }
   
@@ -269,7 +268,6 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 
   .board-footer { padding: 16px 12px; margin-top: 0; }
   
-  /* 하단 검색창 및 글쓰기 버튼 넘침 방지 */
   .bottom-controls { flex-direction: column; gap: 12px; width: 100%; }
   .dc-search-box { width: 100%; display: flex; gap: 4px; box-sizing: border-box; }
   .dc-search-box select { width: 30%; }
@@ -291,9 +289,7 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 .modal-btns{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
 .modal-btns button{ border:none; padding:10px 18px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:4px; font-size:13px; transition:0.2s;}
 
-/* =========================================
-   댓글 및 대댓글 디자인
-   ========================================= */
+/* 댓글 및 대댓글 디자인 */
 .comment-section { border-top: 1px solid var(--border); background: var(--bg); }
 .comment-count { font-size: 14px; font-weight: bold; padding: 15px 24px; border-bottom: 1px solid var(--border); color: var(--text); }
 .comment-list { list-style: none; margin: 0; padding: 0; }
@@ -315,5 +311,4 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 .cw-input button { background: var(--music); color: var(--bg); border: none; font-weight: bold; padding: 0 24px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-family: inherit; }
 .cw-input button:hover { background: var(--music-hover); }
 
-/* 대댓글 작성 폼 */
 .reply-write-form { margin-top: 12px; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; display: none; }
