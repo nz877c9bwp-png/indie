@@ -272,7 +272,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   .shell > * { min-width: 0; }
   main { max-width: 100%; overflow-x: hidden; }
 
-  .header-inner { flex-direction: column; align-items: center; gap: 6px; padding: 8px 12px; width: 100%; box-sizing: border-box; }
+  .header-inner { flex-direction: column; align-items: center; gap: 12px; padding: 16px 12px; width: 100%; box-sizing: border-box; }
   .brand { text-align: center; font-size: 16px; gap: 12px; }
   .logo-badge { width: 30px; height: 30px; }
   .bw-slot { width: 20px; }
