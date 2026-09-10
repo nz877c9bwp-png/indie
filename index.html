@@ -185,7 +185,6 @@
     .user-actions { justify-content:center; }
     .search { max-width:100%; order:3; } 
 
-    /* 1. 사이드바 (분류) 탭: 텍스트 줄바꿈 강제 해제 및 완벽한 바둑판 배열 */
     .sidebar { display:grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap:6px; background:transparent; border:none; padding:0; border-radius:0; white-space:normal; overflow:visible; }
     .cat-group { display:contents; }
     .cat-head { display:none; } 
@@ -194,17 +193,15 @@
     .board-list li a { padding:8px 4px; font-size:12px; letter-spacing:-0.5px; text-align:center; background:var(--panel); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; height:100%; transition:0.2s; white-space:normal; word-break:keep-all; }
     .board-list li a.active { background:var(--bg); border-color:var(--music); color:var(--music); font-weight:bold; }
     
-    /* 2. 핫게시글(위젯) 구역: 옆으로 넘기는 스크롤을 버리고 바둑판 정렬 */
     .widget-container { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; overflow-x:visible; scroll-snap-type:none; padding-bottom:0; }
     .widget-card { min-width:0; margin-bottom:0; }
 
-    /* 3. 일반 게시글 리스트(테이블): 검색 레이아웃처럼 모바일 카드 형태로 전환! */
     .post-table-wrap { overflow-x:visible; margin-top:8px; }
     .post-table { display:block; min-width:0; border:none; }
-    .post-table thead { display:none; } /* 표 머리글 숨김 */
+    .post-table thead { display:none; }
     .post-table tbody { display:flex; flex-direction:column; gap:10px; }
     .post-table tr { display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px; margin:0; }
-    .post-table tr:hover { background:var(--panel); } /* 모바일에서는 hover 고정 */
+    .post-table tr:hover { background:var(--panel); }
     .post-table td { display:block; padding:0; border:none; text-align:left; width:auto; font-size:13px; }
     
     .col-num { display:none; }
@@ -214,7 +211,6 @@
     .col-date { font-size:12px; color:var(--muted); display:inline-block; margin-left:8px; }
     .col-date::before { content:'|'; margin-right:8px; color:var(--border); }
     
-    /* JS에서 불러오는 조회/추천수 데이터 모바일용 라벨 렌더링 */
     .col-stats { font-size:12px; display:inline-block; margin-top:8px; color:var(--muted); }
     .col-stats:nth-last-child(2)::before { content:'조회 '; }
     .col-stats:last-child { margin-left:12px; }
@@ -285,12 +281,11 @@
       </ul>
     </div>
 
+    <!-- 🌟 사이드바 노출 목록 간소화 (인디 통합, 불필요한 탭 숨김) -->
     <div class="cat-group">
       <div class="cat-head"><span>너 인디 좋아해?</span></div>
       <ul class="board-list">
-        <li><a href="javascript:void(0);" onclick="changeBoard('국내 인디')">국내 인디</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('해외 인디')">해외 인디</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('앨범/곡 추천')">앨범/곡 추천</a></li>
+        <li><a href="javascript:void(0);" onclick="changeBoard('인디')">인디</a></li>
       </ul>
     </div>
     <div class="cat-group">
@@ -305,9 +300,6 @@
       <div class="cat-head"><span>너 자작곡 좋아해?</span></div>
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('자작곡')">자작곡</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('데모')">데모</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('밴드 홍보')">밴드 홍보</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('피드백')">피드백</a></li>
       </ul>
     </div>
     <div class="cat-group">
@@ -315,7 +307,6 @@
       <ul class="board-list">
         <li><a href="javascript:void(0);" onclick="changeBoard('자유')">자유</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('야구')">야구</a></li>
-        <li><a href="javascript:void(0);" onclick="changeBoard('음반')">음반</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('장터')">장터</a></li>
         <li><a href="javascript:void(0);" onclick="changeBoard('자랑')">자랑</a></li>
       </ul>
@@ -448,6 +439,7 @@
         </div>
 
         <div class="write-row">
+          <!-- 🌟 글 작성 시에는 기존의 모든 옵션(국내/해외 인디, 데모 등)을 자유롭게 선택 가능 -->
           <select id="postTag">
             <optgroup label="너 평가 좋아해?" style="color:var(--special);">
               <option value="앨범 평가">앨범 평가</option>
@@ -859,8 +851,13 @@
     document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
     
-    document.getElementById('postTag').value = currentCategory === '전체' ? '국내 인디' : (currentCategory === '앨범 평가' ? '앨범 평가' : currentCategory);
-    document.getElementById('postTag').dispatchEvent(new Event('change'));
+    // 🌟 글쓰기 시 카테고리가 꼬이지 않도록 안전장치 적용
+    let targetTag = currentCategory;
+    if (['전체', '인디'].includes(currentCategory)) targetTag = '국내 인디';
+    const tagEl = document.getElementById('postTag');
+    tagEl.value = targetTag;
+    if (!tagEl.value) tagEl.value = '자유'; // 숨겨진 탭에서 글을 썼을 경우 대비
+    tagEl.dispatchEvent(new Event('change'));
 
     document.getElementById('albumResults').replaceChildren();
     document.getElementById('albumQuery').value = '';
@@ -946,7 +943,16 @@
       document.getElementById('postTableArea').style.display = 'block';
       
       const tbody = document.getElementById('postList');
-      let filtered = currentCategory !== '전체' ? currentPosts.filter(p => p.tag === currentCategory) : currentPosts;
+      
+      // 🌟 '인디' 선택 시 국내 인디와 해외 인디 글이 모두 보이도록 필터링 규칙 수정
+      let filtered;
+      if (currentCategory === '전체') {
+        filtered = currentPosts;
+      } else if (currentCategory === '인디') {
+        filtered = currentPosts.filter(p => ['국내 인디', '해외 인디'].includes(p.tag));
+      } else {
+        filtered = currentPosts.filter(p => p.tag === currentCategory);
+      }
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">등록된 게시글이 없습니다.</td></tr>';
