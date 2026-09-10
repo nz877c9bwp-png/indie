@@ -268,7 +268,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 /* 모바일 반응형 완벽 수정 */
 @media (max-width: 840px) {
   body { overflow-x: hidden; width: 100%; }
-  .shell { grid-template-columns: 1fr; padding: 0; gap: 0; width: 100%; max-width: 100%; box-sizing: border-box; }
+  .shell { grid-template-columns: 1fr; padding: 0; gap: 0; width: 100%; max-width: 100%; box-sizing: border-box; margin-top: 20px; }
   .shell > * { min-width: 0; }
   main { max-width: 100%; overflow-x: hidden; }
 
