@@ -50,6 +50,7 @@ async function boot(page, { posts = normalPosts, albums = [], baseline = false, 
         signUp: success, signInWithPassword: success, updateUser: success,
         signOut: async () => { window.mockAuth('SIGNED_OUT', null); return { error: null }; }
       },
+      rpc: async (fn, args) => { window.mockCalls.push({ action: 'rpc', fn, args }); return { error: null }; },
       from(table) {
         return {
           select: () => ({ order: async () => ({ data: window.mockPosts, error: null }) }),

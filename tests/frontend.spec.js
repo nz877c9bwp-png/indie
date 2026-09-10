@@ -20,7 +20,7 @@ test('regression: board text, HOT cards, post navigation, image and YouTube', as
   await expect(page.locator('#postViewSection')).toBeHidden();
   await page.locator('.widget-card').first().click();
   await expect(page.locator('#readTitle')).toHaveText(normalPosts[0].title);
-  await expect.poll(() => page.evaluate(() => window.mockCalls.filter(c => c.action === 'update').length)).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.mockCalls.filter(c => c.action === 'rpc').length)).toBe(2);
   await page.locator('.sidebar a').filter({ hasText: /^국내 인디$/ }).click();
   await expect(page.locator('#postList tr')).toHaveCount(1);
   await expect(page.locator('#boardTitle')).toHaveText('국내 인디 게시판');
@@ -230,8 +230,8 @@ test('regression: recommendation and admin edit keep mock update contracts', asy
   await expect(page.locator('#postTitle')).toHaveValue(normalPosts[0].title);
   await page.locator('#postTitle').fill('수정된 제목');
   await page.locator('#savePostBtn').click();
-  const updates = await page.evaluate(() => window.mockCalls.filter(c => c.action === 'update'));
-  expect(updates.map(call => call.data)).toEqual([{ views: 11 }, { recs: 5 }, { tag: '국내 인디', author: normalPosts[0].author, title: '수정된 제목', content: normalPosts[0].content }]);
+  const calls = await page.evaluate(() => window.mockCalls.filter(c => c.action === 'update' || c.action === 'rpc'));
+  expect(calls.map(call => call.data ?? [call.fn, call.args])).toEqual([['increment_views', { post_id: 3 }], ['increment_recs', { post_id: 3 }], { tag: '국내 인디', author: normalPosts[0].author, title: '수정된 제목', content: normalPosts[0].content }]);
   await assertClean(page, state, ['추천 완료!', '이미 추천했습니다.', '수정됨']);
 });
 
