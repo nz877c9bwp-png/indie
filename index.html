@@ -62,7 +62,6 @@
   .board-title-row{ display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; }
   .board-title-row h1{ font-size:19px; margin:0; font-weight:700; }
 
-  /* 🌟 정렬 버튼 CSS 추가 */
   .sort-btns { display:flex; gap:10px; font-size:13px; align-items:center; }
   .sort-btns button { background:none; border:none; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; padding:0; font-family:inherit; transition:0.2s; }
   .sort-btns button.active { color:var(--text); font-weight:800; }
@@ -202,7 +201,6 @@
     .widget-container { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; overflow-x:visible; scroll-snap-type:none; padding-bottom:0; }
     .widget-card { min-width:0; margin-bottom:0; }
 
-    /* 🌟 일반 게시글 리스트 DC 모바일 스타일 개편 */
     .post-table-wrap { overflow-x:visible; margin-top:8px; }
     .post-table { display:block; min-width:0; border:none; border-top:2px solid var(--border); }
     .post-table thead { display:none; }
@@ -238,14 +236,12 @@
     .col-author { grid-area: author; color: var(--muted); }
     .col-date { grid-area: date; color: var(--muted); }
     
-    /* Javascript가 생성하는 nth-child 기준으로 조회/추천 매핑 */
     .post-table td:nth-child(6) { grid-area: views; color: var(--muted); }
     .post-table td:nth-child(7) { grid-area: recs; color: var(--music); font-weight: 600; }
     
-    /* 텍스트 구분선 및 모바일용 라벨 삽입 */
     .col-date::before { content: '| '; margin-right: 4px; color: var(--border); }
-    .post-table td:nth-child(6)::before { content: '| 조회 '; margin-right: 4px; color: var(--border); }
-    .post-table td:nth-child(7)::before { content: '| 추천 '; margin-right: 4px; color: var(--border); }
+    .post-table td:nth-child(6):before { content: '| 조회 '; margin-right: 4px; color: var(--border); }
+    .post-table td:nth-child(7):before { content: '| 추천 '; margin-right: 4px; color: var(--border); }
 
     #albumGrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:12px;}
     
@@ -400,7 +396,6 @@
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
-      <!-- 🌟 게시판 제목 및 정렬(최신순/인기순) 버튼 추가 -->
       <div class="board-title-row">
         <h1 id="boardTitle">전체 게시판</h1>
         <div class="sort-btns">
@@ -475,14 +470,13 @@
         </div>
 
         <div class="write-row">
+          <!-- 🌟 간소화된 드롭다운 카테고리 적용 -->
           <select id="postTag">
             <optgroup label="너 평가 좋아해?" style="color:var(--special);">
               <option value="앨범 평가">앨범 평가</option>
             </optgroup>
             <optgroup label="너 인디 좋아해?">
-              <option value="국내 인디">국내 인디</option>
-              <option value="해외 인디">해외 인디</option>
-              <option value="앨범/곡 추천">앨범/곡 추천</option>
+              <option value="인디">인디</option>
             </optgroup>
             <optgroup label="너 공연 좋아해?">
               <option value="공연 정보">공연 정보</option>
@@ -491,14 +485,10 @@
             </optgroup>
             <optgroup label="너 자작곡 좋아해?">
               <option value="자작곡">자작곡</option>
-              <option value="데모">데모</option>
-              <option value="밴드 홍보">밴드 홍보</option>
-              <option value="피드백">피드백</option>
             </optgroup>
             <optgroup label="너 수다 좋아해?">
               <option value="자유">자유</option>
               <option value="야구">야구</option>
-              <option value="음반">음반</option>
               <option value="장터">장터</option>
               <option value="자랑">자랑</option>
             </optgroup>
@@ -602,7 +592,7 @@
 
   let currentPosts = [];
   let currentCategory = '전체'; 
-  let currentSort = 'latest'; // 🌟 현재 정렬 상태 (최신순 기본)
+  let currentSort = 'latest'; 
   let currentReadPostId = null;
   let currentUser = null; 
   let isAdmin = false;
@@ -888,7 +878,7 @@
     document.getElementById('postContent').value = '';
     
     let targetTag = currentCategory;
-    if (['전체', '인디'].includes(currentCategory)) targetTag = '국내 인디';
+    if (['전체'].includes(currentCategory)) targetTag = '인디';
     const tagEl = document.getElementById('postTag');
     tagEl.value = targetTag;
     if (!tagEl.value) tagEl.value = '자유'; 
@@ -920,7 +910,6 @@
     renderPosts(); 
   }
 
-  // 🌟 정렬 변경 함수
   window.changeSort = function(type) {
     currentSort = type;
     document.getElementById('btnSortLatest').classList.toggle('active', type === 'latest');
@@ -963,7 +952,6 @@
       });
 
       const sortedAlbums = Object.values(stats); 
-      // 🌟 앨범 평가 탭 정렬 적용 (인기순: 평가 많은 순, 최신순: 최근 평가된 순)
       if (currentSort === 'popular') {
         sortedAlbums.sort((a,b) => b.count - a.count);
       } else {
@@ -998,12 +986,11 @@
       if (currentCategory === '전체') {
         filtered = [...currentPosts];
       } else if (currentCategory === '인디') {
-        filtered = currentPosts.filter(p => ['국내 인디', '해외 인디'].includes(p.tag));
+        filtered = currentPosts.filter(p => ['국내 인디', '해외 인디', '인디'].includes(p.tag));
       } else {
         filtered = currentPosts.filter(p => p.tag === currentCategory);
       }
 
-      // 🌟 일반 게시판 리스트 정렬 로직 적용
       if (currentSort === 'popular') {
         filtered.sort((a, b) => {
           if (b.recs !== a.recs) return (b.recs || 0) - (a.recs || 0);
