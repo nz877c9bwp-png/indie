@@ -104,7 +104,7 @@
           <ul class="comment-list" id="commentList"></ul>
           
           <div class="comment-write">
-            <div class="cw-author"><input type="text" id="commentAuthor" placeholder="닉네임 (유동)"></div>
+            <div class="cw-author"><input type="text" id="commentAuthor" placeholder="닉네임 (유동)"><input type="password" id="commentGuestPw" placeholder="비밀번호" maxlength="20"></div>
             <div class="cw-input">
               <textarea id="commentContent" placeholder="타인의 권리를 침해하거나 명예를 훼손하는 댓글은 제재를 받을 수 있습니다."></textarea>
               <button id="btnSubmitComment">등록</button>
@@ -285,6 +285,7 @@
             <option value="KIA">KIA 타이거즈</option>
           </select>
           <input type="text" id="postAuthor" placeholder="작성자 (유동)">
+          <input type="password" id="postGuestPw" placeholder="비밀번호 (삭제시 필요)" maxlength="20">
           <input type="text" id="postTitle" placeholder="제목을 입력해 주세요.">
         </div>
         

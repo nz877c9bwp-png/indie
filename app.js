@@ -271,11 +271,11 @@ $('imageUpload').addEventListener('change', async (e) => {
 });
 
 $('openWriteBtn').onclick = () => {
-  if (!currentUser) return alert('로그인 후 이용할 수 있습니다.');
   isEditMode = false;
   $('writeSectionTitle').textContent = '새 글 작성하기'; $('savePostBtn').textContent = '등록하기';
-  $('postTitle').value = ''; $('postContent').value = '';
-  
+  $('postTitle').value = ''; $('postContent').value = ''; $('postGuestPw').value = '';
+  $('postGuestPw').style.display = currentUser ? 'none' : '';
+
   let targetTag = ['전체'].includes(currentCategory) ? '인디' : currentCategory;
   $('postTag').value = targetTag || '자유';
   $('postTag').dispatchEvent(new Event('change'));
@@ -566,15 +566,25 @@ function createCommentElement(comment, isReply) {
     actions.append(replyBtn);
   }
   
-  // 백엔드 RLS가 지켜주지만 프론트에서도 작성자/관리자만 삭제 버튼 노출
-  if (isAdmin || (currentUser && currentUser.id === comment.user_id)) {
+  // 관리자/작성자는 바로 삭제, 유동(비로그인) 댓글은 비밀번호로 삭제 가능하니 버튼 노출
+  const isCommentAuthor = currentUser && currentUser.id === comment.user_id;
+  const isGuestComment = !comment.user_id;
+  if (isAdmin || isCommentAuthor || isGuestComment) {
     const delBtn = element('button', '', '삭제');
     delBtn.style.color = 'var(--admin)';
     delBtn.onclick = async () => {
-      if(!confirm('댓글을 삭제하시겠습니까?')) return;
-      const { error } = await client.from('comments').delete().eq('id', comment.id);
-      if (error) alert('권한이 없거나 삭제에 실패했습니다.');
-      else fetchAndRenderComments();
+      if (isAdmin || isCommentAuthor) {
+        if(!confirm('댓글을 삭제하시겠습니까?')) return;
+        const { error } = await client.from('comments').delete().eq('id', comment.id);
+        if (error) alert('권한이 없거나 삭제에 실패했습니다.');
+        else fetchAndRenderComments();
+      } else {
+        const pw = prompt('삭제하려면 댓글 작성 시 입력한 비밀번호를 입력하세요.');
+        if (pw === null) return;
+        const { data, error } = await client.rpc('delete_comment_with_password', { p_id: comment.id, p_password: pw });
+        if (error || !data) alert('비밀번호가 틀렸거나 삭제할 수 없습니다.');
+        else fetchAndRenderComments();
+      }
     };
     actions.append(delBtn);
   }
@@ -585,7 +595,7 @@ function createCommentElement(comment, isReply) {
     const replyForm = element('div', 'reply-write-form');
     replyForm.id = `replyForm_${comment.id}`;
     replyForm.innerHTML = `
-      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? (currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]) : ''}"></div>
+      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? (currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]) : ''}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
       <div class="cw-input">
         <textarea id="replyContent_${comment.id}" placeholder="대댓글을 입력하세요."></textarea>
         <button onclick="submitComment(${comment.id})">등록</button>
@@ -607,15 +617,17 @@ window.toggleReplyForm = (commentId) => {
 };
 
 window.submitComment = async (parentId = null) => {
-  if (!currentUser) return alert('로그인 후 이용할 수 있습니다.'); // 보안: 백엔드 정책과 맞춤
   const authorId = parentId ? `replyAuthor_${parentId}` : 'commentAuthor';
   const contentId = parentId ? `replyContent_${parentId}` : 'commentContent';
-  
+  const pwId = parentId ? `replyGuestPw_${parentId}` : 'commentGuestPw';
+
   const author = escapeHTML($(authorId).value.trim()) || 'ㅇㅇ';
   const content = $(contentId).value.trim();
-  
+  const guestPw = $(pwId).value.trim();
+
   if (!content) return alert('댓글 내용을 입력해주세요.');
-  
+  if (!currentUser && !guestPw) return alert('유동 댓글은 비밀번호가 필요합니다. (나중에 삭제할 때 사용)');
+
   const btn = parentId ? $(`replyForm_${parentId}`).querySelector('button') : $('btnSubmitComment');
   const originalText = btn.textContent;
   btn.textContent = '등록 중...';
@@ -626,7 +638,8 @@ window.submitComment = async (parentId = null) => {
     parent_id: parentId,
     author: author,
     content: content,
-    user_id: currentUser.id // 작성자 ID 명시적 추가
+    user_id: currentUser ? currentUser.id : null,
+    ...(!currentUser && { guest_password: guestPw })
   }]);
 
   btn.textContent = originalText;
@@ -656,9 +669,11 @@ async function openPostView(postId) {
   $('readViews').textContent = (post.views || 0) + 1;
   $('readRecs').textContent = $('btnRecCount').textContent = post.recs || 0;
   
-  // 수정/삭제 버튼 노출 로직 개선 (관리자거나 본인이 쓴 글일 때)
+  // 수정: 관리자거나 본인이 쓴 글일 때만. 삭제: 그에 더해 유동(비로그인) 글도 비밀번호로 가능하니 버튼 노출.
   const isAuthor = currentUser && currentUser.id === post.user_id;
-  $('adminEditBtn').style.display = $('adminDeleteBtn').style.display = (isAdmin || isAuthor) ? 'inline-block' : 'none';
+  const isGuestPost = !post.user_id;
+  $('adminEditBtn').style.display = (isAdmin || isAuthor) ? 'inline-block' : 'none';
+  $('adminDeleteBtn').style.display = (isAdmin || isAuthor || isGuestPost) ? 'inline-block' : 'none';
 
   if(post.tag === '앨범 평가' && post.album_title) {
     $('btnEvalSame').style.display = 'inline-block';
@@ -667,7 +682,8 @@ async function openPostView(postId) {
 
   if (currentUser) $('commentAuthor').value = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
   else $('commentAuthor').value = '';
-  $('commentContent').value = '';
+  $('commentContent').value = ''; $('commentGuestPw').value = '';
+  $('commentGuestPw').style.display = currentUser ? 'none' : '';
 
   switchView('postView');
   await fetchAndRenderComments();
@@ -734,24 +750,36 @@ $('adminEditBtn').addEventListener('click', () => {
 });
 
 $('adminDeleteBtn').addEventListener('click', async () => {
-  if(!confirm('삭제하시겠습니까?')) return;
-  const { error } = await client.from('posts').delete().eq('id', currentReadPostId);
-  if (!error) { alert('삭제됨'); backToList(); fetchPosts(); } else { alert('삭제 실패(권한 부족): ' + error.message); }
+  const post = currentPosts.find(p => p.id === currentReadPostId);
+  const isAuthor = currentUser && post && currentUser.id === post.user_id;
+
+  if (isAdmin || isAuthor) {
+    if(!confirm('삭제하시겠습니까?')) return;
+    const { error } = await client.from('posts').delete().eq('id', currentReadPostId);
+    if (!error) { alert('삭제됨'); backToList(); fetchPosts(); } else { alert('삭제 실패(권한 부족): ' + error.message); }
+  } else {
+    // 유동(비로그인) 글: 작성 시 입력한 비밀번호로만 삭제 가능
+    const pw = prompt('삭제하려면 글 작성 시 입력한 비밀번호를 입력하세요.');
+    if (pw === null) return;
+    const { data, error } = await client.rpc('delete_post_with_password', { p_id: currentReadPostId, p_password: pw });
+    if (error || !data) alert('비밀번호가 틀렸거나 삭제할 수 없습니다.');
+    else { alert('삭제됨'); backToList(); fetchPosts(); }
+  }
 });
 
 $('savePostBtn').addEventListener('click', async () => {
-  if (!currentUser) return alert('로그인 후 이용할 수 있습니다.');
-  
   // XSS 1차 필터링
   const tag = $('postTag').value;
   const title = escapeHTML($('postTitle').value);
   const content = $('postContent').value; // 본문은 렌더링 시 필터링됨
   const author = escapeHTML($('postAuthor').value.trim()) || 'ㅇㅇ(유동)';
   const team = $('postTeam').value;
-  
-  if (!title.trim()) return alert('제목을 입력해주세요.'); 
+  const guestPw = $('postGuestPw').value.trim();
+
+  if (!title.trim()) return alert('제목을 입력해주세요.');
   if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
   if (tag === '야구' && !team) return alert('응원하는 팀을 선택해주세요!');
+  if (!currentUser && !isEditMode && !guestPw) return alert('유동 글쓰기는 비밀번호가 필요합니다. (나중에 삭제할 때 사용)');
 
   $('savePostBtn').disabled = true; $('savePostBtn').textContent = '처리 중...';
   let error;
@@ -759,14 +787,15 @@ $('savePostBtn').addEventListener('click', async () => {
     const updateData = { tag, author, title, content, ...(tag === '야구' && { team }) };
     ({ error } = await client.from('posts').update(updateData).eq('id', currentReadPostId));
   } else {
-    const postData = { 
-      tag, author, title, content, user_id: currentUser.id,
+    const postData = {
+      tag, author, title, content, user_id: currentUser ? currentUser.id : null,
+      ...(!currentUser && { guest_password: guestPw }),
       ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating }),
       ...(tag === '야구' && { team })
     };
     ({ error } = await client.from('posts').insert([postData]));
   }
-  
+
   $('savePostBtn').disabled = false;
   if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); backToList(); fetchPosts(); } else alert('실패: 권한이 없거나 오류가 발생했습니다.');
 });

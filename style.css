@@ -195,6 +195,7 @@ header{ border-bottom:1px solid var(--border); background:var(--panel-glass); ba
 #postTag { width: 150px; }
 #postTeam { width: 150px; }
 #postAuthor { width: 150px; }
+#postGuestPw { width: 150px; }
 #postTitle { flex:1; min-width:200px;}
 
 .write-toolbar { background:var(--panel-alt); border:1px solid var(--border); border-bottom:none; padding:10px 16px; border-top-left-radius:var(--radius-sm); border-top-right-radius:var(--radius-sm); display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
@@ -391,7 +392,7 @@ header{ border-bottom:1px solid var(--border); background:var(--panel-glass); ba
 .ci-actions button:hover { color: var(--music); text-decoration: underline; }
 
 .comment-write { padding: 15px 26px; background: var(--panel); box-sizing:border-box; width:100%; }
-.cw-author { margin-bottom: 8px; }
+.cw-author { margin-bottom: 8px; display:flex; gap:8px; flex-wrap:wrap; }
 .cw-author input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius-sm); outline: none; font-size: 13px; width: 120px; font-family: inherit; transition:border-color 0.2s;}
 .cw-input { display: flex; gap: 10px; box-sizing:border-box; width:100%; }
 .cw-input textarea { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: var(--radius-sm); outline: none; font-size: 13px; resize: none; height: 70px; font-family: inherit; box-sizing:border-box; min-width:0; transition:border-color 0.2s;}
