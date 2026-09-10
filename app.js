@@ -1,4 +1,4 @@
-// --- 공통 유틸리티 ---
+// --- 공통 유틸리티 및 보안 ---
 const $ = id => document.getElementById(id);
 const toggleModal = (id, show) => $(id).style.display = show ? 'flex' : 'none';
 const switchView = (view) => {
@@ -7,6 +7,14 @@ const switchView = (view) => {
   });
   window.scrollTo(0, 0);
 };
+
+// XSS 방어: 악성 스크립트 태그 무력화
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[tag]));
+}
 
 // --- Supabase 설정 ---
 const SUPABASE_URL = 'https://jvitmimabxupkhrksudu.supabase.co';
@@ -27,7 +35,7 @@ let currentComments = [];
 function element(tag, className = '', text = null) {
   const node = document.createElement(tag);
   if (className) node.className = className;
-  if (text !== null) node.textContent = String(text ?? '');
+  if (text !== null) node.textContent = text; // textContent 사용으로 기본적 XSS 방어
   return node;
 }
 
@@ -82,12 +90,15 @@ function formatContent(value) {
       const wrapper = element('div', 'yt-wrapper'), iframe = element('iframe');
       iframe.src = `https://www.youtube.com/embed/${part.youtube}`; iframe.allowFullscreen = true;
       wrapper.append(iframe); fragment.append(wrapper);
-    } else fragment.append(document.createTextNode(part.text));
+    } else {
+      // 텍스트 출력 시 HTML 이스케이프 적용
+      fragment.append(document.createTextNode(part.text));
+    }
   }
   return fragment;
 }
 
-const contentPreview = value => contentParts(value).map(p => p.text ?? '').join('').substring(0, 150) + '...';
+const contentPreview = value => escapeHTML(contentParts(value).map(p => p.text ?? '').join('').substring(0, 150) + '...');
 
 // --- 인증 및 계정 설정 ---
 client.auth.onAuthStateChange((event, session) => {
@@ -153,7 +164,7 @@ $('postTag').addEventListener('change', (e) => {
 });
 
 $('btnSearchAlbum').addEventListener('click', async () => {
-  const query = $('albumQuery').value.trim(), searchType = $('searchType').value;
+  const query = escapeHTML($('albumQuery').value.trim()), searchType = $('searchType').value;
   if(!query) return alert('검색어를 입력하세요.');
   $('albumResults').innerHTML = '<div style="color:var(--muted); font-size:12px;">앨범 찾는 중...</div>';
   
@@ -280,9 +291,9 @@ function renderPosts() {
       card.onclick = () => openPostView(post.id);
       const stats = element('div', 'widget-stats');
       const recs = element('span', '', `추천 ${post.recs || 0}`); recs.style.color = 'var(--music)';
-      const author = element('span', '', post.author || 'ㅇㅇ'); author.style.marginLeft = 'auto';
+      const author = element('span', '', escapeHTML(post.author || 'ㅇㅇ')); author.style.marginLeft = 'auto';
       stats.append(element('span', '', `조회 ${post.views || 0}`), recs, author);
-      card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', post.title), stats);
+      card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', escapeHTML(post.title)), stats);
       return card;
     }));
   } else widgetArea.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">핫게시글이 없습니다.</div>';
@@ -317,7 +328,7 @@ function renderPosts() {
         const info = element('div', 'album-card-info');
         const rating = element('div', 'album-card-rating', `★ ${(a.totalScore/a.count).toFixed(1)} `);
         rating.append(element('span', '', `(${a.count}명)`));
-        info.append(element('div', 'album-card-title', a.title), element('div', 'album-card-artist', a.artist), rating);
+        info.append(element('div', 'album-card-title', escapeHTML(a.title)), element('div', 'album-card-artist', escapeHTML(a.artist)), rating);
         card.append(img, info);
         return card;
       }));
@@ -350,13 +361,13 @@ function renderPosts() {
         tag.append(element('span', `tag${post.recs >= 3 ? ' hot' : ''}`, post.tag));
         
         const titleCell = element('td', 'col-title');
-        const link = element('a', 'dc-title-link', post.title); 
+        const link = element('a', 'dc-title-link', escapeHTML(post.title)); 
         link.href = '#'; link.onclick = e => { e.preventDefault(); openPostView(post.id); };
         titleCell.append(link);
         
         if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`)); 
         
-        const authorCell = element('td', 'col-author', post.author || 'ㅇㅇ');
+        const authorCell = element('td', 'col-author', escapeHTML(post.author || 'ㅇㅇ'));
         const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
         const dateCell = element('td', 'col-date', dateFormatted);
         const viewsCell = element('td', 'col-views tabular', post.views || 0);
@@ -381,8 +392,8 @@ window.openAlbumDetail = (title, artist) => {
   $('adScore').replaceChildren(`★ ${(albumPosts.reduce((s, p) => s + Number(p.rating||0), 0) / albumPosts.length).toFixed(1)} `, element('span', '', `(${albumPosts.length}명 참여)`));
   $('adReviews').replaceChildren(...albumPosts.map(p => {
     const card = element('div', 'review-card'); card.onclick = () => openPostView(p.id);
-    const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', p.author || 'ㅇㅇ(유동)'), element('span', 'rc-stars', `★ ${p.rating}`));
-    card.append(header, element('div', 'rc-title', p.title), element('div', 'rc-content', contentPreview(p.content)));
+    const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)')), element('span', 'rc-stars', `★ ${p.rating}`));
+    card.append(header, element('div', 'rc-title', escapeHTML(p.title)), element('div', 'rc-content', contentPreview(p.content)));
     return card;
   }));
   switchView('albumDetail');
@@ -442,7 +453,7 @@ function createCommentElement(comment, isReply) {
   if (isReply) authorDisplay = '↳ ' + authorDisplay;
   
   meta.append(
-    element('span', 'ci-author', authorDisplay),
+    element('span', 'ci-author', escapeHTML(authorDisplay)),
     element('span', 'ci-date', new Date(comment.created_at).toLocaleString('ko-KR', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}))
   );
   
@@ -453,18 +464,20 @@ function createCommentElement(comment, isReply) {
     actions.append(replyBtn);
   }
   
-  if (isAdmin) {
+  // 백엔드 RLS가 지켜주지만 프론트에서도 작성자/관리자만 삭제 버튼 노출
+  if (isAdmin || (currentUser && currentUser.id === comment.user_id)) {
     const delBtn = element('button', '', '삭제');
     delBtn.style.color = 'var(--admin)';
     delBtn.onclick = async () => {
       if(!confirm('댓글을 삭제하시겠습니까?')) return;
-      await client.from('comments').delete().eq('id', comment.id);
-      fetchAndRenderComments();
+      const { error } = await client.from('comments').delete().eq('id', comment.id);
+      if (error) alert('권한이 없거나 삭제에 실패했습니다.');
+      else fetchAndRenderComments();
     };
     actions.append(delBtn);
   }
 
-  li.append(meta, element('div', 'ci-content', comment.content), actions);
+  li.append(meta, element('div', 'ci-content', escapeHTML(comment.content)), actions);
   
   if (!isReply) {
     const replyForm = element('div', 'reply-write-form');
@@ -492,10 +505,11 @@ window.toggleReplyForm = (commentId) => {
 };
 
 window.submitComment = async (parentId = null) => {
+  if (!currentUser) return alert('로그인 후 이용할 수 있습니다.'); // 보안: 백엔드 정책과 맞춤
   const authorId = parentId ? `replyAuthor_${parentId}` : 'commentAuthor';
   const contentId = parentId ? `replyContent_${parentId}` : 'commentContent';
   
-  const author = $(authorId).value.trim() || 'ㅇㅇ';
+  const author = escapeHTML($(authorId).value.trim()) || 'ㅇㅇ';
   const content = $(contentId).value.trim();
   
   if (!content) return alert('댓글 내용을 입력해주세요.');
@@ -509,7 +523,8 @@ window.submitComment = async (parentId = null) => {
     post_id: currentReadPostId,
     parent_id: parentId,
     author: author,
-    content: content
+    content: content,
+    user_id: currentUser.id // 작성자 ID 명시적 추가
   }]);
 
   btn.textContent = originalText;
@@ -532,10 +547,13 @@ async function openPostView(postId) {
   
   $('readTitle').textContent = post.title; $('readTag').textContent = post.tag;
   $('readAuthor').textContent = post.author || 'ㅇㅇ'; $('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
-  $('readContent').replaceChildren(formatContent(post.content));
+  $('readContent').replaceChildren(formatContent(post.content)); // 렌더링 시 escapeHTML 적용됨
   $('readViews').textContent = (post.views || 0) + 1;
   $('readRecs').textContent = $('btnRecCount').textContent = post.recs || 0;
-  $('adminEditBtn').style.display = $('adminDeleteBtn').style.display = isAdmin ? 'inline-block' : 'none';
+  
+  // 수정/삭제 버튼 노출 로직 개선 (관리자거나 본인이 쓴 글일 때)
+  const isAuthor = currentUser && currentUser.id === post.user_id;
+  $('adminEditBtn').style.display = $('adminDeleteBtn').style.display = (isAdmin || isAuthor) ? 'inline-block' : 'none';
 
   if(post.tag === '앨범 평가' && post.album_title) {
     $('btnEvalSame').style.display = 'inline-block';
@@ -548,17 +566,36 @@ async function openPostView(postId) {
 
   switchView('postView');
   await fetchAndRenderComments();
-  await client.rpc('increment_views', { post_id: postId });
+  
+  // 조회수 DB 함수 직접 호출 (안전한 카운팅)
+  await client.rpc('increment_views', { p_id: postId });
 }
 
 window.backToList = () => { renderPosts(); switchView('board'); };
 
+// 추천 로직 전면 개편 (서버 검증 방식)
 $('recommendBtn').addEventListener('click', async () => {
-  if(!currentReadPostId || localStorage.getItem('rec_' + currentReadPostId)) return alert('이미 추천했습니다.');
-  const post = currentPosts.find(p => p.id === currentReadPostId); post.recs = (post.recs || 0) + 1;
-  $('readRecs').textContent = $('btnRecCount').textContent = post.recs;
-  localStorage.setItem('rec_' + currentReadPostId, 'true'); alert('추천 완료!');
-  await client.rpc('increment_recs', { post_id: currentReadPostId });
+  if (!currentUser) return alert('추천은 로그인 후 가능합니다.');
+  
+  const prevRecs = parseInt($('btnRecCount').textContent);
+  $('btnRecCount').textContent = '...';
+  
+  // DB 단에서 만들어 둔 중복 추천 방지용 RPC 호출
+  const { error } = await client.rpc('toggle_recommendation', { p_id: currentReadPostId });
+  
+  if (error) {
+    // 이미 추천한 경우(Unique Constraint 위반) DB에서 에러 반환됨
+    alert('이미 추천한 게시글입니다.');
+    $('btnRecCount').textContent = prevRecs;
+  } else {
+    alert('추천 완료!');
+    const newRecs = prevRecs + 1;
+    $('readRecs').textContent = $('btnRecCount').textContent = newRecs;
+    
+    // 로컬 데이터도 갱신
+    const post = currentPosts.find(p => p.id === currentReadPostId);
+    if(post) post.recs = newRecs;
+  }
 });
 
 $('adminEditBtn').addEventListener('click', () => {
@@ -566,19 +603,25 @@ $('adminEditBtn').addEventListener('click', () => {
   isEditMode = true; $('writeSectionTitle').textContent = '게시글 수정하기'; $('savePostBtn').textContent = '수정 완료';
   $('postTag').value = post.tag; $('postTitle').value = post.title; $('postContent').value = post.content;
   $('albumSearchWrap').style.display = 'none';
-  if(isAdmin) $('postAuthor').value = post.author || 'ㅇㅇ';
+  $('postAuthor').value = post.author || 'ㅇㅇ';
   switchView('write');
 });
 
 $('adminDeleteBtn').addEventListener('click', async () => {
   if(!confirm('삭제하시겠습니까?')) return;
   const { error } = await client.from('posts').delete().eq('id', currentReadPostId);
-  if (!error) { alert('삭제됨'); backToList(); fetchPosts(); } else { alert('삭제 실패: ' + error.message); }
+  if (!error) { alert('삭제됨'); backToList(); fetchPosts(); } else { alert('삭제 실패(권한 부족): ' + error.message); }
 });
 
 $('savePostBtn').addEventListener('click', async () => {
   if (!currentUser) return alert('로그인 후 이용할 수 있습니다.');
-  const tag = $('postTag').value, title = $('postTitle').value, content = $('postContent').value, author = $('postAuthor').value.trim() || 'ㅇㅇ(유동)';
+  
+  // XSS 1차 필터링
+  const tag = $('postTag').value;
+  const title = escapeHTML($('postTitle').value);
+  const content = $('postContent').value; // 본문은 렌더링 시 필터링됨
+  const author = escapeHTML($('postAuthor').value.trim()) || 'ㅇㅇ(유동)';
+  
   if (!title.trim()) return alert('제목을 입력해주세요.'); 
   if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
 
@@ -587,12 +630,15 @@ $('savePostBtn').addEventListener('click', async () => {
   if (isEditMode) {
     ({ error } = await client.from('posts').update({ tag, author, title, content }).eq('id', currentReadPostId));
   } else {
-    const postData = { tag, author, title, content, ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating }) };
+    const postData = { 
+      tag, author, title, content, user_id: currentUser.id,
+      ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating }) 
+    };
     ({ error } = await client.from('posts').insert([postData]));
   }
   
   $('savePostBtn').disabled = false;
-  if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); backToList(); fetchPosts(); } else alert('실패: ' + (error.message || ''));
+  if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); backToList(); fetchPosts(); } else alert('실패: 권한이 없거나 오류가 발생했습니다.');
 });
 
 // 초기화
