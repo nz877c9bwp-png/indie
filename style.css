@@ -190,9 +190,13 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 @media (max-width: 840px) {
   .shell { grid-template-columns: 1fr; padding: 0; gap: 0; }
   
-  .header-inner { flex-direction:column; align-items:stretch; gap:12px; padding:12px;}
+  .header-inner { flex-direction:column; align-items:center; gap:12px; padding:12px;}
   .brand { text-align:center; }
-  .user-actions { justify-content:center; }
+  
+  /* 상단 메뉴 줄바꿈 허용 (긴 닉네임 짤림 방지) */
+  .user-actions { justify-content:center; flex-wrap:wrap; white-space:normal; width:100%; gap:10px; }
+  #userStatus { width:100%; text-align:center; display:block; word-break:break-all; margin-bottom:4px; }
+  
   .search { max-width:100%; order:3; display:none; } 
 
   .sidebar { 
@@ -264,11 +268,13 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
   .col-likes::before { content: '추천 '; margin-right: 2px; color: var(--muted); font-weight: normal; }
 
   .board-footer { padding: 16px 12px; margin-top: 0; }
-  .bottom-controls { flex-direction: column; gap: 12px; }
-  .dc-search-box { width: 100%; display: flex; gap: 4px; }
+  
+  /* 하단 검색창 및 글쓰기 버튼 넘침 방지 */
+  .bottom-controls { flex-direction: column; gap: 12px; width: 100%; }
+  .dc-search-box { width: 100%; display: flex; gap: 4px; box-sizing: border-box; }
   .dc-search-box select { width: 30%; }
-  .dc-search-box input { flex: 1; }
-  .btn-dc-write { width: 100%; padding: 12px; border-radius: 4px; font-size: 14px; }
+  .dc-search-box input { flex: 1; min-width: 0; }
+  .btn-dc-write { width: 100%; padding: 14px; border-radius: 4px; font-size: 15px; box-sizing: border-box; display: block; }
   
   #albumGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px;}
   .ad-header { flex-direction: column; align-items: center; text-align: center; gap: 16px;}
