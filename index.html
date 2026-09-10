@@ -91,16 +91,26 @@
   .dc-title-link:hover { text-decoration:underline; }
   .dc-comment-count { color:#d31900; font-weight:bold; font-size:11px; margin-left:5px; }
 
-  /* 디시 스타일 하단 컨트롤 */
+/* 디시 스타일 하단 컨트롤 */
   .board-footer { margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
   .pagination { display: flex; gap: 3px; }
-  .page-btn { border: 1px solid var(--border); background: var(--panel); padding: 5px 10px; cursor: pointer; color: var(--text); font-family:inherit; }
-  .page-btn.active { border: 1px solid var(--dc-blue); color: white; background: var(--dc-blue); font-weight: bold; }
+  .page-btn { border: 1px solid var(--border); background: var(--panel); padding: 5px 10px; cursor: pointer; color: var(--text); font-family:inherit; transition: 0.2s; }
+  .page-btn:hover { border-color: var(--music); }
+  
+  /* 페이지 활성화 버튼을 프로젝트 포인트 컬러로 변경 */
+  .page-btn.active { border: 1px solid var(--music); color: var(--bg); background: var(--music); font-weight: bold; }
+  
   .bottom-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; }
   .dc-search-box { display: flex; gap: 5px; }
   .dc-search-box select, .dc-search-box input { padding: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 2px; font-family:inherit; }
-  .btn-dc-search { background: var(--dc-blue); color: white; border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit;}
-  .btn-dc-write { background: var(--dc-blue); color: white; border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit;}
+  
+  /* 검색 버튼은 너무 튀지 않게 다크모드 서브 컬러로 변경 */
+  .btn-dc-search { background: var(--panel-alt); color: var(--text); border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit; transition: 0.2s; }
+  .btn-dc-search:hover { background: var(--border); color: var(--music); }
+  
+  /* 글쓰기 버튼을 프로젝트 포인트 컬러로 변경 */
+  .btn-dc-write { background: var(--music); color: var(--bg); border: none; padding: 6px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; font-family:inherit; transition: 0.2s; }
+  .btn-dc-write:hover { background: var(--music-hover); }
 
   /* 앨범 그리드 및 기타 컴포넌트 */
   #albumGrid { display:none; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:16px; margin-top:20px;}
