@@ -71,6 +71,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 
 .brand-word{ display:inline-flex; align-items:baseline; }
 .bw-group{ display:inline-flex; align-items:baseline; flex:none; }
+.bw-slot{ width:21.14px; }
 .bw-big{ color:var(--music); font-weight:900; font-size:1.15em; }
 .bw-big.bw-kr{ color:var(--muted); }
 .bw-small{ font-weight:300; font-size:10px; color:var(--muted); margin-left:1px; }
