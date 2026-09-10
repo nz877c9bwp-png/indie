@@ -8,6 +8,17 @@ const switchView = (view) => {
   window.scrollTo(0, 0);
 };
 
+// 비로그인(유동) 사용자의 추천 중복 방지용 로컬 캐시. 기기/브라우저 단위라 완벽하진 않지만
+// 새로고침해도 유지되고, 서버에 사용자 식별자를 남기지 않는 선에서 "한 번만" 제약을 준다.
+function getRecommendedCache() {
+  try { return JSON.parse(localStorage.getItem('recommendedPosts') || '[]'); } catch { return []; }
+}
+function hasCachedRecommend(postId) { return getRecommendedCache().includes(postId); }
+function addRecommendedCache(postId) {
+  const cache = getRecommendedCache();
+  if (!cache.includes(postId)) { cache.push(postId); try { localStorage.setItem('recommendedPosts', JSON.stringify(cache)); } catch {} }
+}
+
 // XSS 방어: 악성 스크립트 태그 무력화
 function escapeHTML(str) {
   if (!str) return '';
@@ -674,7 +685,12 @@ async function openPostView(postId, pushHistory = true) {
   $('readContent').replaceChildren(formatContent(post.content)); // 렌더링 시 escapeHTML 적용됨
   $('readViews').textContent = (post.views || 0) + 1;
   $('readRecs').textContent = $('btnRecCount').textContent = post.recs || 0;
-  
+
+  // 유동(비로그인) 사용자가 이 글을 이미 추천했으면 버튼을 비활성화해서 재추천 시도를 막는다.
+  const alreadyRecommended = !currentUser && hasCachedRecommend(postId);
+  $('recommendBtn').disabled = alreadyRecommended;
+  $('recommendBtn').style.opacity = alreadyRecommended ? '0.5' : '';
+
   // 수정: 관리자거나 본인이 쓴 글일 때만. 삭제: 그에 더해 유동(비로그인) 글도 비밀번호로 가능하니 버튼 노출.
   const isAuthor = currentUser && currentUser.id === post.user_id;
   const isGuestPost = !post.user_id;
@@ -726,16 +742,35 @@ $('headerSearchBtn').addEventListener('click', () => {
   renderPosts();
 });
 
-// 추천 로직 전면 개편 (서버 검증 방식)
+// 추천 로직: 로그인 사용자는 서버 검증(중복 추천 방지 RPC), 유동은 로컬 캐시로 1회 제한
 $('recommendBtn').addEventListener('click', async () => {
-  if (!currentUser) return alert('추천은 로그인 후 가능합니다.');
-  
   const prevRecs = parseInt($('btnRecCount').textContent);
+
+  if (!currentUser) {
+    if (hasCachedRecommend(currentReadPostId)) return alert('이미 추천한 게시글입니다.');
+    $('btnRecCount').textContent = '...';
+    const { error } = await client.rpc('increment_recs', { p_id: currentReadPostId });
+    if (error) {
+      alert('추천 처리에 실패했습니다.');
+      $('btnRecCount').textContent = prevRecs;
+      return;
+    }
+    addRecommendedCache(currentReadPostId);
+    $('recommendBtn').disabled = true;
+    $('recommendBtn').style.opacity = '0.5';
+    alert('추천 완료!');
+    const newRecs = prevRecs + 1;
+    $('readRecs').textContent = $('btnRecCount').textContent = newRecs;
+    const post = currentPosts.find(p => p.id === currentReadPostId);
+    if (post) post.recs = newRecs;
+    return;
+  }
+
   $('btnRecCount').textContent = '...';
-  
+
   // DB 단에서 만들어 둔 중복 추천 방지용 RPC 호출
   const { error } = await client.rpc('toggle_recommendation', { p_id: currentReadPostId });
-  
+
   if (error) {
     // 이미 추천한 경우(Unique Constraint 위반) DB에서 에러 반환됨
     alert('이미 추천한 게시글입니다.');
@@ -744,7 +779,7 @@ $('recommendBtn').addEventListener('click', async () => {
     alert('추천 완료!');
     const newRecs = prevRecs + 1;
     $('readRecs').textContent = $('btnRecCount').textContent = newRecs;
-    
+
     // 로컬 데이터도 갱신
     const post = currentPosts.find(p => p.id === currentReadPostId);
     if(post) post.recs = newRecs;
