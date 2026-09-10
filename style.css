@@ -272,8 +272,13 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   .shell > * { min-width: 0; }
   main { max-width: 100%; overflow-x: hidden; }
 
-  .header-inner { flex-direction: column; align-items: center; gap: 12px; padding: 12px; width: 100%; box-sizing: border-box; }
-  .brand { text-align: center; }
+  .header-inner { flex-direction: column; align-items: center; gap: 6px; padding: 8px 12px; width: 100%; box-sizing: border-box; }
+  .brand { text-align: center; font-size: 16px; gap: 12px; }
+  .logo-badge { width: 30px; height: 30px; }
+  .bw-slot { width: 20px; }
+  .user-actions { gap: 10px; }
+  .write-btn { padding: 6px 14px; font-size: 12px; }
+  .auth-btn { font-size: 12px; }
 
   .user-actions { justify-content: center; flex-wrap: wrap; white-space: normal; width: 100%; gap: 10px; box-sizing: border-box; }
   #userStatus { width: 100%; text-align: center; display: block; word-break: break-all; margin-bottom: 4px; }
