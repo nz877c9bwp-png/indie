@@ -86,6 +86,7 @@
             <div class="view-meta-left">
               <span id="readTag" class="tag"></span>
               <span id="readAuthor" style="color:var(--text); font-weight:600;"></span>
+              <span id="readTeamBadge"></span>
               <span id="readDate"></span>
             </div>
             <div class="view-meta-right">
@@ -155,6 +156,8 @@
           <button id="btnSortPopular" onclick="toggleSort('popular')">인기순</button>
         </div>
       </div>
+
+      <div id="baseballTeamTabs" style="display:none;"></div>
 
       <div id="albumBoardHeader" style="display:none; flex-direction:column; gap:12px; margin-bottom:16px;">
         <div class="board-title-row" style="margin:0;">
@@ -271,6 +274,19 @@
               <option value="장터">장터</option>
               <option value="자랑">자랑</option>
             </optgroup>
+          </select>
+          <select id="postTeam" style="display:none;">
+            <option value="">응원팀 선택</option>
+            <option value="두산">두산 베어스</option>
+            <option value="LG">LG 트윈스</option>
+            <option value="KT">KT 위즈</option>
+            <option value="SSG">SSG 랜더스</option>
+            <option value="NC">NC 다이노스</option>
+            <option value="키움">키움 히어로즈</option>
+            <option value="삼성">삼성 라이온즈</option>
+            <option value="롯데">롯데 자이언츠</option>
+            <option value="한화">한화 이글스</option>
+            <option value="KIA">KIA 타이거즈</option>
           </select>
           <input type="text" id="postAuthor" placeholder="작성자 (유동)">
           <input type="text" id="postTitle" placeholder="제목을 입력해 주세요.">
