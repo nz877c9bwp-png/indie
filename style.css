@@ -271,19 +271,15 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
   .dc-table thead { display: none; }
   .dc-table tbody { display: block; width: 100%; box-sizing: border-box; }
   
-  .dc-table td { width: auto !important; white-space: nowrap; padding: 0; border: none; text-align: left; line-height: 1.2; }
+  .dc-table td { width: auto !important; padding: 0; border: none; text-align: left; line-height: 1.2; }
 
+  /* 1줄짜리 flex 행: 제목이 남는 공간을 채우고, 나머지 메타 정보는 자연스럽게 오른쪽 끝에 정렬됨 */
   .dc-table tr { 
-      display: grid; 
-      grid-template-columns: max-content 1fr;
-      grid-template-areas:
-          "tag title"
-          "meta meta"; 
-      padding: 12px; 
-      border-bottom: 1px solid var(--border); 
+      display: flex; 
       align-items: center; 
-      column-gap: 8px; 
-      row-gap: 6px; 
+      gap: 8px; 
+      padding: 10px 12px; 
+      border-bottom: 1px solid var(--border); 
       background: transparent;
       margin: 0;
       width: 100%;
@@ -292,17 +288,16 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
   .dc-table tr:hover { background: var(--panel); }
   
   .col-id { display: none; }
-  .col-category { grid-area: tag; font-size: 12px; color: var(--muted); font-weight: bold; }
-  .col-title { grid-area: title; font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; padding-left: 0 !important; }
+  .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
+
+  .col-category { flex: 0 0 auto; font-size: 11px; color: var(--muted); font-weight: bold; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .col-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 0 !important; }
   
-  .col-author, .col-date, .col-views, .col-likes { display: inline-block; font-size: 11px; color: var(--muted); white-space: nowrap; }
-  .col-author { grid-area: meta; }
-  .col-author::after { content: ' | '; color: var(--border); }
-  .col-date { display: inline-block; }
-  .col-date::after { content: ' | 조회 '; color: var(--border); }
-  .col-views { display: inline-block; }
-  .col-views::after { content: ' | 추천 '; color: var(--border); }
-  .col-likes { display: inline-block; color: #d31900; font-weight: bold; }
+  .col-date, .col-views, .col-likes { flex: 0 0 auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .col-date::before { content: ''; }
+  .col-views::before { content: '· 조회 '; color: var(--border); }
+  .col-likes::before { content: '· 추천 '; color: var(--border); }
+  .col-likes { color: #d31900; font-weight: bold; }
 
   .board-footer { padding: 16px 12px; margin-top: 0; width: 100%; box-sizing: border-box; }
   
