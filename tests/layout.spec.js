@@ -76,7 +76,7 @@ test('layout: rotation, zoom and mobile typography', async ({ page }) => {
   await page.locator('#postList a').first().click();
   expect(await page.locator('.view-title').evaluate(node => getComputedStyle(node).fontSize)).toBe('18px');
   expect(await page.locator('.view-content-area').evaluate(node => getComputedStyle(node).fontSize)).toBe('14px');
-  expect(await page.locator('meta[name="viewport"]').getAttribute('content')).toBe('width=device-width, initial-scale=1.0');
+  expect(await page.locator('meta[name="viewport"]').getAttribute('content')).toBe('width=device-width, initial-scale=1.0, minimum-scale=1.0');
   await fits(page, 'portrait');
   await page.setViewportSize({ width: 844, height: 390 });
   await fits(page, 'landscape after resize');
