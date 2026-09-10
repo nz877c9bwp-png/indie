@@ -69,7 +69,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .brand:hover{ opacity:0.85; }
 .logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--panel); box-shadow:var(--shadow-sm); flex:none; }
 
-.brand-word{ display:inline-flex; align-items:baseline; }
+.brand-word{ display:inline-flex; align-items:baseline; gap:2px; }
 .bw-group{ display:inline-flex; align-items:baseline; flex:none; }
 .bw-slot{ width:21.14px; }
 .bw-big{ color:var(--music); font-weight:900; font-size:1.15em; }
