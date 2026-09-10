@@ -45,11 +45,11 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 .board-list li a:hover, .board-list li a.active{color:var(--music); background:var(--bg); font-weight:600;}
 
 .widget-container { display:flex; gap:12px; margin-bottom:24px; overflow-x:auto; padding-bottom:4px; scroll-snap-type:x mandatory;}
-.widget-card { flex:1; min-width:220px; scroll-snap-align:start; background:var(--panel); border:1px solid var(--border); padding:16px; border-radius:8px; cursor:pointer; transition:transform 0.2s; position:relative;}
+.widget-card { flex:1; min-width:220px; max-width:100%; scroll-snap-align:start; background:var(--panel); border:1px solid var(--border); padding:16px; border-radius:8px; cursor:pointer; transition:transform 0.2s; position:relative; box-sizing:border-box;}
 .widget-card:hover { border-color:var(--music); transform:translateY(-2px); box-shadow:0 4px 12px rgba(34, 211, 238, 0.15);}
 .hot-badge { color:var(--music); font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block;}
-.widget-title { font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;}
-.widget-stats { font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center;}
+.widget-title { font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4; word-break:break-all;}
+.widget-stats { font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
 .board-title-row{ display:flex; align-items:center; justify-content:space-between; margin:0 0 12px; flex-wrap:wrap; gap:12px; }
 .board-title-row h1{ font-size:19px; margin:0; font-weight:700; }
 
@@ -59,7 +59,7 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
 .sort-btns button:hover { color:var(--text); }
 
 /* 게시판 테이블 */
-.post-table-wrap { width:100%; overflow-x:hidden; }
+.post-table-wrap { width:100%; overflow-x:hidden; box-sizing:border-box; }
 .dc-table { width:100%; border-collapse:collapse; border-top:2px solid var(--music); text-align:center; min-width:650px; }
 .dc-table th { background:var(--panel-alt); color:var(--text); font-weight:normal; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
 .dc-table td { padding:8px 0; border-bottom:1px solid var(--border); vertical-align:middle; font-size:13px; color:var(--text); }
@@ -232,8 +232,8 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
   }
   
   .board-title-row { padding: 12px; margin: 0; width: 100%; box-sizing: border-box; }
-  .widget-container { padding: 0 12px; width: 100%; box-sizing: border-box; }
-  .widget-card { min-width: 200px; box-sizing: border-box; }
+  .widget-container { padding: 0 12px; width: 100%; box-sizing: border-box; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
+  .widget-card { min-width: 240px; max-width: 80vw; flex: 0 0 auto; scroll-snap-align: start; box-sizing: border-box; }
 
   .post-table-wrap { overflow-x: hidden; margin-top: 0; border-top: 2px solid var(--music); width: 100%; box-sizing: border-box; }
   .dc-table { display: block; min-width: 0; border: none; width: 100%; box-sizing: border-box; }
@@ -264,7 +264,6 @@ header{ border-bottom:1px solid var(--border); background:var(--panel); position
   .col-category { grid-area: tag; font-size: 12px; color: var(--muted); font-weight: bold; }
   .col-title { grid-area: title; font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; padding-left: 0 !important; }
   
-  /* 메타 정보(작성자, 날짜, 조회, 추천)를 하나의 줄로 묶어 오버플로우 방지 */
   .col-author, .col-date, .col-views, .col-likes { display: inline-block; font-size: 11px; color: var(--muted); white-space: nowrap; }
   .col-author { grid-area: meta; }
   .col-author::after { content: ' | '; color: var(--border); }
