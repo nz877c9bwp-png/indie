@@ -30,6 +30,41 @@ let currentReadPostId = null, currentUser = null, isAdmin = false, isEditMode = 
 let tempAlbum = { title: null, artist: null, cover: null };
 let currentSelectedRating = 5;
 let currentComments = [];
+let baseballTeamFilter = '전체';
+
+// --- 야구 응원팀 정보 ---
+const KBO_TEAMS = [
+  { code: '두산', label: '두산 베어스', color: '#131230' },
+  { code: 'LG',   label: 'LG 트윈스',   color: '#C30452' },
+  { code: 'KT',   label: 'KT 위즈',     color: '#2C3E50' },
+  { code: 'SSG',  label: 'SSG 랜더스',  color: '#CE0E2D' },
+  { code: 'NC',   label: 'NC 다이노스', color: '#315288' },
+  { code: '키움', label: '키움 히어로즈', color: '#820024' },
+  { code: '삼성', label: '삼성 라이온즈', color: '#074CA1' },
+  { code: '롯데', label: '롯데 자이언츠', color: '#041E42' },
+  { code: '한화', label: '한화 이글스',   color: '#FF6600' },
+  { code: 'KIA',  label: 'KIA 타이거즈', color: '#EA0029' },
+];
+const teamColor = code => KBO_TEAMS.find(t => t.code === code)?.color || 'var(--muted)';
+
+function teamBadge(teamCode) {
+  if (!teamCode) return null;
+  const badge = element('span', 'team-badge', teamCode);
+  badge.style.background = teamColor(teamCode);
+  return badge;
+}
+
+function renderBaseballTabs() {
+  const wrap = $('baseballTeamTabs');
+  const names = ['전체', ...KBO_TEAMS.map(t => t.code)];
+  wrap.replaceChildren(...names.map(name => {
+    const btn = element('button', `team-tab-btn${baseballTeamFilter === name ? ' active' : ''}`, name);
+    btn.type = 'button';
+    if (name !== '전체') btn.style.setProperty('--team-color', teamColor(name));
+    btn.onclick = () => { baseballTeamFilter = name; renderBaseballTabs(); renderPosts(); };
+    return btn;
+  }));
+}
 
 // --- 요소 생성 및 포맷팅 ---
 function element(tag, className = '', text = null) {
@@ -159,8 +194,11 @@ $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut
 // --- 글쓰기 및 앨범 검색 ---
 $('postTag').addEventListener('change', (e) => {
   const isAlbum = e.target.value === '앨범 평가';
+  const isBaseball = e.target.value === '야구';
   $('albumSearchWrap').style.display = isAlbum ? 'block' : 'none';
   if (!isAlbum) tempAlbum = { title: null, artist: null, cover: null }; 
+  $('postTeam').style.display = isBaseball ? 'block' : 'none';
+  if (!isBaseball) $('postTeam').value = '';
 });
 
 $('btnSearchAlbum').addEventListener('click', async () => {
@@ -239,6 +277,10 @@ $('openWriteBtn').onclick = () => {
   $('postTag').value = targetTag || '자유';
   $('postTag').dispatchEvent(new Event('change'));
 
+  if (targetTag === '야구' && baseballTeamFilter !== '전체') {
+    $('postTeam').value = baseballTeamFilter;
+  }
+
   $('albumResults').replaceChildren(); $('albumQuery').value = '';
   $('selAlbumWrap').style.display = 'none'; $('starInputWrapper').style.display = 'none';
   tempAlbum = { title: null, artist: null, cover: null };
@@ -291,7 +333,9 @@ function renderPosts() {
       card.onclick = () => openPostView(post.id);
       const stats = element('div', 'widget-stats');
       const recs = element('span', '', `추천 ${post.recs || 0}`); recs.style.color = 'var(--music)';
-      const author = element('span', '', escapeHTML(post.author || 'ㅇㅇ')); author.style.marginLeft = 'auto';
+      const author = element('span', ''); author.style.marginLeft = 'auto';
+      author.append(escapeHTML(post.author || 'ㅇㅇ'));
+      if (post.tag === '야구' && post.team) author.append(teamBadge(post.team));
       stats.append(element('span', '', `조회 ${post.views || 0}`), recs, author);
       card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', escapeHTML(post.title)), stats);
       return card;
@@ -341,6 +385,10 @@ function renderPosts() {
                    (currentCategory === '인디' ? currentPosts.filter(p => ['국내 인디', '해외 인디', '인디'].includes(p.tag)) : 
                    currentPosts.filter(p => p.tag === currentCategory));
 
+    if (currentCategory === '야구' && baseballTeamFilter !== '전체') {
+      filtered = filtered.filter(p => p.team === baseballTeamFilter);
+    }
+
     filtered.sort((a, b) => {
       let diff = genSortType === 'popular' ? ((b.recs !== a.recs ? (b.recs||0) - (a.recs||0) : (b.views !== a.views ? (b.views||0) - (a.views||0) : b.id - a.id))) : (b.id - a.id);
       return genSortDir === 'desc' ? diff : -diff;
@@ -367,7 +415,10 @@ function renderPosts() {
         
         if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`)); 
         
-        const authorCell = element('td', 'col-author', escapeHTML(post.author || 'ㅇㅇ'));
+        const authorCell = element('td', 'col-author');
+        authorCell.append(escapeHTML(post.author || 'ㅇㅇ'));
+        if (post.tag === '야구' && post.team) authorCell.append(teamBadge(post.team));
+
         const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
         const dateCell = element('td', 'col-date', dateFormatted);
         const viewsCell = element('td', 'col-views tabular', post.views || 0);
@@ -402,9 +453,12 @@ window.openAlbumDetail = (title, artist) => {
 function changeBoard(category) {
   currentCategory = category;
   const isAlbum = category === '앨범 평가';
+  const isBaseball = category === '야구';
   
   $('generalBoardHeader').style.display = isAlbum ? 'none' : 'flex';
   $('albumBoardHeader').style.display = isAlbum ? 'flex' : 'none';
+  $('baseballTeamTabs').style.display = isBaseball ? 'flex' : 'none';
+  if (isBaseball) { baseballTeamFilter = '전체'; renderBaseballTabs(); }
   if (!isAlbum) $('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
   
   document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick')?.includes(`'${category}'`)));
@@ -546,7 +600,10 @@ async function openPostView(postId) {
   currentReadPostId = postId;
   
   $('readTitle').textContent = post.title; $('readTag').textContent = post.tag;
-  $('readAuthor').textContent = post.author || 'ㅇㅇ'; $('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
+  $('readAuthor').textContent = post.author || 'ㅇㅇ';
+  $('readTeamBadge').replaceChildren();
+  if (post.tag === '야구' && post.team) $('readTeamBadge').append(teamBadge(post.team));
+  $('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
   $('readContent').replaceChildren(formatContent(post.content)); // 렌더링 시 escapeHTML 적용됨
   $('readViews').textContent = (post.views || 0) + 1;
   $('readRecs').textContent = $('btnRecCount').textContent = post.recs || 0;
@@ -601,8 +658,10 @@ $('recommendBtn').addEventListener('click', async () => {
 $('adminEditBtn').addEventListener('click', () => {
   const post = currentPosts.find(p => p.id === currentReadPostId);
   isEditMode = true; $('writeSectionTitle').textContent = '게시글 수정하기'; $('savePostBtn').textContent = '수정 완료';
-  $('postTag').value = post.tag; $('postTitle').value = post.title; $('postContent').value = post.content;
+  $('postTag').value = post.tag; $('postTag').dispatchEvent(new Event('change'));
+  $('postTitle').value = post.title; $('postContent').value = post.content;
   $('albumSearchWrap').style.display = 'none';
+  if (post.tag === '야구') $('postTeam').value = post.team || '';
   $('postAuthor').value = post.author || 'ㅇㅇ';
   switchView('write');
 });
@@ -621,18 +680,22 @@ $('savePostBtn').addEventListener('click', async () => {
   const title = escapeHTML($('postTitle').value);
   const content = $('postContent').value; // 본문은 렌더링 시 필터링됨
   const author = escapeHTML($('postAuthor').value.trim()) || 'ㅇㅇ(유동)';
+  const team = $('postTeam').value;
   
   if (!title.trim()) return alert('제목을 입력해주세요.'); 
   if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
+  if (tag === '야구' && !team) return alert('응원하는 팀을 선택해주세요!');
 
   $('savePostBtn').disabled = true; $('savePostBtn').textContent = '처리 중...';
   let error;
   if (isEditMode) {
-    ({ error } = await client.from('posts').update({ tag, author, title, content }).eq('id', currentReadPostId));
+    const updateData = { tag, author, title, content, ...(tag === '야구' && { team }) };
+    ({ error } = await client.from('posts').update(updateData).eq('id', currentReadPostId));
   } else {
     const postData = { 
       tag, author, title, content, user_id: currentUser.id,
-      ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating }) 
+      ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating }),
+      ...(tag === '야구' && { team })
     };
     ({ error } = await client.from('posts').insert([postData]));
   }
