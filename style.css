@@ -272,16 +272,15 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   .shell > * { min-width: 0; }
   main { max-width: 100%; overflow-x: hidden; }
 
-  .header-inner { flex-direction: column; align-items: center; gap: 12px; padding: 16px 12px; width: 100%; box-sizing: border-box; }
-  .brand { text-align: center; font-size: 16px; gap: 12px; }
-  .logo-badge { width: 30px; height: 30px; }
-  .bw-slot { width: 20px; }
-  .user-actions { gap: 10px; }
-  .write-btn { padding: 6px 14px; font-size: 12px; }
+  .header-inner { flex-direction: row; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 8px; padding: 14px; width: 100%; box-sizing: border-box; }
+  .brand { text-align: left; font-size: 15px; gap: 8px; flex: none; }
+  .logo-badge { width: 28px; height: 28px; }
+  .bw-slot { width: 19px; }
+  .user-actions { gap: 8px; justify-content: flex-end; flex-wrap: nowrap; white-space: nowrap; width: auto; box-sizing: border-box; }
+  .write-btn { padding: 6px 12px; font-size: 12px; }
   .auth-btn { font-size: 12px; }
 
-  .user-actions { justify-content: center; flex-wrap: wrap; white-space: normal; width: 100%; gap: 10px; box-sizing: border-box; }
-  #userStatus { width: 100%; text-align: center; display: block; word-break: break-all; margin-bottom: 4px; }
+  #userStatus { max-width: 70px; text-align: right; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; margin-bottom: 0; }
 
   .search { max-width: 100%; order: 3; display: none; }
 
