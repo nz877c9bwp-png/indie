@@ -90,17 +90,18 @@ for (const width of [320, 390, 600, 840]) {
   test(`layout ${width}: horizontal sections scroll independently`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     const state = await boot(page, { posts: normalPosts.map(post => ({ ...post, recs: 4 })) });
-    for (const selector of ['.sidebar', '#topWidgetArea', '#postTableArea']) {
+    for (const selector of ['.sidebar', '#topWidgetArea']) {
       const section = page.locator(selector);
       const geometry = await section.evaluate(node => {
         node.scrollLeft = node.scrollWidth;
         return { left: node.scrollLeft, max: node.scrollWidth - node.clientWidth, pageLeft: window.scrollX };
       });
-      if (selector === '.sidebar' || (selector === '#topWidgetArea' && width < 768) || (selector === '#postTableArea' && width < 624)) expect(geometry.max).toBeGreaterThan(0);
+      if (selector === '.sidebar' || (selector === '#topWidgetArea' && width < 768)) expect(geometry.max).toBeGreaterThan(0);
       expect(geometry.left).toBeCloseTo(geometry.max, 0);
       expect(geometry.pageLeft).toBe(0);
       await fits(page, `${selector} after scrolling`);
     }
+    expect(await page.locator('#postTableArea').evaluate(node => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
     await page.locator('#topWidgetArea .widget-card').last().click();
     await expect(page.locator('#readTitle')).toHaveText(normalPosts[2].title);
     await page.locator('.sidebar a').filter({ hasText: /^전체 게시판$/ }).click();
