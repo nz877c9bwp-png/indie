@@ -246,7 +246,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .btn-submit-write:hover { background:var(--music-hover); }
 
 #albumSearchWrap { background:transparent; padding:4px; margin-bottom:16px; display:none; box-sizing:border-box;}
-.search-result-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 14px; margin-top: 15px; max-height: 360px; overflow-y: auto; padding: 6px; }
+.search-result-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 14px; margin: 15px -10px 0; max-height: 360px; overflow-y: auto; padding: 10px; }
 .search-item { background: var(--panel); border: none; border-radius: var(--radius); padding: 10px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; box-shadow:var(--shadow-sm); }
 .search-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .search-item img { width:100%; aspect-ratio:1/1; border-radius:var(--radius-sm); object-fit:cover; margin-bottom:8px;}
@@ -351,8 +351,9 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   .team-tab-btn { padding: 7px 14px; font-size: 12px; }
   .team-badge { font-size: 10px; padding: 1px 6px; margin-left: 4px; }
 
-  .post-table-wrap { margin-top: 0; border-radius:0; box-shadow:none; width: 100%; box-sizing: border-box; }
-  .table-scroll { overflow-x: hidden; border-radius: 0; }
+  .post-table-wrap { margin: 0 20px; border-radius:0; box-shadow:none; width: auto; box-sizing: border-box; }
+  .view-box, #writeSection, #albumDetailSection { margin: 0 20px; width: auto; }
+  .table-scroll { overflow-x: visible; border-radius: 0; }
   .dc-table { display: block; min-width: 0; border: none; width: 100%; box-sizing: border-box; }
   .dc-table thead { display: none; }
   .dc-table tbody { display: block; width: 100%; box-sizing: border-box; }
@@ -394,7 +395,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   .dc-search-box input { flex: 1; min-width: 0; box-sizing: border-box; }
   .btn-dc-write { width: 100%; padding: 14px; border-radius: var(--radius-sm); font-size: 15px; box-sizing: border-box; display: block; }
 
-  #albumGrid { grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 12px; width: 100%; box-sizing: border-box;}
+  #albumGrid { grid-template-columns: repeat(2, 1fr); gap: 20px 14px; padding: 20px; width: 100%; box-sizing: border-box;}
   .ad-header { flex-direction: column; align-items: center; text-align: center; gap: 16px; width: 100%; box-sizing: border-box;}
   .view-header, .view-content-area, .view-footer, .write-header, .write-body, .write-footer { padding: 16px; width: 100%; box-sizing: border-box; }
   .modal-content { width: 90%; padding: 20px; box-sizing: border-box; }
