@@ -876,7 +876,7 @@ fetchPosts();
   const DESKTOP_QUERY = window.matchMedia('(min-width: 841px)');
   const TOP_GAP = 20;
   const STIFFNESS = 0.14;
-  const DAMPING = 0.72;
+  const DAMPING = 0.66;
 
   let current = 0, velocity = 0;
   let baseTop = 0, maxTranslate = 0;
