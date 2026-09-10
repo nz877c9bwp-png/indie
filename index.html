@@ -1037,7 +1037,7 @@
     document.getElementById('boardSection').style.display = 'block';
     
     window.scrollTo(0, 0); 
-    await client.from('posts').update({ views: (post.views || 0) + 1 }).eq('id', postId);
+    await client.rpc('increment_views', { post_id: postId });
   }
 
   function backToList() {
@@ -1058,7 +1058,7 @@
     document.getElementById('btnRecCount').textContent = post.recs;
     localStorage.setItem('rec_' + currentReadPostId, 'true'); 
     alert('추천 완료!');
-    await client.from('posts').update({ recs: post.recs }).eq('id', currentReadPostId);
+    await client.rpc('increment_recs', { post_id: currentReadPostId });
   });
 
   document.getElementById('adminEditBtn').addEventListener('click', () => {
