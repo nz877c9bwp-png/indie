@@ -28,3 +28,19 @@ create or replace function public.increment_recs(post_id bigint) returns void
 language sql security definer set search_path = public as $$
   update public.posts set recs = coalesce(recs, 0) + 1 where id = post_id;
 $$;
+
+-- comments 테이블: 읽기는 누구나, 작성은 로그인 사용자(본인 user_id로만), 삭제는 작성자 또는 관리자.
+alter table public.comments
+  add column if not exists user_id uuid references auth.users(id);
+
+alter table public.comments enable row level security;
+
+drop policy if exists "comments read" on public.comments;
+drop policy if exists "comments insert" on public.comments;
+drop policy if exists "comments delete" on public.comments;
+
+create policy "comments read" on public.comments for select using (true);
+create policy "comments insert" on public.comments for insert to authenticated with check (auth.uid() = user_id);
+create policy "comments delete" on public.comments for delete to authenticated using (auth.uid() = user_id or public.is_admin());
+
+notify pgrst, 'reload schema';
