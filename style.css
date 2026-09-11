@@ -74,7 +74,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   background:rgba(0,0,0,0.45);
   backdrop-filter:blur(0px); -webkit-backdrop-filter:blur(0px);
   opacity:0; pointer-events:none;
-  transition:opacity 1s cubic-bezier(0.16,1,0.3,1), backdrop-filter 1s cubic-bezier(0.16,1,0.3,1), -webkit-backdrop-filter 1s cubic-bezier(0.16,1,0.3,1);
+  transition:opacity 0.45s cubic-bezier(0.16,1,0.3,1), backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1), -webkit-backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1);
 }
 .sidebar-backdrop.open{
   opacity:1; pointer-events:auto;
@@ -370,9 +370,14 @@ input:-webkit-autofill:focus {
     overflow-y: auto;
     z-index: 200;
     transform: translateX(-100%);
+    /* 닫힐 때는 반동이 화면 밖(더 왼쪽)에서 일어나 안 보이니, 대신 시작 지점에서
+       살짝 튕겨 나갔다가 닫히는 ease-in-back 커브를 써서 닫힐 때도 반동이 보이게 한다. */
+    transition: transform 0.45s cubic-bezier(0.36, 0, 0.66, -0.25);
+  }
+  .sidebar.open {
+    transform: translateX(0);
     transition: transform 0.45s cubic-bezier(0.3, 1.25, 0.6, 1);
   }
-  .sidebar.open { transform: translateX(0); }
 
   .cat-group { display: block; margin-bottom: 18px; }
   .cat-group:last-child { margin-bottom: 0; }
