@@ -429,7 +429,12 @@ input:-webkit-autofill:focus {
     gap: 0;
     scroll-snap-type: none;
   }
+  /* 카드 내부(뱃지/제목/통계)도 3줄로 쌓이던 걸 일반 게시물 행처럼 한 줄로
+     눕혀서 두께를 게시물 목록 행과 동일하게 맞춘다. */
   .widget-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     min-width: 0;
     max-width: 100%;
     flex: none;
@@ -440,11 +445,26 @@ input:-webkit-autofill:focus {
     border-radius: 0;
     box-shadow: none;
     border-bottom: 1px solid var(--panel-alt);
+    line-height: 1.2;
   }
   .widget-card:last-child { border-bottom: none; }
   .widget-card:hover { transform: none; background: var(--panel-alt); }
-  .widget-title { font-size: 13.5px; -webkit-line-clamp: 2; }
-  .widget-stats { font-size: 11px; gap: 6px; }
+  .hot-badge { flex: none; margin-bottom: 0; }
+  .widget-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+    -webkit-line-clamp: unset;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin-bottom: 0;
+  }
+  .widget-stats { flex: none; font-size: 11px; gap: 6px; white-space: nowrap; }
+  .widget-stats .author-wrap { display: none; }
 
   #baseballTeamTabs { gap: 8px; margin-bottom: 14px; }
   .team-tab-btn { padding: 7px 14px; font-size: 12px; }
