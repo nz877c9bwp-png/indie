@@ -368,6 +368,8 @@ input:-webkit-autofill:focus {
     padding: 24px 16px 24px 56px;
     box-sizing: border-box;
     overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     z-index: 200;
     transform: translateX(-100%);
     /* 닫힐 때는 반동이 화면 밖(더 왼쪽)에서 일어나 안 보이니, 대신 시작 지점에서
@@ -378,6 +380,7 @@ input:-webkit-autofill:focus {
     transform: translateX(0);
     transition: transform 0.45s cubic-bezier(0.3, 1.25, 0.6, 1);
   }
+  .sidebar::-webkit-scrollbar { display: none; }
 
   .cat-group { display: block; margin-bottom: 18px; }
   .cat-group:last-child { margin-bottom: 0; }
