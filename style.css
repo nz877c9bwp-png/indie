@@ -74,11 +74,13 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   background:rgba(0,0,0,0.45);
   backdrop-filter:blur(0px); -webkit-backdrop-filter:blur(0px);
   opacity:0; pointer-events:none;
-  transition:opacity 0.45s cubic-bezier(0.16,1,0.3,1), backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1), -webkit-backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1);
+  /* 블러가 사라질 때(닫힘)는 메뉴 슬라이드보다 1.6배 느리게(0.72s), 나타날 때는 0.45s 그대로. */
+  transition:opacity 0.72s cubic-bezier(0.16,1,0.3,1), backdrop-filter 0.72s cubic-bezier(0.16,1,0.3,1), -webkit-backdrop-filter 0.72s cubic-bezier(0.16,1,0.3,1);
 }
 .sidebar-backdrop.open{
   opacity:1; pointer-events:auto;
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  transition:opacity 0.45s cubic-bezier(0.16,1,0.3,1), backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1), -webkit-backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1);
 }
 .brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:20px; }
 .brand:hover{ opacity:0.85; }
