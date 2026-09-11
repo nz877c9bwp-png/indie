@@ -109,11 +109,11 @@ function youtubeId(value) {
   } catch { return null; }
 }
 
+const CONTENT_TOKEN_RE = /\[img\]([\s\S]*?)\[\/img\]|(?:[a-z][a-z0-9+.-]*:\/\/|(?:www\.)?(?:youtube\.com|youtu\.be)\/)\S+/gi;
 function contentParts(value) {
   const text = String(value ?? ''), parts = [];
-  const tokens = /\[img\]([\s\S]*?)\[\/img\]|(?:[a-z][a-z0-9+.-]*:\/\/|(?:www\.)?(?:youtube\.com|youtu\.be)\/)\S+/gi;
   let cursor = 0;
-  for (const match of text.matchAll(tokens)) {
+  for (const match of text.matchAll(CONTENT_TOKEN_RE)) {
     parts.push({ text: text.slice(cursor, match.index) });
     if (match[1] !== undefined) {
       const url = imageUrl(match[1]);
@@ -395,7 +395,7 @@ window.toggleAlbumSort = (type) => {
 
 function renderPosts() {
   const widgetArea = $('topWidgetArea');
-  const hotPosts = [...currentPosts].filter(p => p.recs > 0 || p.views > 5).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
+  const hotPosts = currentPosts.filter(p => p.recs > 0 || p.views > 5).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
   
   if (hotPosts.length) {
     widgetArea.replaceChildren(...hotPosts.map((post, i) => {
@@ -468,15 +468,13 @@ function renderPosts() {
       });
     }
 
+    // 공지글은 전체 게시판(검색 중이 아닐 때)에서 정렬 기준보다 우선해 항상 맨 위에 고정한다.
+    const pinNotices = currentCategory === '전체' && !postSearchKeyword;
     filtered.sort((a, b) => {
+      if (pinNotices && a.is_notice !== b.is_notice) return a.is_notice ? -1 : 1;
       let diff = genSortType === 'popular' ? ((b.recs !== a.recs ? (b.recs||0) - (a.recs||0) : (b.views !== a.views ? (b.views||0) - (a.views||0) : b.id - a.id))) : (b.id - a.id);
       return genSortDir === 'desc' ? diff : -diff;
     });
-
-    // 공지글은 전체 게시판(검색 중이 아닐 때)에서 항상 맨 위에 고정. filter는 순서를 유지하므로 그룹만 앞으로 당긴다.
-    if (currentCategory === '전체' && !postSearchKeyword) {
-      filtered = [...filtered.filter(p => p.is_notice), ...filtered.filter(p => !p.is_notice)];
-    }
 
     if (!filtered.length) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글이 없습니다.</td></tr>';
