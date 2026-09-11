@@ -146,11 +146,14 @@ end;
 $$;
 grant execute on function public.edit_post_with_password(bigint, text, text, text, text, text, text, numeric) to anon, authenticated;
 
+-- 공지 기능에 쓰는 컬럼. 아래 select 권한 목록에 포함되므로 그보다 먼저 생성해야 한다.
+alter table public.posts add column if not exists is_notice boolean not null default false;
+
 -- 유동 비밀번호 해시는 클라이언트에 내려가면 안 된다 (select * 로 그대로 노출되고 있었다).
 -- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
 revoke select on public.posts from anon, authenticated;
 grant select (id, created_at, tag, author, title, content, team, user_id,
-              album_title, album_artist, album_cover, rating, views, recs)
+              album_title, album_artist, album_cover, rating, views, recs, is_notice)
   on public.posts to anon, authenticated;
 revoke select on public.comments from anon, authenticated;
 grant select (id, created_at, post_id, parent_id, author, content, user_id)
@@ -182,5 +185,18 @@ grant execute on function public.toggle_recommendation(bigint) to authenticated;
 
 -- 앨범 평가 별점을 0.5 단위로 매길 수 있도록 정수 -> 소수(1자리) 컬럼으로 변경.
 alter table public.posts alter column rating type numeric(2,1) using rating::numeric(2,1);
+
+-- 공지 기능: 전체 게시판 상단 고정. 일반 insert/update로는 못 건드리게 관리자 전용 RPC로만 설정한다.
+create or replace function public.set_notice(p_id bigint, p_is_notice boolean) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then
+    raise exception 'admin only';
+  end if;
+  update public.posts set is_notice = p_is_notice where id = p_id;
+end;
+$$;
+revoke execute on function public.set_notice(bigint, boolean) from public, anon;
+grant execute on function public.set_notice(bigint, boolean) to authenticated;
 
 notify pgrst, 'reload schema';

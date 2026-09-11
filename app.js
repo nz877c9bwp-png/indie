@@ -365,7 +365,7 @@ window.openWriteWithAlbumParams = (title, artist, cover) => {
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs').order('id', { ascending: false });
+  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice').order('id', { ascending: false });
   if (!error && data) currentPosts = data;
   renderPosts(); 
 }
@@ -473,6 +473,11 @@ function renderPosts() {
       return genSortDir === 'desc' ? diff : -diff;
     });
 
+    // 공지글은 전체 게시판(검색 중이 아닐 때)에서 항상 맨 위에 고정. filter는 순서를 유지하므로 그룹만 앞으로 당긴다.
+    if (currentCategory === '전체' && !postSearchKeyword) {
+      filtered = [...filtered.filter(p => p.is_notice), ...filtered.filter(p => !p.is_notice)];
+    }
+
     if (!filtered.length) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">게시글이 없습니다.</td></tr>';
       $('boardFooter').style.display = 'none';
@@ -488,6 +493,7 @@ function renderPosts() {
       tbody.replaceChildren(...pagePosts.map((post, i) => {
         const displayNum = genSortDir === 'desc' ? total - (startIdx + i) : startIdx + i + 1;
         const row = element('tr');
+        if (post.is_notice) row.classList.add('notice-row');
         row.style.cursor = 'pointer';
         row.onclick = e => { e.preventDefault(); openPostView(post.id); };
 
@@ -502,6 +508,7 @@ function renderPosts() {
           setImageSource(thumb, thumbUrl);
           titleCell.append(thumb);
         }
+        if (post.is_notice) titleCell.append(element('span', 'notice-badge', '공지'));
         const link = element('a', 'dc-title-link', escapeHTML(post.title));
         link.href = '#';
         titleCell.append(link);
@@ -522,7 +529,8 @@ function renderPosts() {
         const recsCell = element('td', 'col-likes tabular', recsVal);
         if(recsVal > 0) recsCell.style.cssText = 'color:var(--admin); font-weight:bold;';
         
-        row.append(element('td', 'col-id tabular', displayNum), tag, titleCell, authorCell, dateCell, viewsCell, recsCell);
+        const idCell = element('td', 'col-id tabular', post.is_notice ? '공지' : displayNum);
+        row.append(idCell, tag, titleCell, authorCell, dateCell, viewsCell, recsCell);
         return row;
       }));
       renderPagination(totalPages);
@@ -769,6 +777,8 @@ async function openPostView(postId, pushHistory = true) {
   const isGuestPost = !post.user_id;
   $('adminEditBtn').style.display = (isAdmin || isAuthor || isGuestPost) ? 'inline-block' : 'none';
   $('adminDeleteBtn').style.display = (isAdmin || isAuthor || isGuestPost) ? 'inline-block' : 'none';
+  $('adminNoticeBtn').style.display = isAdmin ? 'inline-block' : 'none';
+  $('adminNoticeBtn').textContent = post.is_notice ? '공지 해제' : '공지 등록';
 
   if(post.tag === '앨범 평가' && post.album_title) {
     $('btnEvalSame').style.display = 'inline-block';
@@ -888,6 +898,16 @@ $('adminEditBtn').addEventListener('click', () => {
 
   switchView('write');
   history.pushState({ view: 'write' }, '', '#write');
+});
+
+$('adminNoticeBtn').addEventListener('click', async () => {
+  const post = currentPosts.find(p => p.id === currentReadPostId);
+  const nextState = !post.is_notice;
+  const { error } = await client.rpc('set_notice', { p_id: currentReadPostId, p_is_notice: nextState });
+  if (error) return alert('실패: ' + error.message);
+  post.is_notice = nextState;
+  $('adminNoticeBtn').textContent = nextState ? '공지 해제' : '공지 등록';
+  alert(nextState ? '공지로 등록됐습니다.' : '공지가 해제됐습니다.');
 });
 
 $('adminDeleteBtn').addEventListener('click', async () => {
