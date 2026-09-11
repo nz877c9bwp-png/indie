@@ -80,15 +80,6 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   opacity:1; pointer-events:auto;
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
 }
-/* 드로어가 열리면서 살짝 튕길 때(overshoot) 왼쪽 모서리에 순간적으로 드러나는
-   틈을 가려주는 채움판. 드로어와 같은 배경색이라 이어져 보이게 하고,
-   드로어 폭에 맞춰 JS(toggleSidebarDrawer)가 width를 그때그때 맞춰준다. */
-.sidebar-fill{
-  position:fixed; top:0; left:0; height:100%;
-  width:190px;
-  background:var(--panel);
-  border-radius:0 var(--radius-lg) var(--radius-lg) 0;
-}
 .brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:20px; }
 .brand:hover{ opacity:0.85; }
 .logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--panel); box-shadow:var(--shadow-sm); flex:none; }
@@ -357,19 +348,24 @@ input:-webkit-autofill:focus {
 
   /* 게시판 목록: 상단에 늘어놓지 않고 햄버거 버튼으로 여는 좌측 드로어로 전환.
      행마다 그림자를 따로 주면 다크모드에서 겹쳐 보이던 문제가 있었어서, PC 사이드바처럼
-     드로어 패널 하나에만 그림자를 주고 그 안의 항목들은 그림자 없이 배경색으로만 구분한다. */
+     드로어 패널 하나에만 그림자를 주고 그 안의 항목들은 그림자 없이 배경색으로만 구분한다.
+     열릴 때 살짝 튕기는(overshoot) 애니메이션이라 끝에서 오른쪽으로 잠깐 더 밀리는데,
+     그만큼 왼쪽으로 보이지 않는 여분을 미리 만들어둬서(음수 left + 여분 padding) 틈이
+     드러나지 않게 한다. 별도 배경 박스를 덧대는 대신 이 박스 자체를 왼쪽으로 늘린 것.
+     OVERSHOOT_BUFFER = 40px, 아래 left/padding-left/min-width/max-width가 전부 이 값만큼
+     보정되어 있다(보이는 폭은 그대로 유지). */
   .sidebar {
     position: fixed;
     top: 0;
-    left: 0;
+    left: -40px;
     height: 100vh;
     width: auto;
-    min-width: 190px;
-    max-width: 78%;
+    min-width: 230px;
+    max-width: calc(78% + 40px);
     background: var(--panel);
     box-shadow: none;
     border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    padding: 24px 16px;
+    padding: 24px 16px 24px 56px;
     box-sizing: border-box;
     overflow-y: auto;
     z-index: 200;

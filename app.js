@@ -10,13 +10,9 @@ const switchView = (view) => {
 
 // 모바일 햄버거 메뉴: 게시판 목록을 좌측 드로어로 열고 닫는다.
 function toggleSidebarDrawer(open) {
-  const sidebar = document.querySelector('.sidebar');
-  sidebar.classList.toggle('open', open);
+  document.querySelector('.sidebar').classList.toggle('open', open);
   $('sidebarBackdrop').classList.toggle('open', open);
   document.body.style.overflow = open ? 'hidden' : '';
-  // 드로어가 튕겨져 나왔다 들어갈 때(overshoot) 왼쪽에 순간적으로 드러나는 틈을
-  // 채움판(sidebar-fill)이 가려주는데, 드로어 폭(내용물 기준 가변)에 맞춰야 해서 매번 동기화한다.
-  $('sidebarFill').style.width = sidebar.getBoundingClientRect().width + 'px';
 }
 $('mobileMenuBtn').addEventListener('click', () => toggleSidebarDrawer(true));
 $('sidebarBackdrop').addEventListener('click', () => toggleSidebarDrawer(false));
