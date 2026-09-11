@@ -69,8 +69,17 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 /* 모바일 전용 햄버거 메뉴 + 드로어 배경. PC에서는 기본적으로 숨김. */
 .mobile-menu-btn{ display:none; background:none; border:none; color:var(--text); cursor:pointer; padding:6px; flex:none; align-items:center; justify-content:center; }
 .mobile-menu-btn svg{ display:block; }
-.sidebar-backdrop{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(2px); z-index:199; opacity:0; pointer-events:none; transition:opacity 0.25s ease; }
-.sidebar-backdrop.open{ opacity:1; pointer-events:auto; }
+.sidebar-backdrop{
+  position:fixed; inset:0; z-index:199;
+  background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(0px); -webkit-backdrop-filter:blur(0px);
+  opacity:0; pointer-events:none;
+  transition:opacity 1s cubic-bezier(0.16,1,0.3,1), backdrop-filter 1s cubic-bezier(0.16,1,0.3,1), -webkit-backdrop-filter 1s cubic-bezier(0.16,1,0.3,1);
+}
+.sidebar-backdrop.open{
+  opacity:1; pointer-events:auto;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
 .brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:20px; }
 .brand:hover{ opacity:0.85; }
 .logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--panel); box-shadow:var(--shadow-sm); flex:none; }
