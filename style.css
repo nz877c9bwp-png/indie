@@ -80,6 +80,15 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   opacity:1; pointer-events:auto;
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
 }
+/* 드로어가 열리면서 살짝 튕길 때(overshoot) 왼쪽 모서리에 순간적으로 드러나는
+   틈을 가려주는 채움판. 드로어와 같은 배경색이라 이어져 보이게 하고,
+   드로어 폭에 맞춰 JS(toggleSidebarDrawer)가 width를 그때그때 맞춰준다. */
+.sidebar-fill{
+  position:fixed; top:0; left:0; height:100%;
+  width:190px;
+  background:var(--panel);
+  border-radius:0 var(--radius-lg) var(--radius-lg) 0;
+}
 .brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:20px; }
 .brand:hover{ opacity:0.85; }
 .logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--panel); box-shadow:var(--shadow-sm); flex:none; }
@@ -365,7 +374,7 @@ input:-webkit-autofill:focus {
     overflow-y: auto;
     z-index: 200;
     transform: translateX(-100%);
-    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.45s cubic-bezier(0.3, 1.25, 0.6, 1);
   }
   .sidebar.open { transform: translateX(0); }
 
