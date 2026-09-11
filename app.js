@@ -571,7 +571,9 @@ function renderPosts() {
         const info = element('div', 'album-card-info');
         const rating = element('div', 'album-card-rating', `★ ${(a.totalScore/a.count).toFixed(1)} `);
         rating.append(element('span', '', `(${a.count}명)`));
-        info.append(element('div', 'album-card-title', escapeHTML(a.title)), element('div', 'album-card-artist', escapeHTML(a.artist)), rating);
+        const meta = element('div', 'album-card-meta');
+        meta.append(element('span', 'album-card-artist', escapeHTML(a.artist)), rating);
+        info.append(element('div', 'album-card-title', escapeHTML(a.title)), meta);
         card.append(img, info);
         return card;
       }));
