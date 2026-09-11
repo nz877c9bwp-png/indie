@@ -381,6 +381,7 @@ input:-webkit-autofill:focus {
     background: var(--music);
     color: #fff;
     font-weight: bold;
+    box-shadow: none;
   }
 
   .board-title-row { padding: 12px; margin: 0; width: 100%; box-sizing: border-box; }
