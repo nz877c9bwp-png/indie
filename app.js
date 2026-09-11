@@ -867,11 +867,9 @@ async function fetchAndRenderComments() {
   currentComments = data || [];
   $('commentCount').textContent = currentComments.length;
 
-  // 유동 댓글 기본 닉네임: 이 글의 댓글 + 글쓴이 닉네임과도 안 겹치는 다음 번호로.
-  // (글쓴이 닉네임도 넣어야 첫 댓글이 우연히 글쓴이와 같은 "인좋"이 되어 (글쓴이) 뱃지가
-  // 잘못 붙는 걸 막을 수 있다.)
-  const openPostForNick = currentPosts.find(p => p.id === currentReadPostId);
-  if (!currentUser) $('commentAuthor').value = nextGuestNickname([...currentComments.map(c => c.author), ...(openPostForNick ? [openPostForNick.author] : [])]);
+  // 유동 댓글 기본 닉네임: 이 글의 댓글 중 이미 쓰인 "인좋"류와 안 겹치는 다음 번호로.
+  // 글쓴이 닉네임과 겹쳐도(둘 다 "인좋") 상관없이 댓글은 항상 "인좋"부터 시작한다.
+  if (!currentUser) $('commentAuthor').value = nextGuestNickname(currentComments.map(c => c.author));
 
   const parents = currentComments.filter(c => !c.parent_id);
   const replies = currentComments.filter(c => c.parent_id);
@@ -948,7 +946,7 @@ function createCommentElement(comment, isReply) {
     const replyForm = element('div', 'reply-write-form');
     replyForm.id = `replyForm_${comment.id}`;
     replyForm.innerHTML = `
-      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname([...currentComments.map(c => c.author), ...(openPost ? [openPost.author] : [])]))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
+      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname(currentComments.map(c => c.author)))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
       <div class="cw-input">
         <textarea id="replyContent_${comment.id}" placeholder="대댓글을 입력하세요."></textarea>
         <button onclick="submitComment(${comment.id})">등록</button>
