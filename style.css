@@ -251,6 +251,15 @@ input:-webkit-autofill:focus {
 .write-body { padding:14px 26px 26px; }
 .write-row { display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap;}
 .write-row select, .write-row input { background:var(--bg); border:none; color:var(--text); padding:12px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; font-family:inherit; box-sizing:border-box; box-shadow:var(--shadow-inset-sm);}
+.write-row select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2382878F' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 10px 6px;
+  padding-right: 32px;
+  cursor: pointer;
+}
 #postTag { width: 150px; }
 #postTeam { width: 150px; }
 #postAuthor { width: 150px; }
