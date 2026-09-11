@@ -46,7 +46,9 @@ const ADMIN_EMAIL = 'bkseungah010223@gmail.com';
 // --- 상태 관리 변수 ---
 let currentPosts = [], currentCategory = '전체'; 
 let genSortType = 'latest', genSortDir = 'desc';
-let albSortType = 'review', albSortDir = 'desc'; 
+let albSortType = 'review', albSortDir = 'desc';
+let albumRenderCount = 12, lastAlbumSignature = null, albumObserver = null;
+const ALBUMS_PER_PAGE = 12;
 let currentReadPostId = null, currentUser = null, isAdmin = false, isEditMode = false;
 let currentPage = 1;
 const POSTS_PER_PAGE = 20;
@@ -550,15 +552,20 @@ function renderPosts() {
     if (keyword) sortedAlbums = sortedAlbums.filter(a => a.title.toLowerCase().includes(keyword) || a.artist.toLowerCase().includes(keyword));
 
     sortedAlbums.sort((a, b) => {
-      const diff = albSortType === 'rating' ? (b.totalScore/b.count) - (a.totalScore/a.count) : 
+      const diff = albSortType === 'rating' ? (b.totalScore/b.count) - (a.totalScore/a.count) :
                    (albSortType === 'date' ? b.maxId - a.maxId : b.count - a.count);
-      return albSortDir === 'desc' ? diff : -diff; 
+      return albSortDir === 'desc' ? diff : -diff;
     });
-    
+
+    const albumSignature = `${albSortType}|${albSortDir}|${keyword}`;
+    if (albumSignature !== lastAlbumSignature) { lastAlbumSignature = albumSignature; albumRenderCount = ALBUMS_PER_PAGE; }
+
     if(!sortedAlbums.length) {
+      if (albumObserver) { albumObserver.disconnect(); albumObserver = null; }
       $('albumGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:var(--muted);">검색된 앨범이 없습니다. 명반을 직접 추가해 보세요!</div>';
     } else {
-      $('albumGrid').replaceChildren(...sortedAlbums.map(a => {
+      const albumsToShow = sortedAlbums.slice(0, albumRenderCount);
+      $('albumGrid').replaceChildren(...albumsToShow.map(a => {
         const card = element('div', 'album-card'); card.onclick = () => openAlbumDetail(a.title, a.artist);
         const img = element('img'); img.loading = 'lazy'; setImageSource(img, a.cover);
         const info = element('div', 'album-card-info');
@@ -568,10 +575,22 @@ function renderPosts() {
         card.append(img, info);
         return card;
       }));
+
+      if (albumObserver) { albumObserver.disconnect(); albumObserver = null; }
+      if (sortedAlbums.length > albumRenderCount) {
+        const sentinel = element('div', 'album-grid-sentinel');
+        sentinel.style.cssText = 'grid-column:1/-1; height:1px;';
+        $('albumGrid').append(sentinel);
+        albumObserver = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) { albumRenderCount += ALBUMS_PER_PAGE; renderPosts(); }
+        }, { rootMargin: '400px' });
+        albumObserver.observe(sentinel);
+      }
     }
   } else {
     $('albumGrid').style.display = 'none'; $('postTableArea').style.display = 'block';
     $('albumBoardFooter').style.display = 'none';
+    if (albumObserver) { albumObserver.disconnect(); albumObserver = null; }
     const tbody = $('postList');
     
     let filtered = currentCategory === '전체' ? [...currentPosts] : 
