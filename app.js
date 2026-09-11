@@ -150,11 +150,17 @@ function formatContent(value) {
 const contentPreview = value => escapeHTML(contentParts(value).map(p => p.text ?? '').join('').substring(0, 150) + '...');
 
 // --- 인증 및 계정 설정 ---
+// 카카오 등 소셜 로그인은 이메일 없이 가입될 수 있어 email.split('@')로 바로 닉네임을 뽑으면 안 된다.
+function resolveNickname(user) {
+  const meta = user?.user_metadata || {};
+  return meta.nickname || meta.name || meta.full_name || user?.email?.split('@')[0] || '사용자';
+}
+
 client.auth.onAuthStateChange((event, session) => {
   const authorInput = $('postAuthor');
   if (session) {
     currentUser = session.user;
-    const nickname = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]; 
+    const nickname = resolveNickname(currentUser);
     isAdmin = currentUser.email === ADMIN_EMAIL;
     
     const status = element('span', '', `${isAdmin ? '[관리자] ' : ''}${nickname}`);
@@ -175,7 +181,7 @@ client.auth.onAuthStateChange((event, session) => {
 });
 
 window.openSettings = () => {
-  $('settingNickname').value = currentUser?.user_metadata?.nickname || currentUser?.email?.split('@')[0] || '';
+  $('settingNickname').value = currentUser ? resolveNickname(currentUser) : '';
   toggleModal('settingsModal', true);
 };
 
@@ -201,6 +207,11 @@ $('doSignupBtn').addEventListener('click', async () => {
 $('doLoginBtn').addEventListener('click', async () => {
   const { error } = await client.auth.signInWithPassword({ email: $('loginEmail').value, password: $('loginPw').value });
   if(error) alert('로그인 실패'); else toggleModal('loginModal', false);
+});
+
+$('kakaoLoginBtn').addEventListener('click', async () => {
+  const { error } = await client.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: location.origin } });
+  if (error) alert('카카오 로그인 실패: ' + error.message);
 });
 
 $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
@@ -611,7 +622,7 @@ function createCommentElement(comment, isReply) {
     const replyForm = element('div', 'reply-write-form');
     replyForm.id = `replyForm_${comment.id}`;
     replyForm.innerHTML = `
-      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? (currentUser.user_metadata?.nickname || currentUser.email.split('@')[0]) : ''}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
+      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : ''}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
       <div class="cw-input">
         <textarea id="replyContent_${comment.id}" placeholder="대댓글을 입력하세요."></textarea>
         <button onclick="submitComment(${comment.id})">등록</button>
@@ -702,7 +713,7 @@ async function openPostView(postId, pushHistory = true) {
     $('btnEvalSame').onclick = () => openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover);
   } else $('btnEvalSame').style.display = 'none';
 
-  if (currentUser) $('commentAuthor').value = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
+  if (currentUser) $('commentAuthor').value = resolveNickname(currentUser);
   else $('commentAuthor').value = '';
   $('commentContent').value = ''; $('commentGuestPw').value = '';
   $('commentGuestPw').style.display = currentUser ? 'none' : '';
