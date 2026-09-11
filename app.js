@@ -711,12 +711,13 @@ window.openAlbumDetail = (title, artist, pushHistory = true) => {
   const albumPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title === title && p.album_artist === artist);
   if(!albumPosts.length) return;
   
+  const avgRating = albumPosts.reduce((s, p) => s + Number(p.rating||0), 0) / albumPosts.length;
   setImageSource($('adCover'), albumPosts[0].album_cover);
   $('adTitle').innerText = title; $('adArtist').innerText = artist;
-  $('adScore').replaceChildren(`★ ${(albumPosts.reduce((s, p) => s + Number(p.rating||0), 0) / albumPosts.length).toFixed(1)} `, element('span', '', `(${albumPosts.length}명 참여)`));
+  $('adScore').replaceChildren(`★ ${avgRating.toFixed(1)} `, element('span', '', `(${albumPosts.length}명 참여)`));
   $('adReviews').replaceChildren(...albumPosts.map(p => {
     const card = element('div', 'review-card'); card.onclick = () => openPostView(p.id);
-    const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)')), element('span', 'rc-stars', `★ ${formatRating(p.rating)}`));
+    const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)')), element('span', 'rc-stars', `전체 ★${avgRating.toFixed(1)} · 작성자 ★${formatRating(p.rating)}`));
     card.append(header, element('div', 'rc-title', escapeHTML(p.title)), element('div', 'rc-content', contentPreview(p.content)));
     return card;
   }));
@@ -915,7 +916,9 @@ async function openPostView(postId, pushHistory = true) {
     setImageSource($('readAlbumCover'), post.album_cover);
     $('readAlbumName').textContent = post.album_title;
     $('readAlbumArtist').textContent = post.album_artist || '';
-    $('readAlbumRating').textContent = `★ ${formatRating(post.rating)}`;
+    const albumReviews = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title === post.album_title && p.album_artist === post.album_artist);
+    const avgRating = albumReviews.length ? albumReviews.reduce((s, p) => s + Number(p.rating || 0), 0) / albumReviews.length : Number(post.rating || 0);
+    $('readAlbumRating').textContent = `전체평점 ★${avgRating.toFixed(1)}  ·  작성자 평점 ★${formatRating(post.rating)}`;
   } else {
     $('readAlbumInfo').style.display = 'none';
   }
