@@ -35,6 +35,7 @@
       <span id="userStatus" style="font-size:13px;"></span>
       <button id="showLoginBtn" class="auth-btn" onclick="toggleModal('loginModal', true)">로그인</button>
       <button id="showSignupBtn" class="auth-btn" onclick="$('signupConsent').checked = false; toggleModal('signupModal', true)">회원가입</button>
+      <button id="myPageBtn" class="auth-btn" style="display:none;" onclick="openMyPage()">마이페이지</button>
       <button id="showSettingsBtn" class="auth-btn" style="display:none;" onclick="openSettings()">설정</button>
       <button id="logoutBtn" class="auth-btn" style="display:none;">로그아웃</button>
       <button class="write-btn" id="openWriteBtn">글쓰기</button>
@@ -339,6 +340,37 @@
         <button class="btn-cancel-write" onclick="history.back()">취소</button>
         <button class="btn-submit-write" id="savePostBtn">등록하기</button>
       </div>
+    </div>
+
+    <div id="myPageSection" style="display:none;">
+      <button class="btn-list" onclick="history.back()" style="margin-bottom:24px;">← 뒤로가기</button>
+      <div class="board-title-row" style="margin-top:0;">
+        <h1>마이페이지</h1>
+        <div class="sort-btns">
+          <button id="btnMyTabPosts" class="active" onclick="switchMyPageTab('posts')">내가 쓴 글</button>
+          <span style="color:var(--border); font-size:11px;">|</span>
+          <button id="btnMyTabComments" onclick="switchMyPageTab('comments')">내가 쓴 댓글</button>
+        </div>
+      </div>
+
+      <div class="post-table-wrap" id="myPostsArea">
+        <div class="table-scroll">
+          <table class="dc-table">
+            <thead>
+              <tr>
+                <th class="col-category">말머리</th>
+                <th class="col-title">제목</th>
+                <th class="col-date">작성일</th>
+                <th class="col-views">조회</th>
+                <th class="col-likes">추천</th>
+              </tr>
+            </thead>
+            <tbody id="myPostsList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="review-list" id="myCommentsList" style="display:none;"></div>
     </div>
   </main>
 </div>

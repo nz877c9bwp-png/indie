@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const toggleModal = (id, show) => $(id).style.display = show ? 'flex' : 'none';
 const switchView = (view) => {
-  ['postViewSection', 'albumDetailSection', 'boardSection', 'writeSection'].forEach(id => {
+  ['postViewSection', 'albumDetailSection', 'boardSection', 'writeSection', 'myPageSection'].forEach(id => {
     $(id).style.display = (id === view + 'Section') ? 'block' : 'none';
   });
   window.scrollTo(0, 0);
@@ -218,14 +218,14 @@ client.auth.onAuthStateChange((event, session) => {
     $('userStatus').replaceChildren(status, '님');
 
     $('showLoginBtn').style.display = $('showSignupBtn').style.display = 'none';
-    $('showSettingsBtn').style.display = $('logoutBtn').style.display = 'inline-block';
-    
-    if(authorInput) authorInput.value = nickname; 
+    $('showSettingsBtn').style.display = $('logoutBtn').style.display = $('myPageBtn').style.display = 'inline-block';
+
+    if(authorInput) authorInput.value = nickname;
   } else {
     currentUser = null; isAdmin = false;
     $('userStatus').replaceChildren();
     $('showLoginBtn').style.display = $('showSignupBtn').style.display = 'inline-block';
-    $('showSettingsBtn').style.display = $('logoutBtn').style.display = 'none';
+    $('showSettingsBtn').style.display = $('logoutBtn').style.display = $('myPageBtn').style.display = 'none';
     if(authorInput) authorInput.value = ''; 
   }
 });
@@ -726,6 +726,94 @@ window.openAlbumDetail = (title, artist, pushHistory = true) => {
   if (pushHistory) history.pushState({ view: 'albumDetail', albumTitle: title, albumArtist: artist }, '', '#album');
 };
 
+// --- 마이페이지: 내가 쓴 글 / 내가 쓴 댓글 ---
+let myPageTab = 'posts';
+
+window.openMyPage = (pushHistory = true) => {
+  if (!currentUser) return alert('로그인이 필요합니다.');
+  switchMyPageTab('posts');
+  switchView('myPage');
+  if (pushHistory) history.pushState({ view: 'myPage' }, '', '#mypage');
+};
+
+window.switchMyPageTab = (tab) => {
+  myPageTab = tab;
+  $('btnMyTabPosts').classList.toggle('active', tab === 'posts');
+  $('btnMyTabComments').classList.toggle('active', tab === 'comments');
+  $('myPostsArea').style.display = tab === 'posts' ? 'block' : 'none';
+  $('myCommentsList').style.display = tab === 'comments' ? 'block' : 'none';
+  if (tab === 'posts') renderMyPosts(); else renderMyComments();
+};
+
+function renderMyPosts() {
+  const tbody = $('myPostsList');
+  const myPosts = currentPosts.filter(p => p.user_id === currentUser.id).sort((a, b) => b.id - a.id);
+
+  if (!myPosts.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">작성한 게시글이 없습니다.</td></tr>';
+    return;
+  }
+
+  tbody.replaceChildren(...myPosts.map(post => {
+    const row = element('tr');
+    row.style.cursor = 'pointer';
+    row.onclick = () => openPostView(post.id);
+
+    const tag = element('td', 'col-category');
+    tag.append(element('span', 'tag', post.tag));
+
+    const titleCell = element('td', 'col-title');
+    const thumbUrl = firstThumbnail(post);
+    if (thumbUrl) {
+      const thumb = element('img', 'dc-album-thumb');
+      thumb.alt = '';
+      setImageSource(thumb, thumbUrl);
+      titleCell.append(thumb);
+    }
+    const link = element('a', 'dc-title-link', escapeHTML(post.title));
+    link.href = '#post-' + post.id;
+    titleCell.append(link);
+    if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
+
+    const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
+    const dateCell = element('td', 'col-date', dateFormatted);
+    const viewsCell = element('td', 'col-views tabular', post.views || 0);
+
+    const recsVal = post.recs || 0;
+    const recsCell = element('td', 'col-likes tabular', recsVal);
+    if (recsVal > 0) recsCell.style.cssText = 'color:var(--admin); font-weight:bold;';
+
+    row.append(tag, titleCell, dateCell, viewsCell, recsCell);
+    return row;
+  }));
+}
+
+async function renderMyComments() {
+  const area = $('myCommentsList');
+  area.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">불러오는 중...</div>';
+
+  const { data, error } = await client.from('comments')
+    .select('id,created_at,post_id,content')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  if (myPageTab !== 'comments') return; // 불러오는 동안 다른 탭으로 전환했으면 그리지 않는다.
+  if (error) { area.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">댓글을 불러오지 못했습니다.</div>'; return; }
+  if (!data.length) { area.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">작성한 댓글이 없습니다.</div>'; return; }
+
+  area.replaceChildren(...data.map(c => {
+    const post = currentPosts.find(p => p.id === c.post_id);
+    const card = element('div', 'review-card');
+    if (post) card.onclick = () => openPostView(post.id);
+    else card.style.cssText = 'cursor:default; opacity:0.6;';
+    const header = element('div', 'rc-header');
+    header.append(element('span', 'rc-author', post ? `→ ${escapeHTML(post.title)}` : '삭제된 게시글'));
+    header.append(element('span', 'rc-stars', new Date(c.created_at).toLocaleDateString('ko-KR')));
+    card.append(header, element('div', 'rc-content', contentPreview(c.content)));
+    return card;
+  }));
+}
+
 function changeBoard(category, pushHistory = true) {
   currentCategory = category;
   const isAlbum = category === '앨범 평가';
@@ -1152,6 +1240,9 @@ window.addEventListener('popstate', (e) => {
     openAlbumDetail(state.albumTitle, state.albumArtist, false);
   } else if (state.view === 'write') {
     switchView('write');
+  } else if (state.view === 'myPage') {
+    switchView('myPage');
+    switchMyPageTab(myPageTab);
   }
 });
 
