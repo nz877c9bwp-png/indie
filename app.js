@@ -159,6 +159,14 @@ function formatContent(value) {
   return fragment;
 }
 
+// 글쓰기 중 [img]/유튜브 링크가 텍스트 그대로 보이지 않도록, 실제 업로드 전에도 사진/영상을 미리 보여준다.
+function updateContentPreview() {
+  const content = $('postContent').value;
+  const hasMedia = /\[img\]|youtube\.com|youtu\.be/i.test(content);
+  $('contentPreviewWrap').style.display = hasMedia ? 'block' : 'none';
+  $('contentPreviewArea').replaceChildren(hasMedia ? formatContent(content) : '');
+}
+
 const contentPreview = value => escapeHTML(contentParts(value).map(p => p.text ?? '').join('').substring(0, 150) + '...');
 
 // 0.5 단위 평점을 4 -> "4", 4.5 -> "4.5" 처럼 불필요한 소수점 없이 표시.
@@ -414,8 +422,11 @@ $('imageUpload').addEventListener('change', async (e) => {
   const { error } = await client.storage.from('images').upload(fileName, file);
   if (error) return alert('실패: ' + error.message), $('btnImageUploadText').innerText = '사진 첨부';
   $('postContent').value += `\n[img]${client.storage.from('images').getPublicUrl(fileName).data.publicUrl}[/img]\n`;
-  $('btnImageUploadText').innerText = '사진 첨부'; e.target.value = ''; 
+  $('btnImageUploadText').innerText = '사진 첨부'; e.target.value = '';
+  updateContentPreview();
 });
+
+$('postContent').addEventListener('input', updateContentPreview);
 
 // 같이 갈 사람/장터는 카카오 로그인 사용자(또는 관리자)만 선택할 수 있게 드롭다운에서도 막는다.
 function updateRestrictedTagOptions() {
@@ -432,6 +443,7 @@ $('openWriteBtn').onclick = () => {
   isEditMode = false;
   $('writeSectionTitle').textContent = '새 글 작성하기'; $('savePostBtn').textContent = '등록하기';
   $('postTitle').value = ''; $('postContent').value = ''; $('postGuestPw').value = '';
+  updateContentPreview();
   $('postGuestPw').style.display = currentUser ? 'none' : '';
   $('postAuthor').value = currentUser ? resolveNickname(currentUser) : nextGuestNickname(currentPosts.map(p => p.author));
 
@@ -985,6 +997,7 @@ $('adminEditBtn').addEventListener('click', () => {
   updateRestrictedTagOptions();
   $('postTag').value = post.tag; $('postTag').dispatchEvent(new Event('change'));
   $('postTitle').value = post.title; $('postContent').value = post.content;
+  updateContentPreview();
   if (post.tag === '야구') $('postTeam').value = post.team || '';
   $('postAuthor').value = post.author || 'ㅇㅇ';
 
