@@ -535,6 +535,7 @@ function renderPosts() {
 
   if (currentCategory === '앨범 평가') {
     $('postTableArea').style.display = 'none'; $('albumGrid').style.display = 'grid';
+    $('albumBoardFooter').style.display = 'flex';
 
     const stats = Object.create(null);
     currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title).forEach(p => {
@@ -570,6 +571,7 @@ function renderPosts() {
     }
   } else {
     $('albumGrid').style.display = 'none'; $('postTableArea').style.display = 'block';
+    $('albumBoardFooter').style.display = 'none';
     const tbody = $('postList');
     
     let filtered = currentCategory === '전체' ? [...currentPosts] : 
