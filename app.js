@@ -364,8 +364,9 @@ $('openWriteBtn').onclick = () => {
   $('postGuestPw').style.display = currentUser ? 'none' : '';
 
   updateRestrictedTagOptions();
+  // 보고 있던 게시판을 그대로 미리 선택해준다. 같이 갈 사람/장터라도 일단 선택은 되고,
+  // 작성 권한이 없으면 옵션 자체에 "(카카오 로그인 필요)" 표시가 붙어 있고 제출 시점에도 다시 막는다.
   let targetTag = ['전체'].includes(currentCategory) ? '인디' : currentCategory;
-  if (RESTRICTED_TAGS.includes(targetTag) && !(isAdmin || isKakaoUser())) targetTag = '자유';
   $('postTag').value = targetTag || '자유';
   $('postTag').dispatchEvent(new Event('change'));
 
