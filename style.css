@@ -440,6 +440,11 @@ input:-webkit-autofill:focus {
 .modal-btns{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px;}
 .modal-btns button{ border:none; padding:10px 20px; cursor:pointer; font-weight:700; font-family:inherit; border-radius:var(--radius-sm); font-size:13px; transition:0.2s; box-shadow:var(--shadow-sm);}
 
+.kakao-btn{ width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:#FEE500; color:#191919; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer; box-shadow:var(--shadow-sm); transition:0.2s;}
+.kakao-btn:active{ box-shadow:var(--shadow-inset); }
+.oauth-divider{ display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--muted); font-size:12px;}
+.oauth-divider::before, .oauth-divider::after{ content:''; flex:1; height:1px; background:var(--panel-alt);}
+
 /* 댓글 및 대댓글 디자인 */
 .comment-section { background: var(--bg); width:100%; box-sizing:border-box; padding-top:4px; }
 .comment-count { font-size: 14px; font-weight: bold; padding: 15px 26px; color: var(--text); }

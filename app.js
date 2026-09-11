@@ -219,10 +219,13 @@ $('doLoginBtn').addEventListener('click', async () => {
   if(error) alert('로그인 실패'); else toggleModal('loginModal', false);
 });
 
-$('kakaoLoginBtn').addEventListener('click', async () => {
+// 카카오는 OAuth 특성상 로그인/회원가입이 동일한 호출이다 (처음 인증하면 자동으로 계정이 생성됨).
+async function kakaoAuth() {
   const { error } = await client.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: location.origin } });
-  if (error) alert('카카오 로그인 실패: ' + error.message);
-});
+  if (error) alert('카카오 인증 실패: ' + error.message);
+}
+$('kakaoLoginBtn').addEventListener('click', kakaoAuth);
+$('kakaoSignupBtn').addEventListener('click', kakaoAuth);
 
 $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
 

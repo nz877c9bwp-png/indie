@@ -348,10 +348,8 @@
       <button class="btn-cancel" onclick="toggleModal('loginModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doLoginBtn" style="background:var(--music); color:var(--bg);">로그인</button>
     </div>
-    <div style="display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--muted); font-size:12px;">
-      <div style="flex:1; height:1px; background:var(--border);"></div>또는<div style="flex:1; height:1px; background:var(--border);"></div>
-    </div>
-    <button id="kakaoLoginBtn" style="width:100%; padding:12px; border:none; border-radius:8px; background:#FEE500; color:#191919; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer;">카카오로 로그인</button>
+    <div class="oauth-divider">또는</div>
+    <button id="kakaoLoginBtn" class="kakao-btn">카카오로 로그인</button>
   </div>
 </div>
 
@@ -368,6 +366,8 @@
       <button class="btn-cancel" onclick="toggleModal('signupModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doSignupBtn" style="background:var(--music); color:var(--bg);">가입하기</button>
     </div>
+    <div class="oauth-divider">또는</div>
+    <button id="kakaoSignupBtn" class="kakao-btn">카카오로 회원가입</button>
   </div>
 </div>
 
