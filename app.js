@@ -149,6 +149,9 @@ function formatContent(value) {
 
 const contentPreview = value => escapeHTML(contentParts(value).map(p => p.text ?? '').join('').substring(0, 150) + '...');
 
+// 0.5 단위 평점을 4 -> "4", 4.5 -> "4.5" 처럼 불필요한 소수점 없이 표시.
+const formatRating = v => { const n = Number(v); return n % 1 === 0 ? String(n) : n.toFixed(1); };
+
 // 목록에 쓸 썸네일: 앨범 평가는 앨범 커버, 그 외는 본문에 첨부된 첫 이미지.
 function firstThumbnail(post) {
   if (post.album_cover) return post.album_cover;
@@ -277,15 +280,42 @@ window.selectAlbum = (title, artist, cover) => {
   setStars(5); 
 };
 
-$('starsContainer').addEventListener('click', (e) => {
-  if(e.target.classList.contains('star')) setStars(parseInt(e.target.dataset.value));
+// 별점을 0.5 단위로, 마우스/터치 드래그로 조절할 수 있게 한다.
+function ratingFromClientX(clientX) {
+  const rect = $('starsContainer').getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  const stepped = Math.round(ratio * 5 * 2) / 2; // 0.5 단위로 반올림
+  return Math.max(0.5, Math.min(5, stepped));
+}
+
+let isDraggingStars = false;
+$('starsContainer').addEventListener('mousedown', (e) => {
+  isDraggingStars = true;
+  setStars(ratingFromClientX(e.clientX));
 });
+document.addEventListener('mousemove', (e) => {
+  if (isDraggingStars) setStars(ratingFromClientX(e.clientX));
+});
+document.addEventListener('mouseup', () => { isDraggingStars = false; });
+
+$('starsContainer').addEventListener('touchstart', (e) => {
+  isDraggingStars = true;
+  setStars(ratingFromClientX(e.touches[0].clientX));
+}, { passive: true });
+$('starsContainer').addEventListener('touchmove', (e) => {
+  if (isDraggingStars) setStars(ratingFromClientX(e.touches[0].clientX));
+}, { passive: true });
+document.addEventListener('touchend', () => { isDraggingStars = false; });
 
 function setStars(val) {
   currentSelectedRating = val;
-  document.querySelectorAll('#starsContainer .star').forEach(s => s.style.color = parseInt(s.dataset.value) <= val ? 'var(--special)' : 'var(--border)');
-  const msgs = ['별로임 (1점)', '아쉬움 (2점)', '들을만함 (3점)', '훌륭함 (4점)', '명반! (5점)'];
-  $('starRatingText').innerText = msgs[val-1];
+  document.querySelectorAll('#starsContainer .star').forEach(s => {
+    const fill = Math.max(0, Math.min(1, val - (parseInt(s.dataset.value) - 1)));
+    s.querySelector('.star-fill').style.width = (fill * 100) + '%';
+  });
+  const msgs = ['별로임', '아쉬움', '들을만함', '훌륭함', '명반!'];
+  const labelIdx = Math.min(5, Math.max(1, Math.round(val)));
+  $('starRatingText').innerText = `${msgs[labelIdx-1]} (${val}점)`;
   $('starRatingText').style.color = val >= 4 ? 'var(--special)' : 'var(--text)';
 }
 
@@ -367,8 +397,8 @@ function renderPosts() {
       card.onclick = () => openPostView(post.id);
       const stats = element('div', 'widget-stats');
       const recs = element('span', '', `추천 ${post.recs || 0}`); recs.style.color = 'var(--music)';
-      const author = element('span', ''); author.style.marginLeft = 'auto';
-      author.append(escapeHTML(post.author || 'ㅇㅇ'));
+      const author = element('span', 'author-wrap'); author.style.marginLeft = 'auto';
+      author.append(document.createTextNode(post.author || 'ㅇㅇ'));
       if (post.tag === '야구' && post.team) author.append(teamBadge(post.team));
       stats.append(element('span', '', `조회 ${post.views || 0}`), recs, author);
       card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', escapeHTML(post.title)), stats);
@@ -470,11 +500,12 @@ function renderPosts() {
         link.href = '#';
         titleCell.append(link);
 
-        if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`));
+        if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
         
         const authorCell = element('td', 'col-author');
-        authorCell.append(escapeHTML(post.author || 'ㅇㅇ'));
-        if (post.tag === '야구' && post.team) authorCell.append(teamBadge(post.team));
+        const authorWrap = element('span', 'author-wrap', post.author || 'ㅇㅇ');
+        if (post.tag === '야구' && post.team) authorWrap.append(teamBadge(post.team));
+        authorCell.append(authorWrap);
 
         const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
         const dateCell = element('td', 'col-date', dateFormatted);
@@ -527,7 +558,7 @@ window.openAlbumDetail = (title, artist, pushHistory = true) => {
   $('adScore').replaceChildren(`★ ${(albumPosts.reduce((s, p) => s + Number(p.rating||0), 0) / albumPosts.length).toFixed(1)} `, element('span', '', `(${albumPosts.length}명 참여)`));
   $('adReviews').replaceChildren(...albumPosts.map(p => {
     const card = element('div', 'review-card'); card.onclick = () => openPostView(p.id);
-    const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)')), element('span', 'rc-stars', `★ ${p.rating}`));
+    const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)')), element('span', 'rc-stars', `★ ${formatRating(p.rating)}`));
     card.append(header, element('div', 'rc-title', escapeHTML(p.title)), element('div', 'rc-content', contentPreview(p.content)));
     return card;
   }));
@@ -714,7 +745,7 @@ async function openPostView(postId, pushHistory = true) {
     setImageSource($('readAlbumCover'), post.album_cover);
     $('readAlbumName').textContent = post.album_title;
     $('readAlbumArtist').textContent = post.album_artist || '';
-    $('readAlbumRating').textContent = `★ ${post.rating}`;
+    $('readAlbumRating').textContent = `★ ${formatRating(post.rating)}`;
   } else {
     $('readAlbumInfo').style.display = 'none';
   }

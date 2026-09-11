@@ -121,7 +121,8 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .tag{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; background:var(--panel-alt); color:var(--muted); white-space:nowrap; }
 
 /* 야구게시판 응원팀 뱃지 (닉네임 옆) */
-.team-badge{ display:inline-block; font-size:11px; font-weight:800; padding:1px 7px; border-radius:10px; margin-left:6px; color:#fff; white-space:nowrap; vertical-align:middle; }
+.team-badge{ display:inline-block; font-size:11px; font-weight:800; padding:1px 7px; border-radius:10px; color:#fff; white-space:nowrap; }
+.author-wrap{ display:inline-flex; align-items:center; gap:6px; }
 
 /* 야구게시판 팀별 탭 (FM코리아 스타일) */
 #baseballTeamTabs{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
