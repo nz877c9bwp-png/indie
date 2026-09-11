@@ -378,10 +378,10 @@ input:-webkit-autofill:focus {
     text-overflow: ellipsis;
   }
   .board-list li a.active {
-    background: var(--music);
-    color: #fff;
-    font-weight: bold;
-    box-shadow: none;
+    background: var(--panel);
+    color: var(--music);
+    font-weight: 700;
+    box-shadow: var(--shadow-inset-sm);
   }
 
   .board-title-row { padding: 12px; margin: 0; width: 100%; box-sizing: border-box; }
