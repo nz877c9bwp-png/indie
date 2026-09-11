@@ -517,7 +517,8 @@ window.toggleAlbumSort = (type) => {
 
 function renderPosts() {
   const widgetArea = $('topWidgetArea');
-  const hotPosts = currentPosts.filter(p => p.recs > 0 || p.views > 5).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
+  const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  const hotPosts = currentPosts.filter(p => (p.recs > 0 || p.views > 5) && new Date(p.created_at).getTime() >= threeDaysAgo).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 3);
   
   if (hotPosts.length) {
     widgetArea.replaceChildren(...hotPosts.map((post, i) => {
