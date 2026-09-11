@@ -46,6 +46,10 @@ let currentSelectedRating = 5;
 let currentComments = [];
 let baseballTeamFilter = '전체';
 
+// 같이 갈 사람/장터는 카카오 로그인 사용자만 글을 쓸 수 있다 (서버 RLS에서도 동일하게 강제됨).
+const RESTRICTED_TAGS = ['같이 갈 사람', '장터'];
+const isKakaoUser = () => currentUser?.app_metadata?.provider === 'kakao';
+
 // --- 야구 응원팀 정보 ---
 const KBO_TEAMS = [
   { code: '두산', label: '두산 베어스', color: '#131230' },
@@ -66,6 +70,14 @@ function teamBadge(teamCode) {
   const badge = element('span', 'team-badge', teamCode);
   badge.style.background = teamColor(teamCode);
   return badge;
+}
+
+// 카카오 로그인으로 작성된 글/댓글의 닉네임 옆에 붙는 작은 말풍선 마크.
+function kakaoMark() {
+  const mark = element('span', 'kakao-mark');
+  mark.title = '카카오 로그인 사용자';
+  mark.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M12 3C6.48 3 2 6.48 2 11c0 2.9 1.94 5.44 4.86 6.9-.2.75-.73 2.73-.84 3.15-.13.52.19.51.4.37.17-.11 2.66-1.8 3.74-2.54.6.09 1.22.13 1.84.13 5.52 0 10-3.48 10-8s-4.48-8-10-8z" fill="#FEE500"/></svg>';
+  return mark;
 }
 
 function renderBaseballTabs() {
@@ -334,13 +346,26 @@ $('imageUpload').addEventListener('change', async (e) => {
   $('btnImageUploadText').innerText = '사진 첨부'; e.target.value = ''; 
 });
 
+// 같이 갈 사람/장터는 카카오 로그인 사용자(또는 관리자)만 선택할 수 있게 드롭다운에서도 막는다.
+function updateRestrictedTagOptions() {
+  const eligible = isAdmin || isKakaoUser();
+  RESTRICTED_TAGS.forEach(tag => {
+    const opt = $('postTag').querySelector(`option[value="${tag}"]`);
+    if (!opt) return;
+    opt.disabled = !eligible;
+    opt.textContent = eligible ? tag : `${tag} (카카오 로그인 필요)`;
+  });
+}
+
 $('openWriteBtn').onclick = () => {
   isEditMode = false;
   $('writeSectionTitle').textContent = '새 글 작성하기'; $('savePostBtn').textContent = '등록하기';
   $('postTitle').value = ''; $('postContent').value = ''; $('postGuestPw').value = '';
   $('postGuestPw').style.display = currentUser ? 'none' : '';
 
+  updateRestrictedTagOptions();
   let targetTag = ['전체'].includes(currentCategory) ? '인디' : currentCategory;
+  if (RESTRICTED_TAGS.includes(targetTag) && !(isAdmin || isKakaoUser())) targetTag = '자유';
   $('postTag').value = targetTag || '자유';
   $('postTag').dispatchEvent(new Event('change'));
 
@@ -365,7 +390,7 @@ window.openWriteWithAlbumParams = (title, artist, cover) => {
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice').order('id', { ascending: false });
+  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao').order('id', { ascending: false });
   if (!error && data) currentPosts = data;
   renderPosts(); 
 }
@@ -405,6 +430,7 @@ function renderPosts() {
       const recs = element('span', '', `추천 ${post.recs || 0}`); recs.style.color = 'var(--music)';
       const author = element('span', 'author-wrap'); author.style.marginLeft = 'auto';
       author.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
+      if (post.is_kakao) author.append(kakaoMark());
       if (post.tag === '야구' && post.team) author.append(teamBadge(post.team));
       stats.append(element('span', '', `조회 ${post.views || 0}`), recs, author);
       card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', escapeHTML(post.title)), stats);
@@ -516,6 +542,7 @@ function renderPosts() {
         const authorCell = element('td', 'col-author');
         const authorWrap = element('span', 'author-wrap');
         authorWrap.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
+        if (post.is_kakao) authorWrap.append(kakaoMark());
         if (post.tag === '야구' && post.team) authorWrap.append(teamBadge(post.team));
         authorCell.append(authorWrap);
 
@@ -607,7 +634,7 @@ function changeBoard(category, pushHistory = true) {
 // --- 댓글 및 대댓글 기능 ---
 async function fetchAndRenderComments() {
   if (!currentReadPostId) return;
-  const { data, error } = await client.from('comments').select('id, created_at, post_id, parent_id, author, content, user_id').eq('post_id', currentReadPostId).order('id', { ascending: true });
+  const { data, error } = await client.from('comments').select('id, created_at, post_id, parent_id, author, content, user_id, is_kakao').eq('post_id', currentReadPostId).order('id', { ascending: true });
   if (error) return console.error('댓글 불러오기 실패:', error);
   
   currentComments = data || [];
@@ -638,9 +665,12 @@ function createCommentElement(comment, isReply) {
   
   let authorDisplay = comment.author || 'ㅇㅇ';
   if (isReply) authorDisplay = '↳ ' + authorDisplay;
-  
+
+  const authorSpan = element('span', 'ci-author', authorDisplay);
+  if (comment.is_kakao) authorSpan.append(kakaoMark());
+
   meta.append(
-    element('span', 'ci-author', escapeHTML(authorDisplay)),
+    authorSpan,
     element('span', 'ci-date', new Date(comment.created_at).toLocaleString('ko-KR', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}))
   );
   
@@ -747,7 +777,8 @@ async function openPostView(postId, pushHistory = true) {
   if (pushHistory) history.pushState({ view: 'postView', postId }, '', '#post-' + postId);
   
   $('readTitle').textContent = post.title; $('readTag').textContent = post.tag;
-  $('readAuthor').textContent = post.author || 'ㅇㅇ';
+  $('readAuthor').replaceChildren(document.createTextNode(post.author || 'ㅇㅇ'));
+  if (post.is_kakao) $('readAuthor').append(kakaoMark());
   $('readTeamBadge').replaceChildren();
   if (post.tag === '야구' && post.team) $('readTeamBadge').append(teamBadge(post.team));
   $('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
@@ -870,6 +901,7 @@ $('recommendBtn').addEventListener('click', async () => {
 $('adminEditBtn').addEventListener('click', () => {
   const post = currentPosts.find(p => p.id === currentReadPostId);
   isEditMode = true; $('writeSectionTitle').textContent = '게시글 수정하기'; $('savePostBtn').textContent = '수정 완료';
+  updateRestrictedTagOptions();
   $('postTag').value = post.tag; $('postTag').dispatchEvent(new Event('change'));
   $('postTitle').value = post.title; $('postContent').value = post.content;
   if (post.tag === '야구') $('postTeam').value = post.team || '';
@@ -938,6 +970,7 @@ $('savePostBtn').addEventListener('click', async () => {
   if (!title.trim()) return alert('제목을 입력해주세요.');
   if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
   if (tag === '야구' && !team) return alert('응원하는 팀을 선택해주세요!');
+  if (RESTRICTED_TAGS.includes(tag) && !(isAdmin || isKakaoUser())) return alert('이 게시판은 카카오 로그인 사용자만 글을 쓸 수 있습니다.');
   if (!currentUser && !isEditMode && !guestPw) return alert('유동 글쓰기는 비밀번호가 필요합니다. (나중에 삭제할 때 사용)');
 
   const editingPost = isEditMode ? currentPosts.find(p => p.id === currentReadPostId) : null;

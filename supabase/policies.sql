@@ -13,6 +13,13 @@ $$;
 alter table public.posts
   add column if not exists user_id uuid references auth.users(id);
 
+-- 같이 갈 사람/장터 게시판은 카카오 로그인 사용자만 글을 쓸 수 있게 제한한다.
+-- auth.jwt()의 app_metadata.provider는 클라이언트가 조작할 수 없는 서버 발급 값이라 이걸로 검사한다.
+create or replace function public.is_kakao_session() returns boolean
+language sql stable as $$
+  select coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', '') = 'kakao';
+$$;
+
 drop policy if exists "posts read" on public.posts;
 drop policy if exists "posts insert" on public.posts;
 drop policy if exists "posts admin update" on public.posts;
@@ -20,11 +27,20 @@ drop policy if exists "posts admin delete" on public.posts;
 
 create policy "posts read" on public.posts for select using (true);
 -- 로그인 사용자는 본인 user_id로만, 유동은 user_id를 null로 남겨야 통과된다.
+-- 같이 갈 사람/장터 태그는 카카오 로그인 세션일 때만 허용한다.
 create policy "posts insert" on public.posts for insert to anon, authenticated
-  with check (user_id is null or auth.uid() = user_id);
+  with check (
+    (user_id is null or auth.uid() = user_id)
+    and (tag not in ('같이 갈 사람', '장터') or public.is_kakao_session())
+  );
 -- 관리자거나 본인 글일 때 수정/삭제 가능 (유동 글의 삭제는 아래 비밀번호 RPC로 별도 처리).
+-- 수정 시 태그를 같이 갈 사람/장터로 바꾸는 것도 카카오 세션이 아니면 막는다 (관리자는 예외).
 create policy "posts admin update" on public.posts for update to authenticated
-  using (public.is_admin() or auth.uid() = user_id) with check (public.is_admin() or auth.uid() = user_id);
+  using (public.is_admin() or auth.uid() = user_id)
+  with check (
+    public.is_admin()
+    or (auth.uid() = user_id and (tag not in ('같이 갈 사람', '장터') or public.is_kakao_session()))
+  );
 create policy "posts admin delete" on public.posts for delete to authenticated
   using (public.is_admin() or auth.uid() = user_id);
 
@@ -61,6 +77,27 @@ create extension if not exists pgcrypto with schema extensions;
 
 alter table public.posts add column if not exists guest_password text;
 alter table public.comments add column if not exists guest_password text;
+
+-- 닉네임 옆에 카카오 마크를 보여주기 위한 플래그. 클라이언트가 값을 넣는 게 아니라
+-- 아래 트리거가 작성 시점의 실제 로그인 세션(JWT)을 보고 서버에서 채워 넣는다.
+alter table public.posts add column if not exists is_kakao boolean not null default false;
+alter table public.comments add column if not exists is_kakao boolean not null default false;
+
+create or replace function public.set_kakao_flag() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  new.is_kakao := public.is_kakao_session();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_set_kakao_post on public.posts;
+create trigger trg_set_kakao_post before insert on public.posts
+  for each row execute function public.set_kakao_flag();
+
+drop trigger if exists trg_set_kakao_comment on public.comments;
+create trigger trg_set_kakao_comment before insert on public.comments
+  for each row execute function public.set_kakao_flag();
 
 create or replace function public.hash_guest_password() returns trigger
 language plpgsql set search_path = public, extensions as $$
@@ -130,6 +167,10 @@ language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_hash text;
 begin
+  -- 유동은 카카오 세션일 수 없으니, 이 RPC로 같이 갈 사람/장터 태그를 다는 건 항상 막는다.
+  if p_tag in ('같이 갈 사람', '장터') then
+    raise exception '카카오 로그인 사용자만 작성할 수 있는 게시판입니다.';
+  end if;
   select guest_password into v_hash from public.posts where id = p_id;
   if v_hash is null then
     return false;
@@ -153,10 +194,10 @@ alter table public.posts add column if not exists is_notice boolean not null def
 -- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
 revoke select on public.posts from anon, authenticated;
 grant select (id, created_at, tag, author, title, content, team, user_id,
-              album_title, album_artist, album_cover, rating, views, recs, is_notice)
+              album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao)
   on public.posts to anon, authenticated;
 revoke select on public.comments from anon, authenticated;
-grant select (id, created_at, post_id, parent_id, author, content, user_id)
+grant select (id, created_at, post_id, parent_id, author, content, user_id, is_kakao)
   on public.comments to anon, authenticated;
 
 -- 로그인 사용자 추천: 1인 1회. 기록 테이블은 API에서 직접 못 건드리고 아래 RPC(security definer)만 쓴다.
