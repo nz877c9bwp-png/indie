@@ -427,6 +427,9 @@ input:-webkit-autofill:focus {
   }
   .dc-table tbody tr:last-child { border-bottom: none; }
   .dc-table tr:hover { background: var(--panel-alt); }
+  /* 공지 등으로 배경이 칠해진 첫/마지막 행이 통짜 블럭의 둥근 모서리 밖으로 각지게 삐져나오지 않게 맞춰준다. */
+  .dc-table tbody tr:first-child { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .dc-table tbody tr:last-child { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
@@ -440,7 +443,7 @@ input:-webkit-autofill:focus {
   .col-likes::before { content: '· 추천 '; color: var(--muted-2); }
   .col-likes { color: var(--admin); font-weight: bold; }
 
-  .board-footer { padding: 16px 12px; margin-top: 0; width: 100%; box-sizing: border-box; }
+  .board-footer { padding: 20px; margin-top: 0; width: 100%; box-sizing: border-box; }
 
   .bottom-controls { flex-direction: column; gap: 12px; width: 100%; box-sizing: border-box; }
   .dc-search-box { width: 100%; display: flex; gap: 8px; box-sizing: border-box; }
