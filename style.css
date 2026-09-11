@@ -400,7 +400,7 @@ input:-webkit-autofill:focus {
   .team-tab-btn { padding: 7px 14px; font-size: 12px; }
   .team-badge { font-size: 10px; padding: 1px 6px; margin-left: 4px; }
 
-  .post-table-wrap { margin: 0 20px; border-radius:0; box-shadow:none; width: auto; box-sizing: border-box; }
+  .post-table-wrap { margin: 0 20px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
   .view-box, #writeSection, #albumDetailSection { margin: 0 20px; width: auto; }
   .table-scroll { overflow-x: visible; overflow-y: visible; border-radius: 0; }
   .dc-table { display: block; min-width: 0; border: none; width: 100%; box-sizing: border-box; }
@@ -409,20 +409,24 @@ input:-webkit-autofill:focus {
 
   .dc-table td { width: auto !important; padding: 0; border: none; text-align: left; line-height: 1.2; }
 
-  /* 1줄짜리 flex 행: 제목이 남는 공간을 채우고, 나머지 메타 정보는 자연스럽게 오른쪽 끝에 정렬됨 */
+  /* 카드별로 그림자를 따로 주면 다크모드에서 인접한 행끼리 그림자가 겹쳐 경계가 탁하게 보인다.
+     그래서 행 하나하나가 아니라 post-table-wrap 전체를 데스크탑처럼 하나의 통짜 블럭으로 두고,
+     행은 그 안에서 옅은 구분선으로만 나눈다. */
   .dc-table tr {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 12px;
-      background: var(--panel);
-      border-radius: var(--radius-sm);
-      margin: 0 0 8px;
+      padding: 14px 16px;
+      background: transparent;
+      border-radius: 0;
+      border-bottom: 1px solid var(--panel-alt);
+      margin: 0;
       width: 100%;
       box-sizing: border-box;
-      box-shadow: var(--shadow-sm);
+      box-shadow: none;
   }
-  .dc-table tr:hover { background: var(--panel); }
+  .dc-table tbody tr:last-child { border-bottom: none; }
+  .dc-table tr:hover { background: var(--panel-alt); }
 
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
