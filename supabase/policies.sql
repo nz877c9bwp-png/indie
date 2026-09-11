@@ -66,7 +66,7 @@ create or replace function public.hash_guest_password() returns trigger
 language plpgsql set search_path = public, extensions as $$
 begin
   if new.guest_password is not null and new.guest_password <> '' then
-    new.guest_password := crypt(new.guest_password, gen_salt('bf'));
+    new.guest_password := crypt(new.guest_password, gen_salt('bf', 10));
   end if;
   return new;
 end;
@@ -119,5 +119,39 @@ $$;
 
 grant execute on function public.delete_post_with_password(bigint, text) to anon, authenticated;
 grant execute on function public.delete_comment_with_password(bigint, text) to anon, authenticated;
+
+-- 유동 비밀번호 해시는 클라이언트에 내려가면 안 된다 (select * 로 그대로 노출되고 있었다).
+-- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
+revoke select on public.posts from anon, authenticated;
+grant select (id, created_at, tag, author, title, content, team, user_id,
+              album_title, album_artist, album_cover, rating, views, recs)
+  on public.posts to anon, authenticated;
+revoke select on public.comments from anon, authenticated;
+grant select (id, created_at, post_id, parent_id, author, content, user_id)
+  on public.comments to anon, authenticated;
+
+-- 로그인 사용자 추천: 1인 1회. 기록 테이블은 API에서 직접 못 건드리고 아래 RPC(security definer)만 쓴다.
+create table if not exists public.post_recommendations (
+  post_id bigint not null references public.posts(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (post_id, user_id)
+);
+alter table public.post_recommendations enable row level security;
+revoke all on public.post_recommendations from anon, authenticated;
+
+create or replace function public.toggle_recommendation(p_id bigint) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then
+    raise exception 'login required';
+  end if;
+  -- 이미 추천했으면 PK 위반 에러가 나고, 클라이언트는 그걸 "이미 추천한 게시글" 로 표시한다.
+  insert into public.post_recommendations (post_id, user_id) values (p_id, auth.uid());
+  update public.posts set recs = coalesce(recs, 0) + 1 where id = p_id;
+end;
+$$;
+revoke execute on function public.toggle_recommendation(bigint) from public, anon;
+grant execute on function public.toggle_recommendation(bigint) to authenticated;
 
 notify pgrst, 'reload schema';

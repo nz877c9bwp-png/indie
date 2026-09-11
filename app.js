@@ -322,7 +322,7 @@ window.openWriteWithAlbumParams = (title, artist, cover) => {
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('*').order('id', { ascending: false });
+  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs').order('id', { ascending: false });
   if (!error && data) currentPosts = data;
   renderPosts(); 
 }
@@ -549,7 +549,7 @@ function changeBoard(category, pushHistory = true) {
 // --- 댓글 및 대댓글 기능 ---
 async function fetchAndRenderComments() {
   if (!currentReadPostId) return;
-  const { data, error } = await client.from('comments').select('*').eq('post_id', currentReadPostId).order('id', { ascending: true });
+  const { data, error } = await client.from('comments').select('id, created_at, post_id, parent_id, author, content, user_id').eq('post_id', currentReadPostId).order('id', { ascending: true });
   if (error) return console.error('댓글 불러오기 실패:', error);
   
   currentComments = data || [];
