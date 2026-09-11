@@ -149,6 +149,13 @@ function formatContent(value) {
 
 const contentPreview = value => escapeHTML(contentParts(value).map(p => p.text ?? '').join('').substring(0, 150) + '...');
 
+// 목록에 쓸 썸네일: 앨범 평가는 앨범 커버, 그 외는 본문에 첨부된 첫 이미지.
+function firstThumbnail(post) {
+  if (post.album_cover) return post.album_cover;
+  const imagePart = contentParts(post.content).find(p => p.image);
+  return imagePart ? imagePart.image : null;
+}
+
 // --- 인증 및 계정 설정 ---
 // 카카오 등 소셜 로그인은 이메일 없이 가입될 수 있어 email.split('@')로 바로 닉네임을 뽑으면 안 된다.
 function resolveNickname(user) {
@@ -452,10 +459,11 @@ function renderPosts() {
         tag.append(element('span', 'tag', post.tag));
 
         const titleCell = element('td', 'col-title');
-        if (post.album_cover) {
+        const thumbUrl = firstThumbnail(post);
+        if (thumbUrl) {
           const thumb = element('img', 'dc-album-thumb');
           thumb.alt = '';
-          setImageSource(thumb, post.album_cover);
+          setImageSource(thumb, thumbUrl);
           titleCell.append(thumb);
         }
         const link = element('a', 'dc-title-link', escapeHTML(post.title));
@@ -700,6 +708,16 @@ async function openPostView(postId, pushHistory = true) {
   if (post.tag === '야구' && post.team) $('readTeamBadge').append(teamBadge(post.team));
   $('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
   $('readContent').replaceChildren(formatContent(post.content)); // 렌더링 시 escapeHTML 적용됨
+
+  if (post.tag === '앨범 평가' && post.album_title) {
+    $('readAlbumInfo').style.display = 'flex';
+    setImageSource($('readAlbumCover'), post.album_cover);
+    $('readAlbumName').textContent = post.album_title;
+    $('readAlbumArtist').textContent = post.album_artist || '';
+    $('readAlbumRating').textContent = `★ ${post.rating}`;
+  } else {
+    $('readAlbumInfo').style.display = 'none';
+  }
   $('readViews').textContent = (post.views || 0) + 1;
   $('readRecs').textContent = $('btnRecCount').textContent = post.recs || 0;
 

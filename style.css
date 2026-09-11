@@ -192,6 +192,12 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .review-list { display:flex; flex-direction:column; gap:16px; margin-top:20px;}
 .review-card { background:var(--panel); padding:20px; border-radius:var(--radius); cursor:pointer; transition:0.2s; box-shadow:var(--shadow-sm);}
 .review-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.view-album-info { display:flex; gap:16px; align-items:center; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--panel-alt); }
+.view-album-info img { width:88px; height:88px; border-radius:var(--radius-sm); object-fit:cover; box-shadow:var(--shadow-sm); flex:none; }
+.view-album-name { font-size:16px; font-weight:800; color:var(--text); }
+.view-album-artist { font-size:13px; color:var(--muted); margin-top:2px; }
+.view-album-rating { font-size:16px; font-weight:900; color:var(--special); margin-top:8px; }
+
 .rc-header { display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;}
 .rc-author { font-size:13px; font-weight:bold; color:var(--muted);}
 .rc-stars { font-size:14px; font-weight:bold; color:var(--special);}
