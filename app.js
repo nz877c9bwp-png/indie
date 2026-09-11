@@ -970,7 +970,7 @@ $('savePostBtn').addEventListener('click', async () => {
   if (!title.trim()) return alert('제목을 입력해주세요.');
   if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
   if (tag === '야구' && !team) return alert('응원하는 팀을 선택해주세요!');
-  if (RESTRICTED_TAGS.includes(tag) && !(isAdmin || isKakaoUser())) return alert('이 게시판은 카카오 로그인 사용자만 글을 쓸 수 있습니다.');
+  if (RESTRICTED_TAGS.includes(tag) && !(isAdmin || isKakaoUser())) return alert('회원 간 거래, 오프라인 만남의 안전을 위해 카카오 로그인 사용자만 글을 쓸 수 있는 게시판입니다.');
   if (!currentUser && !isEditMode && !guestPw) return alert('유동 글쓰기는 비밀번호가 필요합니다. (나중에 삭제할 때 사용)');
 
   const editingPost = isEditMode ? currentPosts.find(p => p.id === currentReadPostId) : null;
@@ -1003,6 +1003,10 @@ $('savePostBtn').addEventListener('click', async () => {
 
   $('savePostBtn').disabled = false; $('savePostBtn').textContent = isEditMode ? '수정 완료' : '등록하기';
   if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); returnToBoardAfterAction(); fetchPosts(); }
+  else if (RESTRICTED_TAGS.includes(tag) && /row-level security/i.test(error.message || '')) {
+    // 클라이언트 검증을 어떤 이유로든 못 거친 경우에도(캐시된 구버전 등) 서버 거부 사유를 그대로 노출하지 않고 같은 안내를 보여준다.
+    alert('회원 간 거래, 오프라인 만남의 안전을 위해 카카오 로그인 사용자만 글을 쓸 수 있는 게시판입니다.');
+  }
   else alert(error.message === '비밀번호가 틀렸습니다.' ? error.message : '실패: 권한이 없거나 오류가 발생했습니다.');
 });
 
