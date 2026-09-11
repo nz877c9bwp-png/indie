@@ -337,7 +337,7 @@ input:-webkit-autofill:focus {
 
   .header-inner { flex-direction: row; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 8px; padding: 14px; width: 100%; box-sizing: border-box; }
   .mobile-menu-btn { display: flex; }
-  .brand { text-align: left; font-size: 15px; gap: 8px; flex: none; }
+  .brand { text-align: left; font-size: 15px; gap: 14px; flex: none; }
   .logo-badge { width: 28px; height: 28px; }
   .bw-slot { width: 19px; }
   .user-actions { gap: 8px; justify-content: flex-end; flex-wrap: nowrap; white-space: nowrap; width: auto; box-sizing: border-box; }
@@ -408,6 +408,28 @@ input:-webkit-autofill:focus {
     font-weight: 700;
     box-shadow: var(--shadow-inset-sm);
   }
+
+  /* 로그인/회원가입/마이페이지 버튼을 JS(relocateAuthButtons)가 여기로 옮겨 놓는다.
+     비어있으면(로그아웃 상태에서도 로그인/회원가입 버튼 자체는 항상 존재하니 실제로
+     완전히 비는 일은 없지만) 안전하게 숨긴다. */
+  .sidebar-auth-slot:empty { display: none; }
+  .sidebar-auth-slot {
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--panel-alt);
+  }
+  .sidebar-auth-slot .auth-btn {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    margin: 2px 0;
+    padding: 12px 14px;
+    font-size: 14px;
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+  }
+  .sidebar-auth-slot .auth-btn:hover { color: var(--text); background: var(--panel-alt); }
 
   .board-title-row { padding: 12px; margin: 0; width: 100%; box-sizing: border-box; }
 

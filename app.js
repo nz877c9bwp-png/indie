@@ -18,6 +18,25 @@ $('mobileMenuBtn').addEventListener('click', () => toggleSidebarDrawer(true));
 $('sidebarBackdrop').addEventListener('click', () => toggleSidebarDrawer(false));
 document.querySelectorAll('.sidebar a').forEach(a => a.addEventListener('click', () => toggleSidebarDrawer(false)));
 
+// 모바일에서는 좁은 상단바 대신 로그인/회원가입/마이페이지 버튼을 게시판 메뉴(드로어) 맨 위로 옮긴다.
+// 같은 엘리먼트를 그대로 옮기는 거라(복제 아님) 기존 show/hide, onclick 로직이 그대로 유지된다.
+const authRelocateButtons = [$('showLoginBtn'), $('showSignupBtn'), $('myPageBtn')];
+authRelocateButtons.forEach(btn => btn.addEventListener('click', () => toggleSidebarDrawer(false)));
+
+const MOBILE_MENU_QUERY = window.matchMedia('(max-width: 840px)');
+function relocateAuthButtons() {
+  if (MOBILE_MENU_QUERY.matches) {
+    const slot = $('sidebarAuthSlot');
+    authRelocateButtons.forEach(btn => slot.appendChild(btn));
+  } else {
+    const headerActions = document.querySelector('.user-actions');
+    const anchor = $('showSettingsBtn');
+    authRelocateButtons.forEach(btn => headerActions.insertBefore(btn, anchor));
+  }
+}
+relocateAuthButtons();
+MOBILE_MENU_QUERY.addEventListener('change', relocateAuthButtons);
+
 // 비로그인(유동) 사용자의 추천 중복 방지용 로컬 캐시. 기기/브라우저 단위라 완벽하진 않지만
 // 새로고침해도 유지되고, 서버에 사용자 식별자를 남기지 않는 선에서 "한 번만" 제약을 준다.
 function getRecommendedCache() {
