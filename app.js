@@ -244,13 +244,76 @@ $('kakaoSignupBtn').addEventListener('click', kakaoAuth);
 $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
 
 // --- 글쓰기 및 앨범 검색 ---
+// 브라우저 기본 select의 펼쳐진 목록은 CSS로 못 꾸미기 때문에, 원래 select는 값만 들고 있게 숨겨두고
+// 화면에 보이는 목록은 사이트 톤에 맞춘 커스텀 UI로 그린다. 값/change 이벤트는 그대로라 나머지 코드는 손댈 필요가 없다.
+let closeAllCustomSelects = () => {};
+
+function makeCustomSelect(selectId) {
+  const select = $(selectId);
+  const wrap = element('div', 'custom-select');
+  wrap.id = selectId + 'Custom';
+  const trigger = element('div', 'custom-select-trigger');
+  const panel = element('div', 'custom-select-panel');
+
+  const syncTrigger = () => { trigger.textContent = select.selectedOptions[0]?.textContent || ''; };
+  const closePanel = () => { panel.style.display = 'none'; };
+
+  function optionItem(opt) {
+    const classes = ['custom-select-option'];
+    if (opt.disabled) classes.push('disabled');
+    if (opt.value === select.value) classes.push('selected');
+    const item = element('div', classes.join(' '), opt.textContent);
+    if (!opt.disabled) item.onclick = () => {
+      select.value = opt.value;
+      select.dispatchEvent(new Event('change'));
+      closePanel();
+    };
+    return item;
+  }
+
+  // 옵션의 비활성화 상태/문구가 로그인 상태에 따라 바뀌므로 열 때마다 새로 그린다.
+  function openPanel() {
+    closeAllCustomSelects();
+    panel.replaceChildren();
+    for (const node of select.children) {
+      if (node.tagName === 'OPTGROUP') {
+        panel.append(element('div', 'custom-select-group', node.label));
+        for (const opt of node.children) panel.append(optionItem(opt));
+      } else if (node.tagName === 'OPTION') {
+        panel.append(optionItem(node));
+      }
+    }
+    panel.style.display = 'block';
+  }
+
+  trigger.onclick = (e) => {
+    e.stopPropagation();
+    if (panel.style.display === 'block') closePanel(); else openPanel();
+  };
+  panel.onclick = (e) => e.stopPropagation();
+  select.addEventListener('change', syncTrigger);
+
+  const closeOthers = closeAllCustomSelects;
+  closeAllCustomSelects = () => { closeOthers(); closePanel(); };
+
+  wrap.append(trigger, panel);
+  select.after(wrap);
+  if (select.style.display === 'none') wrap.style.display = 'none'; // 원래 숨겨져 있던 select면 대체 UI도 숨긴 채로 시작
+  select.style.display = 'none';
+  syncTrigger();
+}
+
+document.addEventListener('click', () => closeAllCustomSelects());
+makeCustomSelect('postTag');
+makeCustomSelect('postTeam');
+
 $('postTag').addEventListener('change', (e) => {
   const isAlbum = e.target.value === '앨범 평가';
   const isBaseball = e.target.value === '야구';
   $('albumSearchWrap').style.display = isAlbum ? 'block' : 'none';
-  if (!isAlbum) tempAlbum = { title: null, artist: null, cover: null }; 
-  $('postTeam').style.display = isBaseball ? 'block' : 'none';
-  if (!isBaseball) $('postTeam').value = '';
+  if (!isAlbum) tempAlbum = { title: null, artist: null, cover: null };
+  $('postTeamCustom').style.display = isBaseball ? 'inline-block' : 'none';
+  if (!isBaseball) { $('postTeam').value = ''; $('postTeam').dispatchEvent(new Event('change')); }
 });
 
 $('btnSearchAlbum').addEventListener('click', async () => {
