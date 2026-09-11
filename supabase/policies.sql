@@ -120,6 +120,32 @@ $$;
 grant execute on function public.delete_post_with_password(bigint, text) to anon, authenticated;
 grant execute on function public.delete_comment_with_password(bigint, text) to anon, authenticated;
 
+-- 유동 글도 비밀번호만 맞으면 수정할 수 있게. anon에는 posts update RLS 정책이 아예 없어서
+-- (직접 update는 auth.uid() = user_id 조건이라 유동 글엔 항상 실패) 이 RPC로만 우회 허용한다.
+create or replace function public.edit_post_with_password(
+  p_id bigint, p_password text, p_tag text, p_author text, p_title text, p_content text,
+  p_team text default null, p_rating numeric default null
+) returns boolean
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_hash text;
+begin
+  select guest_password into v_hash from public.posts where id = p_id;
+  if v_hash is null then
+    return false;
+  end if;
+  if v_hash = crypt(p_password, v_hash) then
+    update public.posts set
+      tag = p_tag, author = p_author, title = p_title, content = p_content,
+      team = p_team, rating = coalesce(p_rating, rating)
+    where id = p_id;
+    return true;
+  end if;
+  return false;
+end;
+$$;
+grant execute on function public.edit_post_with_password(bigint, text, text, text, text, text, text, numeric) to anon, authenticated;
+
 -- 유동 비밀번호 해시는 클라이언트에 내려가면 안 된다 (select * 로 그대로 노출되고 있었다).
 -- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
 revoke select on public.posts from anon, authenticated;
@@ -153,5 +179,8 @@ end;
 $$;
 revoke execute on function public.toggle_recommendation(bigint) from public, anon;
 grant execute on function public.toggle_recommendation(bigint) to authenticated;
+
+-- 앨범 평가 별점을 0.5 단위로 매길 수 있도록 정수 -> 소수(1자리) 컬럼으로 변경.
+alter table public.posts alter column rating type numeric(2,1) using rating::numeric(2,1);
 
 notify pgrst, 'reload schema';

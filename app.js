@@ -344,6 +344,7 @@ $('openWriteBtn').onclick = () => {
   }
 
   $('albumResults').replaceChildren(); $('albumQuery').value = '';
+  $('albumSearchOnly').style.display = 'block';
   $('selAlbumWrap').style.display = 'none'; $('starInputWrapper').style.display = 'none';
   tempAlbum = { title: null, artist: null, cover: null };
 
@@ -758,10 +759,10 @@ async function openPostView(postId, pushHistory = true) {
   $('recommendBtn').disabled = alreadyRecommended;
   $('recommendBtn').style.opacity = alreadyRecommended ? '0.5' : '';
 
-  // 수정: 관리자거나 본인이 쓴 글일 때만. 삭제: 그에 더해 유동(비로그인) 글도 비밀번호로 가능하니 버튼 노출.
+  // 수정/삭제: 관리자, 본인이 쓴 글, 유동(비로그인) 글(비밀번호로 인증) 모두 가능.
   const isAuthor = currentUser && currentUser.id === post.user_id;
   const isGuestPost = !post.user_id;
-  $('adminEditBtn').style.display = (isAdmin || isAuthor) ? 'inline-block' : 'none';
+  $('adminEditBtn').style.display = (isAdmin || isAuthor || isGuestPost) ? 'inline-block' : 'none';
   $('adminDeleteBtn').style.display = (isAdmin || isAuthor || isGuestPost) ? 'inline-block' : 'none';
 
   if(post.tag === '앨범 평가' && post.album_title) {
@@ -858,9 +859,28 @@ $('adminEditBtn').addEventListener('click', () => {
   isEditMode = true; $('writeSectionTitle').textContent = '게시글 수정하기'; $('savePostBtn').textContent = '수정 완료';
   $('postTag').value = post.tag; $('postTag').dispatchEvent(new Event('change'));
   $('postTitle').value = post.title; $('postContent').value = post.content;
-  $('albumSearchWrap').style.display = 'none';
   if (post.tag === '야구') $('postTeam').value = post.team || '';
   $('postAuthor').value = post.author || 'ㅇㅇ';
+
+  if (post.tag === '앨범 평가') {
+    // 앨범을 다시 검색하게 하지 않고, 기존 앨범 정보를 보여준 채로 리뷰 내용/별점만 수정하게 한다.
+    tempAlbum = { title: post.album_title, artist: post.album_artist, cover: post.album_cover };
+    $('albumSearchOnly').style.display = 'none';
+    $('selAlbumWrap').style.display = 'flex';
+    setImageSource($('selCover'), post.album_cover);
+    $('selTitle').innerText = post.album_title;
+    $('selArtist').innerText = post.album_artist;
+    $('starInputWrapper').style.display = 'flex';
+    setStars(Number(post.rating) || 5);
+  }
+
+  // 관리자/본인 글이 아니면 유동(비로그인) 글 수정이므로 비밀번호 확인이 필요하다.
+  const isAuthorEdit = currentUser && currentUser.id === post.user_id;
+  const needsPassword = !isAdmin && !isAuthorEdit;
+  $('postGuestPw').value = '';
+  $('postGuestPw').style.display = needsPassword ? 'block' : 'none';
+  $('postGuestPw').placeholder = '비밀번호 (수정하려면 입력)';
+
   switchView('write');
   history.pushState({ view: 'write' }, '', '#write');
 });
@@ -897,11 +917,24 @@ $('savePostBtn').addEventListener('click', async () => {
   if (tag === '야구' && !team) return alert('응원하는 팀을 선택해주세요!');
   if (!currentUser && !isEditMode && !guestPw) return alert('유동 글쓰기는 비밀번호가 필요합니다. (나중에 삭제할 때 사용)');
 
+  const editingPost = isEditMode ? currentPosts.find(p => p.id === currentReadPostId) : null;
+  const canDirectEdit = isEditMode && (isAdmin || (currentUser && editingPost && currentUser.id === editingPost.user_id));
+  if (isEditMode && !canDirectEdit && !guestPw) return alert('수정하려면 작성 시 입력한 비밀번호가 필요합니다.');
+
   $('savePostBtn').disabled = true; $('savePostBtn').textContent = '처리 중...';
   let error;
   if (isEditMode) {
-    const updateData = { tag, author, title, content, ...(tag === '야구' && { team }) };
-    ({ error } = await client.from('posts').update(updateData).eq('id', currentReadPostId));
+    const ratingField = tag === '앨범 평가' ? { rating: currentSelectedRating } : {};
+    if (canDirectEdit) {
+      const updateData = { tag, author, title, content, team: tag === '야구' ? team : null, ...ratingField };
+      ({ error } = await client.from('posts').update(updateData).eq('id', currentReadPostId));
+    } else {
+      const { data, error: rpcError } = await client.rpc('edit_post_with_password', {
+        p_id: currentReadPostId, p_password: guestPw, p_tag: tag, p_author: author, p_title: title, p_content: content,
+        p_team: tag === '야구' ? team : null, p_rating: tag === '앨범 평가' ? currentSelectedRating : null
+      });
+      error = rpcError || (!data ? { message: '비밀번호가 틀렸습니다.' } : null);
+    }
   } else {
     const postData = {
       tag, author, title, content, user_id: currentUser ? currentUser.id : null,
@@ -912,8 +945,9 @@ $('savePostBtn').addEventListener('click', async () => {
     ({ error } = await client.from('posts').insert([postData]));
   }
 
-  $('savePostBtn').disabled = false;
-  if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); returnToBoardAfterAction(); fetchPosts(); } else alert('실패: 권한이 없거나 오류가 발생했습니다.');
+  $('savePostBtn').disabled = false; $('savePostBtn').textContent = isEditMode ? '수정 완료' : '등록하기';
+  if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); returnToBoardAfterAction(); fetchPosts(); }
+  else alert(error.message === '비밀번호가 틀렸습니다.' ? error.message : '실패: 권한이 없거나 오류가 발생했습니다.');
 });
 
 // 브라우저 뒤로가기/앞으로가기 지원

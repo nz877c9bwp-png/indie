@@ -239,18 +239,20 @@
       </div>
       <div class="write-body">
         <div id="albumSearchWrap">
-          <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">평가할 앨범 검색 (Apple Music)</div>
-          <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-            <select id="searchType" style="background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0 10px; border-radius:4px; outline:none; font-family:inherit; height:38px;">
-              <option value="all">통합검색</option>
-              <option value="artistTerm">가수명만</option>
-              <option value="albumTerm">앨범명만</option>
-            </select>
-            <input type="text" id="albumQuery" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px;">
-            <button type="button" id="btnSearchAlbum" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:4px; font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
+          <div id="albumSearchOnly">
+            <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">평가할 앨범 검색 (Apple Music)</div>
+            <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+              <select id="searchType" style="background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0 10px; border-radius:4px; outline:none; font-family:inherit; height:38px;">
+                <option value="all">통합검색</option>
+                <option value="artistTerm">가수명만</option>
+                <option value="albumTerm">앨범명만</option>
+              </select>
+              <input type="text" id="albumQuery" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px;">
+              <button type="button" id="btnSearchAlbum" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:4px; font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
+            </div>
+            <div id="albumResults" class="search-result-row"></div>
           </div>
-          <div id="albumResults" class="search-result-row"></div>
-          
+
           <div id="selAlbumWrap" style="display:none; align-items:center; gap:16px; margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
             <img id="selCover" src="" style="width:80px; height:80px; border-radius:6px; object-fit:cover; border:1px solid var(--border);">
             <div style="flex:1;">
