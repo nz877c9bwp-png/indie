@@ -8,6 +8,16 @@ const switchView = (view) => {
   window.scrollTo(0, 0);
 };
 
+// 모바일 햄버거 메뉴: 게시판 목록을 좌측 드로어로 열고 닫는다.
+function toggleSidebarDrawer(open) {
+  document.querySelector('.sidebar').classList.toggle('open', open);
+  $('sidebarBackdrop').classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+$('mobileMenuBtn').addEventListener('click', () => toggleSidebarDrawer(true));
+$('sidebarBackdrop').addEventListener('click', () => toggleSidebarDrawer(false));
+document.querySelectorAll('.sidebar a').forEach(a => a.addEventListener('click', () => toggleSidebarDrawer(false)));
+
 // 비로그인(유동) 사용자의 추천 중복 방지용 로컬 캐시. 기기/브라우저 단위라 완벽하진 않지만
 // 새로고침해도 유지되고, 서버에 사용자 식별자를 남기지 않는 선에서 "한 번만" 제약을 준다.
 function getRecommendedCache() {
