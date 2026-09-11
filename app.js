@@ -220,8 +220,13 @@ $('doLoginBtn').addEventListener('click', async () => {
 });
 
 // 카카오는 OAuth 특성상 로그인/회원가입이 동일한 호출이다 (처음 인증하면 자동으로 계정이 생성됨).
+// Supabase가 기본으로 account_email까지 요청하는데, 이건 카카오 비즈 앱 전환 전에는 동의항목에 없어 KOE205로 거부된다.
+// 실제로 앱에 등록해둔 동의항목(닉네임/프로필사진)만 명시적으로 요청해야 한다.
 async function kakaoAuth() {
-  const { error } = await client.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: location.origin } });
+  const { error } = await client.auth.signInWithOAuth({
+    provider: 'kakao',
+    options: { redirectTo: location.origin, scopes: 'profile_nickname profile_image' }
+  });
   if (error) alert('카카오 인증 실패: ' + error.message);
 }
 $('kakaoLoginBtn').addEventListener('click', kakaoAuth);
