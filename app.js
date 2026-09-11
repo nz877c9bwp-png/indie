@@ -398,7 +398,7 @@ function renderPosts() {
       const stats = element('div', 'widget-stats');
       const recs = element('span', '', `추천 ${post.recs || 0}`); recs.style.color = 'var(--music)';
       const author = element('span', 'author-wrap'); author.style.marginLeft = 'auto';
-      author.append(document.createTextNode(post.author || 'ㅇㅇ'));
+      author.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
       if (post.tag === '야구' && post.team) author.append(teamBadge(post.team));
       stats.append(element('span', '', `조회 ${post.views || 0}`), recs, author);
       card.append(element('span', 'hot-badge', `HOT ${i + 1}`), element('div', 'widget-title', escapeHTML(post.title)), stats);
@@ -503,7 +503,8 @@ function renderPosts() {
         if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
         
         const authorCell = element('td', 'col-author');
-        const authorWrap = element('span', 'author-wrap', post.author || 'ㅇㅇ');
+        const authorWrap = element('span', 'author-wrap');
+        authorWrap.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
         if (post.tag === '야구' && post.team) authorWrap.append(teamBadge(post.team));
         authorCell.append(authorWrap);
 
