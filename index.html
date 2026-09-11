@@ -25,7 +25,7 @@
       <span class="brand-word"><span class="bw-group bw-slot"><span class="bw-big">D</span><span class="bw-small">o</span></span><span class="bw-group bw-slot"><span class="bw-big">U</span></span><span class="bw-group bw-slot"><span class="bw-big">L</span><span class="bw-small">ike</span></span><span class="bw-group bw-slot"><span class="bw-big">I</span><span class="bw-small">ndie</span></span><span class="bw-group"><span class="bw-big bw-kr">.KR</span></span></span>
     </div>
     <div class="search">
-      <input type="text" id="headerSearchInput" placeholder="게시글 검색" onkeypress="if(event.key === 'Enter') $('headerSearchBtn').click()">
+      <input type="text" id="headerSearchInput" name="boardSearchQuery" autocomplete="off" placeholder="게시글 검색" onkeypress="if(event.key === 'Enter') $('headerSearchBtn').click()">
       <button id="headerSearchBtn">검색</button>
     </div>
     <div class="user-actions">
@@ -223,7 +223,7 @@
                 <option value="title">제목</option>
                 <option value="author">글쓴이</option>
               </select>
-              <input type="text" id="postSearchInput" placeholder="검색어 입력" onkeypress="if(event.key === 'Enter') $('btnPostSearch').click()" />
+              <input type="text" id="postSearchInput" name="postSearchQuery" autocomplete="off" placeholder="검색어 입력" onkeypress="if(event.key === 'Enter') $('btnPostSearch').click()" />
               <button class="btn-dc-search" id="btnPostSearch">검색</button>
             </div>
             <button class="btn-dc-write" onclick="$('openWriteBtn').click()">글쓰기</button>

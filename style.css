@@ -78,6 +78,16 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 
 .search{ flex:1; display:flex; max-width:420px; background:var(--bg); border-radius:999px; overflow:hidden; box-shadow:var(--shadow-inset-sm); transition:box-shadow 0.2s;}
 .search input{ flex:1; background:none; border:none; outline:none; color:var(--text); padding:10px 8px 10px 18px; font-size:13px; font-family:inherit; min-width:0;}
+
+/* 브라우저 자동완성(주소/이메일 등)이 채워질 때 나오는 기본 하늘색 배경이 뉴모피즘 톤을 깨는 것 방지 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg) inset;
+  box-shadow: 0 0 0px 1000px var(--bg) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
 .search button{ border:none; background:var(--panel); color:var(--text); padding:0 18px; margin:4px; border-radius:999px; cursor:pointer; font-family:inherit; font-weight:600; transition:0.2s; white-space:nowrap; box-shadow:var(--shadow-sm);}
 .search button:hover { color:var(--music); }
 .search button:active { box-shadow:var(--shadow-inset-sm); }
