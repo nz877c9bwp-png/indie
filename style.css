@@ -478,6 +478,7 @@ input:-webkit-autofill:focus {
 .comment-item.reply { margin-left: 30px; box-shadow:var(--shadow-inset-sm); }
 .ci-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; flex-wrap:wrap; }
 .ci-author { font-weight: bold; color: var(--text); }
+.ci-op-badge { color: var(--music); font-weight: 800; margin-left: 4px; }
 .ci-date { color: var(--muted); font-size: 12px; }
 .ci-content { font-size: 14px; color: var(--text); line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
 .ci-actions button { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 0; margin-right: 12px; font-family: inherit; font-weight: bold; transition:color 0.15s; }

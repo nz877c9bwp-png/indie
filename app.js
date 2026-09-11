@@ -171,6 +171,14 @@ function firstThumbnail(post) {
   return imagePart ? imagePart.image : null;
 }
 
+// 유동 글/댓글의 기본 닉네임. "인좋"이 이미 쓰였으면 인좋2, 인좋3처럼 안 겹치는 다음 번호를 찾는다.
+function nextGuestNickname(existingAuthors) {
+  const used = new Set(existingAuthors);
+  let candidate = '인좋', n = 2;
+  while (used.has(candidate)) { candidate = `인좋${n}`; n += 1; }
+  return candidate;
+}
+
 // --- 인증 및 계정 설정 ---
 // 카카오 등 소셜 로그인은 이메일 없이 가입될 수 있어 email.split('@')로 바로 닉네임을 뽑으면 안 된다.
 function resolveNickname(user) {
@@ -425,6 +433,7 @@ $('openWriteBtn').onclick = () => {
   $('writeSectionTitle').textContent = '새 글 작성하기'; $('savePostBtn').textContent = '등록하기';
   $('postTitle').value = ''; $('postContent').value = ''; $('postGuestPw').value = '';
   $('postGuestPw').style.display = currentUser ? 'none' : '';
+  $('postAuthor').value = currentUser ? resolveNickname(currentUser) : nextGuestNickname(currentPosts.map(p => p.author));
 
   updateRestrictedTagOptions();
   // 보고 있던 게시판을 그대로 미리 선택해준다. 같이 갈 사람/장터라도 일단 선택은 되고,
@@ -703,7 +712,10 @@ async function fetchAndRenderComments() {
   
   currentComments = data || [];
   $('commentCount').textContent = currentComments.length;
-  
+
+  // 유동 댓글 기본 닉네임: 이 글의 댓글 중 이미 쓰인 "인좋"류와 안 겹치는 다음 번호로.
+  if (!currentUser) $('commentAuthor').value = nextGuestNickname(currentComments.map(c => c.author));
+
   const parents = currentComments.filter(c => !c.parent_id);
   const replies = currentComments.filter(c => c.parent_id);
   
@@ -732,6 +744,11 @@ function createCommentElement(comment, isReply) {
 
   const authorSpan = element('span', 'ci-author', authorDisplay);
   if (comment.is_kakao) authorSpan.append(kakaoMark());
+  // 댓글 작성자 닉네임이 이 글의 작성자 닉네임과 같으면(예: 인좋) 글쓴이가 단 댓글임을 표시.
+  const openPost = currentPosts.find(p => p.id === currentReadPostId);
+  if (openPost && comment.author && comment.author === openPost.author) {
+    authorSpan.append(element('span', 'ci-op-badge', '(작성자)'));
+  }
 
   meta.append(
     authorSpan,
@@ -774,7 +791,7 @@ function createCommentElement(comment, isReply) {
     const replyForm = element('div', 'reply-write-form');
     replyForm.id = `replyForm_${comment.id}`;
     replyForm.innerHTML = `
-      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : ''}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
+      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname(currentComments.map(c => c.author)))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
       <div class="cw-input">
         <textarea id="replyContent_${comment.id}" placeholder="대댓글을 입력하세요."></textarea>
         <button onclick="submitComment(${comment.id})">등록</button>
@@ -800,7 +817,7 @@ window.submitComment = async (parentId = null) => {
   const contentId = parentId ? `replyContent_${parentId}` : 'commentContent';
   const pwId = parentId ? `replyGuestPw_${parentId}` : 'commentGuestPw';
 
-  const author = escapeHTML($(authorId).value.trim()) || 'ㅇㅇ';
+  const author = escapeHTML($(authorId).value.trim()) || '인좋';
   const content = $(contentId).value.trim();
   const guestPw = $(pwId).value.trim();
 
@@ -879,7 +896,7 @@ async function openPostView(postId, pushHistory = true) {
   } else $('btnEvalSame').style.display = 'none';
 
   if (currentUser) $('commentAuthor').value = resolveNickname(currentUser);
-  else $('commentAuthor').value = '';
+  // 유동 기본 닉네임은 이 글의 댓글 목록을 불러온 뒤 fetchAndRenderComments에서 채운다 (중복 확인 필요).
   $('commentContent').value = ''; $('commentGuestPw').value = '';
   $('commentGuestPw').style.display = currentUser ? 'none' : '';
 
@@ -1027,7 +1044,7 @@ $('savePostBtn').addEventListener('click', async () => {
   const tag = $('postTag').value;
   const title = escapeHTML($('postTitle').value);
   const content = $('postContent').value; // 본문은 렌더링 시 필터링됨
-  const author = escapeHTML($('postAuthor').value.trim()) || 'ㅇㅇ(유동)';
+  const author = escapeHTML($('postAuthor').value.trim()) || '인좋';
   const team = $('postTeam').value;
   const guestPw = $('postGuestPw').value.trim();
 
