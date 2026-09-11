@@ -508,7 +508,7 @@ function renderPosts() {
         }
         if (post.is_notice) titleCell.append(element('span', 'notice-badge', '공지'));
         const link = element('a', 'dc-title-link', escapeHTML(post.title));
-        link.href = '#';
+        link.href = '#post-' + post.id; // 휠클릭/새 탭 열기 시 제목 링크가 실제로 그 글을 가리키게 한다
         titleCell.append(link);
 
         if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
@@ -986,10 +986,29 @@ window.addEventListener('popstate', (e) => {
     switchView('write');
   }
 });
-history.replaceState({ view: 'board', category: '전체' }, '', location.pathname + location.search);
 
-// 초기화
-fetchPosts();
+// 휠클릭/새 탭 열기 등으로 #post-123 같은 주소에 바로 들어왔을 때, 게시판 목록이 아니라 해당 글이 뜨게 한다.
+function routeFromHash() {
+  const postMatch = location.hash.match(/^#post-(\d+)/);
+  if (postMatch) {
+    const postId = Number(postMatch[1]);
+    history.replaceState({ view: 'postView', postId }, '', location.hash);
+    openPostView(postId, false);
+    return;
+  }
+  const boardMatch = location.hash.match(/^#board-(.+)/);
+  if (boardMatch) {
+    const category = decodeURIComponent(boardMatch[1]);
+    history.replaceState({ view: 'board', category }, '', location.hash);
+    changeBoard(category, false);
+    return;
+  }
+  history.replaceState({ view: 'board', category: '전체' }, '', location.pathname + location.search);
+  changeBoard('전체', false);
+}
+
+// 초기화: 게시글을 먼저 불러온 뒤에 주소를 반영해야 #post-123 링크로 바로 들어왔을 때 그 글을 찾을 수 있다.
+fetchPosts().then(routeFromHash);
 
 // PC 화면에서 사이드바가 스크롤을 스프링처럼 관성 있게 따라오도록 처리
 (function initSidebarSpring() {
