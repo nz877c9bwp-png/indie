@@ -438,8 +438,9 @@ input:-webkit-autofill:focus {
   .team-tab-btn { padding: 7px 14px; font-size: 12px; }
   .team-badge { font-size: 10px; padding: 1px 6px; margin-left: 4px; }
 
-  .post-table-wrap { margin: 0 20px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
-  .view-box, #writeSection, #albumDetailSection { margin: 0 20px; width: auto; }
+  .post-table-wrap { margin: 0 20px 28px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
+  .view-box, #writeSection, #albumDetailSection { margin: 0 20px 28px; width: auto; }
+  #albumBoardFooter { margin-bottom: 28px; }
   .table-scroll { overflow-x: visible; overflow-y: visible; border-radius: 0; }
   .dc-table { display: block; min-width: 0; border: none; width: 100%; box-sizing: border-box; }
   .dc-table thead { display: none; }
