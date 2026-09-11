@@ -452,11 +452,17 @@ function renderPosts() {
         tag.append(element('span', 'tag', post.tag));
 
         const titleCell = element('td', 'col-title');
+        if (post.album_cover) {
+          const thumb = element('img', 'dc-album-thumb');
+          thumb.alt = '';
+          setImageSource(thumb, post.album_cover);
+          titleCell.append(thumb);
+        }
         const link = element('a', 'dc-title-link', escapeHTML(post.title));
         link.href = '#';
         titleCell.append(link);
-        
-        if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`)); 
+
+        if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${post.rating}`));
         
         const authorCell = element('td', 'col-author');
         authorCell.append(escapeHTML(post.author || 'ㅇㅇ'));
