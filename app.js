@@ -476,7 +476,7 @@ $('openWriteBtn').onclick = () => {
   $('postTitle').value = ''; $('postContent').value = ''; $('postGuestPw').value = '';
   updateContentPreview();
   $('postGuestPw').style.display = currentUser ? 'none' : '';
-  $('postAuthor').value = currentUser ? resolveNickname(currentUser) : nextGuestNickname(currentPosts.map(p => p.author));
+  $('postAuthor').value = currentUser ? resolveNickname(currentUser) : '인좋';
 
   updateRestrictedTagOptions();
   // 보고 있던 게시판을 그대로 미리 선택해준다. 같이 갈 사람/장터라도 일단 선택은 되고,
