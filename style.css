@@ -141,7 +141,7 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
 .col-id { width: 8%; color:var(--muted); }
 .col-category { width: 12%; }
 .col-title { width: auto; text-align:left; padding-left:14px !important; }
-.col-author { width: 12%; color:var(--muted); }
+.col-author { width: 12%; color:var(--muted); white-space:nowrap; }
 .col-date { width: 10%; color:var(--muted); }
 .col-views { width: 8%; color:var(--muted); }
 .col-likes { width: 8%; color:var(--muted); }
