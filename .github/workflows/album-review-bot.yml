@@ -15,10 +15,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Anthropic SDK
-        run: npm install @anthropic-ai/sdk
-
       - name: Write and post a new album review
         run: node scripts/auto-album-review.mjs
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
