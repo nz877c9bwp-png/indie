@@ -141,7 +141,10 @@ async function insertPost(review, coverUrl, albumTitle, albumArtist) {
     rating: review.rating,
   };
 
-  const res = await fetch(sb("posts"), {
+  // select=id,title로 반환 컬럼을 제한해야 한다 — anon 롤은 posts에 컬럼 단위
+  // select 권한만 있고(guest_password 등은 제외) 테이블 전체 select 권한은 없어서,
+  // return=representation이 기본값인 select=*로 RETURNING하려 하면 권한 오류가 난다.
+  const res = await fetch(sb("posts?select=id,title"), {
     method: "POST",
     headers: {
       ...sbHeaders,
