@@ -16,6 +16,11 @@ jobs:
           node-version: '20'
 
       - name: Write and post a new album review
-        run: node scripts/auto-album-review.mjs
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 20
+          command: node scripts/auto-album-review.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
