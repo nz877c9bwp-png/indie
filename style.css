@@ -230,7 +230,7 @@ input:-webkit-autofill:focus {
 .view-album-info img { width:88px; height:88px; border-radius:var(--radius-sm); object-fit:cover; box-shadow:var(--shadow-sm); flex:none; }
 .view-album-name { font-size:16px; font-weight:800; color:var(--text); }
 .view-album-artist { font-size:13px; color:var(--muted); margin-top:2px; }
-.view-album-rating { font-size:16px; font-weight:900; color:var(--special); margin-top:8px; }
+.view-album-rating { font-size:13px; font-weight:600; color:var(--special); margin-top:8px; }
 
 .rc-header { display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;}
 .rc-author { font-size:13px; font-weight:bold; color:var(--muted);}
