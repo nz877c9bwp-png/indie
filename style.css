@@ -208,16 +208,21 @@ input:-webkit-autofill:focus {
 
 .col-id { width: 8%; color:var(--muted); }
 .col-category { width: 12%; }
-.col-title { width: auto; text-align:left; padding-left:14px !important; }
+/* 예전엔 td 전체(제목+뱃지)를 한 덩어리로 말줄임표 처리해서, 제목이 길면
+   [댓글수]/★평점 뱃지까지 통째로 잘려나가거나 가려졌다. td를 플렉스
+   컨테이너로 두고 제목 링크에만 말줄임표를 걸어서, 뱃지는 항상 온전히
+   보이고 제목 쪽만 화면 폭에 맞춰 잘리게 했다. */
+.col-title { width: auto; text-align:left; padding-left:14px !important; display:flex; align-items:center; white-space:normal; }
 .col-author { width: 12%; color:var(--muted); }
 .col-date { width: 10%; color:var(--muted); }
 .col-views { width: 8%; color:var(--muted); }
 .col-likes { width: 8%; color:var(--muted); }
 
-.dc-title-link { color:var(--text); text-decoration:none; }
+.dc-title-link { color:var(--text); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1 1 auto; }
 .dc-title-link:hover { color:var(--music); text-decoration:underline; }
-.dc-comment-count { color:var(--special); font-weight:bold; font-size:11px; margin-left:5px; }
-.dc-cmt-count { color:var(--admin); font-weight:800; font-size:12px; margin-left:4px; }
+.dc-comment-count { color:var(--special); font-weight:bold; font-size:11px; margin-left:5px; flex:0 0 auto; }
+.dc-cmt-count { color:var(--admin); font-weight:800; font-size:12px; margin-left:4px; flex:0 0 auto; }
+.col-title .dc-album-thumb, .col-title .notice-badge { flex:0 0 auto; }
 .dc-album-thumb { width:26px; height:26px; object-fit:cover; border-radius:6px; vertical-align:middle; margin-right:8px; box-shadow:var(--shadow-sm); }
 
 /* 하단 컨트롤 */
@@ -583,7 +588,7 @@ input:-webkit-autofill:focus {
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
 
   .col-category { flex: 0 0 auto; }
-  .col-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 0 !important; }
+  .col-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 500; padding-left: 0 !important; overflow: hidden; }
 
   .col-date, .col-views, .col-likes { flex: 0 0 auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
   .col-date::before { content: ''; }
