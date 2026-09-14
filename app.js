@@ -1370,29 +1370,47 @@ async function fetchAndRenderComments() {
   // 글쓴이 닉네임과 겹쳐도(둘 다 "인좋") 상관없이 댓글은 항상 "인좋"부터 시작한다.
   if (!currentUser) $('commentAuthor').value = nextGuestNickname(currentComments.map(c => c.author));
 
-  const parents = currentComments.filter(c => !c.parent_id);
-  const replies = currentComments.filter(c => c.parent_id);
-  
   const list = $('commentList');
   list.replaceChildren();
 
-  if (parents.length === 0) {
+  if (currentComments.length === 0) {
     list.innerHTML = '<li style="padding:30px; text-align:center; color:var(--muted); border-bottom:1px solid var(--border);">등록된 댓글이 없습니다.</li>';
     return;
   }
 
-  parents.forEach(parent => {
-    list.append(createCommentElement(parent, false));
-    replies.filter(r => r.parent_id === parent.id).forEach(reply => {
-      list.append(createCommentElement(reply, true));
-    });
+  // 답글에 답글을 달아도 디시처럼 갈래로 계속 뻗어나가게, parent_id로 트리를 만들어
+  // 재귀적으로 그린다. 부모가 삭제돼서 parent_id가 가리키는 대상이 없으면(고아 댓글)
+  // 최상위 댓글처럼 취급한다.
+  const byId = new Map(currentComments.map(c => [c.id, c]));
+  const childrenOf = new Map();
+  const roots = [];
+  currentComments.forEach(c => {
+    if (c.parent_id && byId.has(c.parent_id)) {
+      if (!childrenOf.has(c.parent_id)) childrenOf.set(c.parent_id, []);
+      childrenOf.get(c.parent_id).push(c);
+    } else {
+      roots.push(c);
+    }
   });
+
+  const appendTree = (comment, depth) => {
+    list.append(createCommentElement(comment, depth));
+    (childrenOf.get(comment.id) || []).forEach(child => appendTree(child, depth + 1));
+  };
+  roots.forEach(root => appendTree(root, 0));
 }
 
-function createCommentElement(comment, isReply) {
+// 답글이 깊어질수록 계속 들여쓰면 모바일에서 글자 쓸 공간이 없어지므로, 이 depth부터는
+// 더 들여쓰지 않고 화살표(↳)로만 "답글의 답글"임을 표시한다(디시도 일정 깊이부턴 flat).
+const MAX_INDENT_DEPTH = 6;
+const REPLY_INDENT_PX = 18;
+
+function createCommentElement(comment, depth) {
+  const isReply = depth > 0;
   const li = element('li', `comment-item ${isReply ? 'reply' : ''}`);
+  if (isReply) li.style.marginLeft = Math.min(depth, MAX_INDENT_DEPTH) * REPLY_INDENT_PX + 'px';
   const meta = element('div', 'ci-meta');
-  
+
   let authorDisplay = comment.author || 'ㅇㅇ';
   if (isReply) authorDisplay = '↳ ' + authorDisplay;
 
@@ -1416,11 +1434,9 @@ function createCommentElement(comment, isReply) {
   );
   
   const actions = element('div', 'ci-actions');
-  if (!isReply) {
-    const replyBtn = element('button', '', '답글');
-    replyBtn.onclick = () => toggleReplyForm(comment.id);
-    actions.append(replyBtn);
-  }
+  const replyBtn = element('button', '', '답글');
+  replyBtn.onclick = () => toggleReplyForm(comment.id);
+  actions.append(replyBtn);
   const reportBtn = element('button', '', '신고');
   reportBtn.onclick = () => reportContent('comment', comment.id);
   const blockBtn = element('button', '', '차단');
@@ -1451,19 +1467,18 @@ function createCommentElement(comment, isReply) {
   }
 
   li.append(meta, element('div', 'ci-content', escapeHTML(comment.content)), actions);
-  
-  if (!isReply) {
-    const replyForm = element('div', 'reply-write-form');
-    replyForm.id = `replyForm_${comment.id}`;
-    replyForm.innerHTML = `
-      <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname(currentComments.map(c => c.author)))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
-      <div class="cw-input">
-        <textarea id="replyContent_${comment.id}" placeholder="대댓글을 입력하세요."></textarea>
-        <button onclick="submitComment(${comment.id})">등록</button>
-      </div>
-    `;
-    li.append(replyForm);
-  }
+
+  // 답글/대댓글 모두 자기 자신에게 다시 답글을 달 수 있어야 갈래로 계속 뻗어나갈 수 있다.
+  const replyForm = element('div', 'reply-write-form');
+  replyForm.id = `replyForm_${comment.id}`;
+  replyForm.innerHTML = `
+    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname(currentComments.map(c => c.author)))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
+    <div class="cw-input">
+      <textarea id="replyContent_${comment.id}" placeholder="답글을 입력하세요."></textarea>
+      <button onclick="submitComment(${comment.id})">등록</button>
+    </div>
+  `;
+  li.append(replyForm);
   return li;
 }
 
