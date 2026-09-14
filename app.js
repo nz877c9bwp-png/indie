@@ -65,7 +65,7 @@ const ADMIN_EMAIL = 'bkseungah010223@gmail.com';
 // 구글 클라우드 콘솔에서 "웹사이트 제한(https://duli.kr/*)" + "YouTube Data API v3만
 // 허용"으로 제한해서 발급받은 키를 여기에 넣는다. 빈 문자열이면(키를 아직 안 넣었으면)
 // 유튜브 검색 자체를 건너뛴다 — 이 리포를 포크해서 쓰는 다른 배포에서도 안전하게 동작한다.
-const YOUTUBE_API_KEY = '';
+const YOUTUBE_API_KEY = 'AIzaSyALwR11EPar0GDl__PIzSMHagT8ngQ8Ueo';
 
 // --- 상태 관리 변수 ---
 let currentPosts = [], currentCategory = '전체'; 
