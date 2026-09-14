@@ -62,7 +62,7 @@
   }
 }
 *{box-sizing:border-box;}
-body{ margin:0; background:var(--bg); color:var(--text); font-family:'SUIT Variable', 'Pretendard', sans-serif; font-size:15px; letter-spacing:-0.2px; line-height:1.55; -webkit-font-smoothing: antialiased; display:flex; flex-direction:column; min-height:100vh; overflow-x:hidden;}
+body{ margin:0; background:var(--bg); color:var(--text); font-family:'SUIT Variable', 'Pretendard', sans-serif; font-size:15px; letter-spacing:-0.2px; line-height:1.55; -webkit-font-smoothing: antialiased; display:flex; flex-direction:column; min-height:100vh; overflow-x:hidden; padding-bottom:env(safe-area-inset-bottom);}
 body::after{
   content:'';
   position:fixed; inset:0; z-index:250; pointer-events:none;
@@ -83,7 +83,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 ::-webkit-scrollbar-thumb{ background:var(--muted-2); border-radius:10px; border:2px solid var(--bg); }
 ::-webkit-scrollbar-thumb:hover{ background:var(--muted); }
 
-header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px); -webkit-backdrop-filter:saturate(180%) blur(10px); position:sticky; top:0; z-index:50; box-shadow: 0 8px 20px rgba(var(--sh-dark),0.12);}
+header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px); -webkit-backdrop-filter:saturate(180%) blur(10px); position:sticky; top:0; z-index:50; box-shadow: 0 8px 20px rgba(var(--sh-dark),0.12); padding-top:env(safe-area-inset-top);}
 .header-inner{ max-width:1180px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;}
 
 /* 모바일 전용 햄버거 메뉴 + 드로어 배경. PC에서는 기본적으로 숨김. */
@@ -459,7 +459,7 @@ input:-webkit-autofill:focus {
     background: var(--panel);
     box-shadow: none;
     border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    padding: 24px 16px 24px 56px;
+    padding: calc(24px + env(safe-area-inset-top)) 16px 24px 56px;
     box-sizing: border-box;
     overflow-y: auto;
     scrollbar-width: none;
