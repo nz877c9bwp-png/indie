@@ -1,4 +1,6 @@
-// 3시간마다 GitHub Actions에서 실행되는 앨범 평가 자동 등록 스크립트.
+// GitHub Actions에서 매일 15~20시(KST) 매시 정각에 "체크"용으로 실행되는
+// 앨범 평가 자동 등록 스크립트. 실제로는 평균 3일에 한 번, 그 6번의 체크 중
+// 무작위로 뽑힌 시각에만 실제로 글을 쓴다 (아래 shouldPostNow 참고).
 // Claude 클라우드 루틴은 샌드박스 네트워크 정책상 Supabase/iTunes에 접속이 막혀서
 // 대신 GitHub Actions(제약 없는 아웃바운드)에서 직접 실행한다.
 // 글 생성은 비용이 들지 않는 Gemini API 무료 티어를 쓴다. gemini-2.5-flash는
@@ -7,6 +9,41 @@
 // (문서상 애매함) 검색 도구는 빼고 모델 자체 지식만으로 감상을 쓰게 한다.
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-3.6-flash";
+
+const MIN_DAYS_BETWEEN_POSTS = 3;
+// 이 6개는 워크플로 cron('0 6-11 * * *')이 호출되는 KST 시각과 정확히 일치해야 한다.
+const DAILY_CHECK_HOURS_KST = [15, 16, 17, 18, 19, 20];
+
+function nowInKst() {
+  // UTC + 9시간
+  return new Date(Date.now() + 9 * 60 * 60 * 1000);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// 오늘 이 시각에 실제로 글을 쓸지 결정한다. 마지막 글 이후 3일이 안 지났으면 무조건 쉰다.
+// 3일이 지났으면, 남은 체크 횟수 중 이번 차례가 뽑힐 확률을 1/n로 둬서
+// 15~20시 사이 어느 시각이든 균등하게 뽑히게 하고, 마지막 체크(20시)까지 아무것도
+// 안 뽑혔으면 그날은 무조건 그 시각에 쓰도록 강제한다(확률 1).
+function shouldPostNow(daysSinceLastPost) {
+  if (daysSinceLastPost < MIN_DAYS_BETWEEN_POSTS) {
+    return { post: false, reason: `아직 ${daysSinceLastPost.toFixed(1)}일밖에 안 지남 (${MIN_DAYS_BETWEEN_POSTS}일 필요)` };
+  }
+  const kstHour = nowInKst().getUTCHours();
+  const slotIndex = DAILY_CHECK_HOURS_KST.indexOf(kstHour);
+  if (slotIndex === -1) {
+    return { post: false, reason: `체크 시간대(${DAILY_CHECK_HOURS_KST.join(",")}시)가 아님, 현재 KST ${kstHour}시` };
+  }
+  const slotsRemaining = DAILY_CHECK_HOURS_KST.length - slotIndex;
+  const roll = Math.random();
+  const threshold = 1 / slotsRemaining;
+  if (roll > threshold) {
+    return { post: false, reason: `이번 시간대는 랜덤 추첨에서 안 뽑힘 (남은 기회 ${slotsRemaining}번)` };
+  }
+  return { post: true, reason: `당첨 (남은 기회 ${slotsRemaining}번 중 이번 차례)` };
+}
 
 const SUPABASE_URL = "https://jvitmimabxupkhrksudu.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -21,7 +58,7 @@ const sbHeaders = {
 async function fetchExistingReviews() {
   const res = await fetch(
     sb(
-      "posts?tag=eq.%EC%95%A8%EB%B2%94%20%ED%8F%89%EA%B0%80&select=title,content,album_title,album_artist,rating&order=id.desc&limit=15"
+      "posts?tag=eq.%EC%95%A8%EB%B2%94%20%ED%8F%89%EA%B0%80&select=title,content,album_title,album_artist,rating,created_at&order=id.desc&limit=15"
     ),
     { headers: { ...sbHeaders, Prefer: "count=exact" } }
   );
@@ -45,6 +82,24 @@ const TONE_PROFILES = [
 function pickToneProfile(totalCount) {
   const bucket = Math.floor(totalCount / 2) % TONE_PROFILES.length;
   return TONE_PROFILES[bucket];
+}
+
+// 평점이 매번 4.5로만 몰리지 않게, 실제 리뷰처럼 호불호가 갈리도록 평점대와
+// 그에 맞는 논조를 가중치를 둬서 무작위로 뽑는다 (부정/무난한 평가 비중도 꽤 둠).
+const RATING_PROFILES = [
+  { min: 4.5, max: 5.0, weight: 0.25, stance: "정말 좋아서 극찬하는 리뷰. 구체적으로 뭐가 왜 좋았는지 짚어라." },
+  { min: 3.5, max: 4.0, weight: 0.3, stance: "전반적으로 만족스럽지만 아쉬운 점도 한두 가지 솔직하게 짚는 리뷰." },
+  { min: 2.5, max: 3.0, weight: 0.25, stance: "무난하거나 애매한 리뷰. 나쁘진 않은데 특별히 인상적이지도 않았다는 뉘앙스." },
+  { min: 1.5, max: 2.0, weight: 0.2, stance: "기대했는데 실망한, 확실히 비판적인 리뷰. 음악적으로 구체적으로 뭐가 아쉬웠는지 써라(근거 없이 욕만 하지 말 것)." },
+];
+function pickRatingProfile() {
+  const totalWeight = RATING_PROFILES.reduce((s, p) => s + p.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const profile of RATING_PROFILES) {
+    if (roll < profile.weight) return profile;
+    roll -= profile.weight;
+  }
+  return RATING_PROFILES[0];
 }
 
 async function searchItunes(artist, album) {
@@ -126,10 +181,14 @@ async function generateReview(existingReviews, totalCount) {
     .map((p) => `[${p.title}]\n${p.content}`)
     .join("\n\n");
   const toneProfile = pickToneProfile(totalCount);
+  const ratingProfile = pickRatingProfile();
 
   const prompt = `너는 한국 인디음악 커뮤니티 사이트 'Do U Like Indie'의 '앨범 평가' 게시판에 "인좋"이라는 유동(비로그인) 닉네임으로 글을 쓰는 실제 이용자다. "인좋"은 이 사이트 유동 이용자들의 기본 닉네임이라 여러 사람이 같이 쓰는 이름이다 — 그래서 매번 같은 사람처럼 보이지 않게 아래 지정된 말투를 반드시 지켜서 써야 한다.
 
 이번 글에서 지켜야 할 말투: ${toneProfile}
+
+이번 글의 평가 성향(반드시 따를 것 — 실제 리뷰들처럼 호불호가 갈려야 하니 매번 극찬만 하면 안 된다): ${ratingProfile.stance}
+평점은 반드시 ${ratingProfile.min}~${ratingProfile.max} 사이(0.5 단위)에서 골라라. 리뷰 본문의 논조가 이 평점과 실제로 맞아야 한다 — 낮은 평점인데 칭찬 일색이거나, 높은 평점인데 비판 일색이면 안 된다.
 
 이미 이 게시판에 올라온 앨범들(절대 중복 선택 금지):
 ${existingList || "(아직 없음)"}
@@ -139,10 +198,10 @@ ${sampleContent || "(참고할 기존 글 없음)"}
 
 할 일:
 1. 위 목록에 없는 실제 인디 앨범을 하나 골라라. 네가 실제로 알고 있는(확신 있는) 앨범만 골라라. 한국 인디/얼터너티브 아티스트를 우선하되(실리카겔, 잔나비, 새소년, 혁오, 검정치마, 브로콜리너마저, 데이먼스이어, 한로로, 술탄오브더디스코, 카더가든, 디어클라우드 등), 해외 인디/얼터너티브도 괜찮다. 장르/아티스트/시대를 매번 다르게 골라라.
-2. 네가 알고 있는 이 앨범의 실제 평가/평판/분위기를 바탕으로, 위에서 지정한 말투로 리뷰를 써라(전문 평론가 말투 아님, 그렇다고 일부러 허접하게 쓰지도 않음). 확신 없는 곡 제목이나 가사는 절대 지어내지/인용하지 말고, 실제 리뷰 문구를 베끼지도 마라. 길이/평점/제목 스타일도 지정된 말투에 맞게 자연스럽게 정해라.
+2. 네가 알고 있는 이 앨범의 실제 평가/평판/분위기를 바탕으로, 위에서 지정한 말투와 평가 성향으로 리뷰를 써라(전문 평론가 말투 아님, 그렇다고 일부러 허접하게 쓰지도 않음). 확신 없는 곡 제목이나 가사는 절대 지어내지/인용하지 말고, 실제 리뷰 문구를 베끼지도 마라. 길이/제목 스타일도 지정된 말투에 맞게 자연스럽게 정해라.
 
 마지막 응답은 반드시 아래 형식의 JSON 객체 하나만 출력해라 (다른 텍스트 없이, 코드블록 없이, 마크다운 표시 없이):
-{"album_artist": "아티스트명(영문 또는 원어 표기, iTunes 검색에 쓸 것)", "album_title": "앨범명", "title": "게시글 제목", "content": "리뷰 본문", "rating": 평점(1.0~5.0, 0.5 단위 숫자)}`;
+{"album_artist": "아티스트명(영문 또는 원어 표기, iTunes 검색에 쓸 것)", "album_title": "앨범명", "title": "게시글 제목", "content": "리뷰 본문", "rating": 평점(${ratingProfile.min}~${ratingProfile.max} 사이, 0.5 단위 숫자)}`;
 
   const finalText = await callGemini(prompt);
   return extractJson(finalText);
@@ -178,10 +237,34 @@ async function insertPost(review, coverUrl, albumTitle, albumArtist) {
   return res.json();
 }
 
+function clampRating(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 3.0;
+  return Math.min(5.0, Math.max(1.0, Math.round(n * 2) / 2));
+}
+
 async function main() {
   const { reviews: existing, totalCount } = await fetchExistingReviews();
+
+  const forcePost = process.env.FORCE_POST === "true";
+  if (forcePost) {
+    console.log("FORCE_POST=true — 스케줄/랜덤 대기를 건너뛰고 즉시 작성한다 (수동 테스트).");
+  } else {
+    const lastPostAt = existing[0]?.created_at ? new Date(existing[0].created_at) : null;
+    const daysSinceLastPost = lastPostAt ? (Date.now() - lastPostAt.getTime()) / (1000 * 60 * 60 * 24) : Infinity;
+    const decision = shouldPostNow(daysSinceLastPost);
+    console.log("Schedule check:", decision.reason);
+    if (!decision.post) return;
+
+    // 당첨된 시간대(정각) 안에서도 매번 같은 분에 올라오지 않게, 최대 55분 랜덤 대기 후 작성한다.
+    const delayMs = Math.floor(Math.random() * 55 * 60 * 1000);
+    console.log(`Posting this run — waiting ${Math.round(delayMs / 60000)} minutes before writing.`);
+    await sleep(delayMs);
+  }
+
   const review = await generateReview(existing, totalCount);
-  console.log("Model picked:", review.album_artist, "-", review.album_title);
+  review.rating = clampRating(review.rating);
+  console.log("Model picked:", review.album_artist, "-", review.album_title, "| rating:", review.rating);
 
   const itunesResult = await searchItunes(review.album_artist, review.album_title);
   if (!itunesResult?.artworkUrl100) {

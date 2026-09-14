@@ -1,9 +1,19 @@
 name: Auto Album Review
 
 on:
+  # 매일 오후 3~8시(KST) 매시 정각에 "체크"만 한다 — 실제로 글을 쓸지는
+  # scripts/auto-album-review.mjs 안에서 (1) 마지막 글 이후 3일이 지났는지
+  # (2) 오늘 이 6번의 체크 중 무작위로 뽑힌 차례인지를 보고 스스로 판단한다.
+  # 그래서 실제 등록 시각은 15:00~20:59(KST) 사이에서 매번 랜덤하게 정해지고,
+  # 등록 주기는 평균 3일에 한 번이 된다.
   schedule:
-    - cron: '32 */3 * * *'
-  workflow_dispatch: {}
+    - cron: '0 6-11 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '스케줄/랜덤 대기 무시하고 즉시 등록 (테스트용)'
+        type: boolean
+        default: false
 
 jobs:
   post-review:
@@ -18,9 +28,11 @@ jobs:
       - name: Write and post a new album review
         uses: nick-fields/retry@v3
         with:
-          timeout_minutes: 5
+          # 당첨된 회차는 최대 55분 랜덤 대기 후 작성하므로 타임아웃을 넉넉히 잡는다.
+          timeout_minutes: 65
           max_attempts: 3
           retry_wait_seconds: 20
           command: node scripts/auto-album-review.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FORCE_POST: ${{ github.event.inputs.force }}
