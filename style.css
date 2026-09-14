@@ -181,17 +181,21 @@ input:-webkit-autofill:focus {
 
 /* 게시판 테이블 */
 .post-table-wrap { width:100%; box-sizing:border-box; background:var(--panel); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); }
-.table-scroll { overflow-x:auto; overflow-y:hidden; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-.dc-table { width:100%; border-collapse:collapse; text-align:center; min-width:650px; }
-.dc-table th { background:transparent; color:var(--muted); font-weight:600; padding:14px 0; font-size:12.5px; }
-.dc-table td { padding:12px 0; vertical-align:middle; font-size:13px; color:var(--text); }
+.table-scroll { overflow-x:hidden; overflow-y:hidden; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+/* 예전엔 min-width:650px로 고정폭을 강제해서, 사이드바 때문에 본문 폭이
+   650px보다 좁아지는 화면(좁은 데스크톱 창, 태블릿 가로)에서 표 자체가
+   가로 스크롤되는 문제가 있었다. table-layout:fixed로 열 폭을 %로 고정하고
+   제목 칸만 화면 폭에 맞게 줄어들며 말줄임표로 잘리게 바꿨다. */
+.dc-table { width:100%; border-collapse:collapse; text-align:center; table-layout:fixed; }
+.dc-table th { background:transparent; color:var(--muted); font-weight:600; padding:14px 0; font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dc-table td { padding:12px 0; vertical-align:middle; font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dc-table tbody tr { transition:background 0.15s; cursor:pointer; }
 .dc-table tbody tr:hover { background:var(--panel-alt); }
 
 .col-id { width: 8%; color:var(--muted); }
 .col-category { width: 12%; }
 .col-title { width: auto; text-align:left; padding-left:14px !important; }
-.col-author { width: 12%; color:var(--muted); white-space:nowrap; }
+.col-author { width: 12%; color:var(--muted); }
 .col-date { width: 10%; color:var(--muted); }
 .col-views { width: 8%; color:var(--muted); }
 .col-likes { width: 8%; color:var(--muted); }
