@@ -511,28 +511,49 @@ async function fetchPosts() {
   renderPosts(); 
 }
 
+function updateGenSortLabels() {
+  $('btnSortLatest').className = genSortType === 'latest' ? 'active' : '';
+  $('btnSortLatest').innerText = genSortType === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순';
+  $('btnSortPopular').className = genSortType === 'popular' ? 'active' : '';
+  $('btnSortPopular').innerText = genSortType === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순';
+}
+function updateAlbSortLabels() {
+  $('btnSortAlbumReview').className = albSortType === 'review' ? 'active' : '';
+  $('btnSortAlbumReview').innerText = albSortType === 'review' && albSortDir === 'asc' ? '리뷰 적은순' : '리뷰 많은순';
+  $('btnSortAlbumDate').className = albSortType === 'date' ? 'active' : '';
+  $('btnSortAlbumDate').innerText = albSortType === 'date' && albSortDir === 'asc' ? '오래된순' : '최신순';
+  $('btnSortAlbumRating').className = albSortType === 'rating' ? 'active' : '';
+  $('btnSortAlbumRating').innerText = albSortType === 'rating' && albSortDir === 'asc' ? '평점 낮은순' : '평점 높은순';
+}
+
 window.toggleSort = (type) => {
   genSortDir = genSortType === type ? (genSortDir === 'desc' ? 'asc' : 'desc') : 'desc';
   genSortType = type;
   currentPage = 1;
-  $('btnSortLatest').className = type === 'latest' ? 'active' : '';
-  $('btnSortLatest').innerText = type === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순';
-  $('btnSortPopular').className = type === 'popular' ? 'active' : '';
-  $('btnSortPopular').innerText = type === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순';
+  updateGenSortLabels();
   renderPosts();
 };
 
 window.toggleAlbumSort = (type) => {
   albSortDir = albSortType === type ? (albSortDir === 'desc' ? 'asc' : 'desc') : 'desc';
   albSortType = type;
-  $('btnSortAlbumReview').className = type === 'review' ? 'active' : '';
-  $('btnSortAlbumReview').innerText = type === 'review' && albSortDir === 'asc' ? '리뷰 적은순' : '리뷰 많은순';
-  $('btnSortAlbumDate').className = type === 'date' ? 'active' : '';
-  $('btnSortAlbumDate').innerText = type === 'date' && albSortDir === 'asc' ? '오래된순' : '최신순';
-  $('btnSortAlbumRating').className = type === 'rating' ? 'active' : '';
-  $('btnSortAlbumRating').innerText = type === 'rating' && albSortDir === 'asc' ? '평점 낮은순' : '평점 높은순';
+  updateAlbSortLabels();
   renderPosts();
 };
+
+// 페이지네이션/정렬/검색/응원팀 필터를 바꿔도 새 히스토리 항목을 쌓지 않고
+// "지금 보고 있는 게시판" 항목 자체를 최신 상태로 갱신해둔다. 그래야 다른
+// 화면(글 읽기 등)으로 갔다가 뒤로가기를 눌렀을 때 보던 페이지/정렬 그대로
+// 돌아온다 — 안 그러면 changeBoard가 매번 1페이지로 리셋해버린다.
+function syncBoardHistoryState() {
+  if (!history.state || history.state.view !== 'board') return;
+  const state = {
+    view: 'board', category: currentCategory, page: currentPage,
+    genSortType, genSortDir, albSortType, albSortDir,
+    postSearchType, postSearchKeyword, baseballTeamFilter,
+  };
+  history.replaceState(state, '', location.hash || (location.pathname + location.search));
+}
 
 function renderPosts() {
   const widgetArea = $('topWidgetArea');
@@ -699,6 +720,7 @@ function renderPosts() {
       renderPagination(totalPages);
     }
   }
+  syncBoardHistoryState();
 }
 
 function renderPagination(totalPages) {
@@ -833,29 +855,39 @@ async function renderMyComments() {
   }));
 }
 
-function changeBoard(category, pushHistory = true) {
+// restoreState가 있으면(뒤로/앞으로가기로 이 게시판에 되돌아온 경우) 그때의
+// 페이지/정렬/검색/응원팀 상태를 그대로 복원한다. 없으면(사이드바 클릭 등
+// 새로 들어온 경우) 항상 1페이지/기본 정렬로 시작한다.
+function changeBoard(category, pushHistory = true, restoreState = null) {
   currentCategory = category;
   const isAlbum = category === '앨범 평가';
   const isBaseball = category === '야구';
-  
+
   $('generalBoardHeader').style.display = isAlbum ? 'none' : 'flex';
   $('albumBoardHeader').style.display = isAlbum ? 'flex' : 'none';
   $('baseballTeamTabs').style.display = isBaseball ? 'flex' : 'none';
-  if (isBaseball) { baseballTeamFilter = '전체'; renderBaseballTabs(); }
+  if (isBaseball) { baseballTeamFilter = restoreState?.baseballTeamFilter || '전체'; renderBaseballTabs(); }
   if (!isAlbum) $('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
-  
-  document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick')?.includes(`'${category}'`)));
-  $('albumBoardSearchInput').value = '';
-  postSearchType = 'all'; postSearchKeyword = '';
-  $('postSearchType').value = 'all'; $('postSearchInput').value = '';
-  currentPage = 1;
 
-  genSortType = 'latest'; genSortDir = 'desc'; albSortType = 'review'; albSortDir = 'desc';
-  $('btnSortLatest').innerText = '최신순'; $('btnSortPopular').innerText = '인기순';
-  $('btnSortAlbumReview').innerText = '리뷰 많은순'; $('btnSortAlbumDate').innerText = '최신순'; $('btnSortAlbumRating').innerText = '평점 높은순';
-  
+  document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick')?.includes(`'${category}'`)));
+  postSearchType = restoreState?.postSearchType || 'all';
+  postSearchKeyword = restoreState?.postSearchKeyword || '';
+  $('albumBoardSearchInput').value = '';
+  $('postSearchType').value = postSearchType; $('postSearchInput').value = postSearchKeyword;
+  currentPage = restoreState?.page || 1;
+
+  genSortType = restoreState?.genSortType || 'latest';
+  genSortDir = restoreState?.genSortDir || 'desc';
+  albSortType = restoreState?.albSortType || 'review';
+  albSortDir = restoreState?.albSortDir || 'desc';
+  updateGenSortLabels();
+  updateAlbSortLabels();
+
+  // renderPosts()(=backToList 내부)가 끝에서 "현재" 히스토리 항목을 최신
+  // 상태로 replaceState하므로, 새 항목을 push하는 건 반드시 그보다 먼저
+  // 해야 한다 — 안 그러면 이전 게시판의 히스토리 항목을 덮어써버린다.
+  if (pushHistory) history.pushState({ view: 'board', category, page: currentPage, genSortType, genSortDir, albSortType, albSortDir, postSearchType, postSearchKeyword, baseballTeamFilter }, '', '#board-' + encodeURIComponent(category));
   backToList();
-  if (pushHistory) history.pushState({ view: 'board', category }, '', '#board-' + encodeURIComponent(category));
 }
 
 // --- 댓글 및 대댓글 기능 ---
@@ -1253,7 +1285,7 @@ $('savePostBtn').addEventListener('click', async () => {
 window.addEventListener('popstate', (e) => {
   const state = e.state;
   if (!state || state.view === 'board') {
-    changeBoard(state?.category || '전체', false);
+    changeBoard(state?.category || '전체', false, state || null);
   } else if (state.view === 'postView') {
     openPostView(state.postId, false);
   } else if (state.view === 'albumDetail') {
