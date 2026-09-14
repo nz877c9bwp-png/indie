@@ -1303,11 +1303,18 @@ function changeBoard(category, pushHistory = true, restoreState = null) {
   backToList();
 }
 
-// --- 신고/차단 (앱스토어 심사 지침 1.2: 사용자 생성 콘텐츠) ---
+// --- 신고/차단 (앱스토어 심사 지침 1.2: 사용자 생성 콘텐츠) --- 둘 다 로그인 사용자만.
+const requireLogin = () => {
+  if (currentUser) return true;
+  alert('로그인 후 이용할 수 있습니다.');
+  toggleModal('loginModal', true);
+  return false;
+};
 window.reportContent = async (type, id) => {
+  if (!requireLogin()) return;
   const reason = prompt('신고 사유를 적어주세요. (욕설·혐오, 도배·광고, 권리 침해 등)');
   if (reason === null) return;
-  const { error } = await client.from('reports').insert([{ target_type: type, target_id: id, reason: reason.trim() || null, reporter_id: currentUser?.id || null }]);
+  const { error } = await client.from('reports').insert([{ target_type: type, target_id: id, reason: reason.trim() || null, reporter_id: currentUser.id }]);
   alert(error ? '신고 접수에 실패했습니다: ' + error.message : '신고가 접수되었습니다. 확인 후 조치하겠습니다.');
 };
 
@@ -1318,6 +1325,7 @@ const blockedKeys = new Set((() => { try { return JSON.parse(localStorage.getIte
 const blockKey = (item, type) => item.user_id ? 'u:' + item.user_id : (/^인좋\d*$/.test(item.author || '') ? `${type}:${item.id}` : 'n:' + item.author);
 const isBlocked = (item, type) => blockedKeys.has(blockKey(item, type));
 function blockAuthor(item, type) {
+  if (!requireLogin()) return false;
   if (!confirm(`'${item.author || 'ㅇㅇ'}'님의 글과 댓글을 더 이상 보지 않을까요?`)) return false;
   blockedKeys.add(blockKey(item, type));
   try { localStorage.setItem('blockedUsers', JSON.stringify([...blockedKeys])); } catch {}
