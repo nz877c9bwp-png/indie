@@ -159,9 +159,12 @@ grant execute on function public.delete_comment_with_password(bigint, text) to a
 
 -- 유동 글도 비밀번호만 맞으면 수정할 수 있게. anon에는 posts update RLS 정책이 아예 없어서
 -- (직접 update는 auth.uid() = user_id 조건이라 유동 글엔 항상 실패) 이 RPC로만 우회 허용한다.
+-- 파라미터 하나(p_release_type)를 끝에 추가하면 시그니처가 달라져서 create or
+-- replace로는 기존 8개짜리 오버로드가 안 지워지고 남는다. 먼저 지우고 새로 만든다.
+drop function if exists public.edit_post_with_password(bigint, text, text, text, text, text, text, numeric);
 create or replace function public.edit_post_with_password(
   p_id bigint, p_password text, p_tag text, p_author text, p_title text, p_content text,
-  p_team text default null, p_rating numeric default null
+  p_team text default null, p_rating numeric default null, p_release_type text default null
 ) returns boolean
 language plpgsql security definer set search_path = public, extensions as $$
 declare
@@ -178,14 +181,14 @@ begin
   if v_hash = crypt(p_password, v_hash) then
     update public.posts set
       tag = p_tag, author = p_author, title = p_title, content = p_content,
-      team = p_team, rating = coalesce(p_rating, rating)
+      team = p_team, rating = coalesce(p_rating, rating), release_type = coalesce(p_release_type, release_type)
     where id = p_id;
     return true;
   end if;
   return false;
 end;
 $$;
-grant execute on function public.edit_post_with_password(bigint, text, text, text, text, text, text, numeric) to anon, authenticated;
+grant execute on function public.edit_post_with_password(bigint, text, text, text, text, text, text, numeric, text) to anon, authenticated;
 
 -- 공지 기능에 쓰는 컬럼. 아래 select 권한 목록에 포함되므로 그보다 먼저 생성해야 한다.
 alter table public.posts add column if not exists is_notice boolean not null default false;
@@ -194,11 +197,17 @@ alter table public.posts add column if not exists is_notice boolean not null def
 -- insert/delete 시점에 트리거로 갱신하고(아래), 매번 댓글을 세는 쿼리를 날리지 않는다.
 alter table public.posts add column if not exists comment_count integer not null default 0;
 
+-- 앨범 평가 게시판을 싱글/EP/정규 3개로 나누기 위한 발매 형태 컬럼.
+alter table public.posts add column if not exists release_type text;
+alter table public.posts drop constraint if exists posts_release_type_check;
+alter table public.posts add constraint posts_release_type_check
+  check (release_type is null or release_type in ('싱글', 'EP', '정규'));
+
 -- 유동 비밀번호 해시는 클라이언트에 내려가면 안 된다 (select * 로 그대로 노출되고 있었다).
 -- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
 revoke select on public.posts from anon, authenticated;
 grant select (id, created_at, tag, author, title, content, team, user_id,
-              album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count)
+              album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count, release_type)
   on public.posts to anon, authenticated;
 revoke select on public.comments from anon, authenticated;
 grant select (id, created_at, post_id, parent_id, author, content, user_id, is_kakao)
@@ -295,5 +304,46 @@ create trigger trg_comment_count_del after delete on public.comments
 update public.posts p set comment_count = (
   select count(*) from public.comments c where c.post_id = p.id
 );
+
+-- release_type 컬럼을 새로 만들면서, 컬럼이 생기기 전에 이미 올라온 앨범 평가
+-- 글들에 발매 형태를 한 번 채워준다. iTunes trackCount(1~3=싱글, 4~6=EP, 7+=정규)
+-- 기준으로 실제 확인한 값이다 — album_title/album_artist가 정확히 일치하는
+-- 글에만 적용되므로, 이후 같은 앨범이 다시 올라와도(글 자체가 신규 INSERT라 이
+-- UPDATE 대상이 아니게 되므로) 문제없이 다시 실행할 수 있다.
+update public.posts set release_type = 'EP' where album_artist = 'DORI' and album_title = 'Melotherapy - EP';
+update public.posts set release_type = 'EP' where album_artist = 'DORI' and album_title = 'Sofie - EP';
+update public.posts set release_type = '싱글' where album_artist = 'HANRORO' and album_title = 'Let Me Love My Youth - Single';
+update public.posts set release_type = '정규' where album_artist = 'Silica Gel' and album_title = 'Ballad of You';
+update public.posts set release_type = '정규' where album_artist = 'JANNABI' and album_title = 'Legend';
+update public.posts set release_type = '정규' where album_artist = 'Wunderhorse' and album_title = 'Cub';
+update public.posts set release_type = '정규' where album_artist = 'Damons year' and album_title = 'HEADACHE.';
+update public.posts set release_type = '정규' where album_artist = 'St. Vincent' and album_title = 'Strange Mercy';
+update public.posts set release_type = '정규' where album_artist = 'JUNGWOO' and album_title = 'Cloud Cuckoo Land';
+update public.posts set release_type = 'EP' where album_artist = 'Meaningful Stone' and album_title = 'COBALT - EP';
+update public.posts set release_type = 'EP' where album_artist = 'wave to earth' and album_title = 'summer flows 0.02 - EP';
+update public.posts set release_type = '정규' where album_artist = 'wave to earth' and album_title = '0.1 flaws and all.';
+update public.posts set release_type = '정규' where album_artist = 'Radiohead' and album_title = 'OK Computer';
+update public.posts set release_type = '정규' where album_artist = 'SE SO NEON' and album_title = 'Nonadaptation';
+update public.posts set release_type = '정규' where album_artist = 'HYUKOH' and album_title = '23';
+update public.posts set release_type = '정규' where album_artist = 'The Black Skirts' and album_title = 'TEAM BABY';
+update public.posts set release_type = '정규' where album_artist = 'Silica Gel' and album_title = 'POWER ANDRE 99';
+update public.posts set release_type = '정규' where album_artist = 'Say Sue Me' and album_title = 'Where We Were Together';
+update public.posts set release_type = '정규' where album_artist = 'Broccoli you too' and album_title = 'Graduation';
+update public.posts set release_type = '정규' where album_artist = 'THORNAPPLE' and album_title = 'Enlightenment';
+update public.posts set release_type = '정규' where album_artist = 'The Black Skirts' and album_title = '201 (Special Edition)';
+update public.posts set release_type = 'EP' where album_artist = 'Shin Hae Gyeong' and album_title = 'My Reversible Reaction - EP';
+update public.posts set release_type = 'EP' where album_artist = 'ADOY' and album_title = 'CATNIP - EP';
+update public.posts set release_type = '정규' where album_artist = 'Sultan of the Disco' and album_title = 'The Golden Age';
+update public.posts set release_type = '정규' where album_artist = 'Parannoul' and album_title = 'To See the Next Part of the Dream';
+update public.posts set release_type = '정규' where album_artist = 'Sister''s Barbershop' and album_title = 'Most Ordinary Existence';
+update public.posts set release_type = '정규' where album_artist = '250' and album_title = 'PPONG';
+update public.posts set release_type = '정규' where album_artist = 'Kim Sawol' and album_title = 'Suzanne';
+update public.posts set release_type = '정규' where album_artist = 'Mot' and album_title = 'Non-Linear';
+
+-- 위 목록에 없는(향후 새로 올라오는) 앨범 평가 글은 일단 "- EP"/"- Single" 제목
+-- 표기로 분류하고, 그래도 안 남은 건 정규로 기본 처리한다.
+update public.posts set release_type = 'EP' where tag = '앨범 평가' and release_type is null and album_title ilike '%- EP';
+update public.posts set release_type = '싱글' where tag = '앨범 평가' and release_type is null and album_title ilike '%- Single';
+update public.posts set release_type = '정규' where tag = '앨범 평가' and release_type is null;
 
 notify pgrst, 'reload schema';

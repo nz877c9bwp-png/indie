@@ -76,6 +76,21 @@ let tempAlbum = { title: null, artist: null, cover: null };
 let currentSelectedRating = 5;
 let currentComments = [];
 let baseballTeamFilter = '전체';
+let albumReleaseFilter = '정규';
+
+// 트랙 수 기준으로 발매 형태를 추정한다(1~3=싱글, 4~6=EP, 7+=정규). iTunes가
+// collectionName 자체에 "- EP"/"- Single"을 붙여주는 경우엔 그 표기를 우선한다 —
+// 자동 리뷰 봇(scripts/auto-album-review.mjs)의 classifyReleaseType과 같은 기준이다.
+function classifyReleaseType(itunesResult) {
+  const name = itunesResult?.collectionName || '';
+  if (/-\s*Single$/i.test(name)) return '싱글';
+  if (/-\s*EP$/i.test(name)) return 'EP';
+  const n = Number(itunesResult?.trackCount);
+  if (!Number.isFinite(n)) return '정규';
+  if (n <= 3) return '싱글';
+  if (n <= 6) return 'EP';
+  return '정규';
+}
 
 // 같이 갈 사람/장터는 카카오 로그인 사용자만 글을 쓸 수 있다 (서버 RLS에서도 동일하게 강제됨).
 const RESTRICTED_TAGS = ['같이 갈 사람', '장터'];
@@ -119,6 +134,20 @@ function renderBaseballTabs() {
     btn.type = 'button';
     if (name !== '전체') btn.style.setProperty('--team-color', teamColor(name));
     btn.onclick = () => { baseballTeamFilter = name; renderBaseballTabs(); renderPosts(); };
+    return btn;
+  }));
+}
+
+// 앨범 평가 게시판을 싱글/EP/정규 3개로 나누는 탭. 야구 응원팀 탭과 같은 패턴이다 —
+// 태그 자체는 계속 '앨범 평가' 하나로 유지하고(기존 로직을 그대로 쓰기 위해),
+// release_type으로 한 번 더 필터링만 한다.
+const ALBUM_RELEASE_TYPES = ['싱글', 'EP', '정규'];
+function renderAlbumReleaseTabs() {
+  const wrap = $('albumReleaseTabs');
+  wrap.replaceChildren(...ALBUM_RELEASE_TYPES.map(type => {
+    const btn = element('button', `team-tab-btn${albumReleaseFilter === type ? ' active' : ''}`, type);
+    btn.type = 'button';
+    btn.onclick = () => { albumReleaseFilter = type; renderAlbumReleaseTabs(); renderPosts(); };
     return btn;
   }));
 }
@@ -372,7 +401,7 @@ $('btnSearchAlbum').addEventListener('click', async () => {
     $('albumResults').replaceChildren(...data.results.map(a => {
       const coverUrl = typeof a.artworkUrl100 === 'string' ? a.artworkUrl100.replace('100x100bb', '300x300bb') : '';
       const card = element('div', 'search-item');
-      card.addEventListener('click', () => selectAlbum(a.collectionName, a.artistName, coverUrl));
+      card.addEventListener('click', () => selectAlbum(a.collectionName, a.artistName, coverUrl, classifyReleaseType(a)));
       const img = element('img');
       img.addEventListener('error', () => img.src = 'https://via.placeholder.com/300x300?text=No+Image', { once: true });
       setImageSource(img, coverUrl);
@@ -384,12 +413,13 @@ $('btnSearchAlbum').addEventListener('click', async () => {
   }
 });
 
-window.selectAlbum = (title, artist, cover) => {
-  tempAlbum = { title, artist, cover: imageUrl(cover) }; 
+window.selectAlbum = (title, artist, cover, releaseType) => {
+  tempAlbum = { title, artist, cover: imageUrl(cover) };
   $('selAlbumWrap').style.display = 'flex'; $('starInputWrapper').style.display = 'flex';
   setImageSource($('selCover'), tempAlbum.cover);
   $('selTitle').innerText = title; $('selArtist').innerText = artist;
-  setStars(5); 
+  $('postReleaseType').value = releaseType || '정규';
+  setStars(5);
 };
 
 // 별점을 0.5 단위로, 마우스/터치 드래그로 조절할 수 있게 한다.
@@ -480,15 +510,15 @@ $('openWriteBtn').onclick = () => {
   history.pushState({ view: 'write' }, '', '#write');
 };
 
-window.openWriteWithAlbumParams = (title, artist, cover) => {
+window.openWriteWithAlbumParams = (title, artist, cover, releaseType) => {
   $('openWriteBtn').click();
   $('postTag').value = '앨범 평가'; $('postTag').dispatchEvent(new Event('change'));
-  selectAlbum(title, artist, cover);
+  selectAlbum(title, artist, cover, releaseType);
 };
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count').order('id', { ascending: false });
+  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count, release_type').order('id', { ascending: false });
   if (!error && data) currentPosts = data;
   renderPosts(); 
 }
@@ -532,7 +562,7 @@ function syncBoardHistoryState() {
   const state = {
     view: 'board', category: currentCategory, page: currentPage,
     genSortType, genSortDir, albSortType, albSortDir,
-    postSearchType, postSearchKeyword, baseballTeamFilter,
+    postSearchType, postSearchKeyword, baseballTeamFilter, albumReleaseFilter,
   };
   history.replaceState(state, '', location.hash || (location.pathname + location.search));
 }
@@ -563,7 +593,7 @@ function renderPosts() {
     $('albumBoardFooter').style.display = 'flex';
 
     const stats = Object.create(null);
-    currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title).forEach(p => {
+    currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title && p.release_type === albumReleaseFilter).forEach(p => {
       const key = `${p.album_title}|${p.album_artist}|${p.album_cover}`; 
       if(!stats[key]) stats[key] = { count:0, totalScore:0, title:p.album_title, artist:p.album_artist, cover:p.album_cover, maxId: p.id };
       stats[key].count += 1; stats[key].totalScore += Number(p.rating || 0);
@@ -580,7 +610,7 @@ function renderPosts() {
       return albSortDir === 'desc' ? diff : -diff;
     });
 
-    const albumSignature = `${albSortType}|${albSortDir}|${keyword}`;
+    const albumSignature = `${albumReleaseFilter}|${albSortType}|${albSortDir}|${keyword}`;
     if (albumSignature !== lastAlbumSignature) { lastAlbumSignature = albumSignature; albumRenderCount = ALBUMS_PER_PAGE; }
 
     if(!sortedAlbums.length) {
@@ -907,7 +937,9 @@ function changeBoard(category, pushHistory = true, restoreState = null) {
   $('generalBoardHeader').style.display = isAlbum ? 'none' : 'flex';
   $('albumBoardHeader').style.display = isAlbum ? 'flex' : 'none';
   $('baseballTeamTabs').style.display = isBaseball ? 'flex' : 'none';
+  $('albumReleaseTabs').style.display = isAlbum ? 'flex' : 'none';
   if (isBaseball) { baseballTeamFilter = restoreState?.baseballTeamFilter || '전체'; renderBaseballTabs(); }
+  if (isAlbum) { albumReleaseFilter = restoreState?.albumReleaseFilter || '정규'; renderAlbumReleaseTabs(); }
   if (!isAlbum) $('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
 
   document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick')?.includes(`'${category}'`)));
@@ -927,7 +959,7 @@ function changeBoard(category, pushHistory = true, restoreState = null) {
   // renderPosts()(=backToList 내부)가 끝에서 "현재" 히스토리 항목을 최신
   // 상태로 replaceState하므로, 새 항목을 push하는 건 반드시 그보다 먼저
   // 해야 한다 — 안 그러면 이전 게시판의 히스토리 항목을 덮어써버린다.
-  if (pushHistory) history.pushState({ view: 'board', category, page: currentPage, genSortType, genSortDir, albSortType, albSortDir, postSearchType, postSearchKeyword, baseballTeamFilter }, '', '#board-' + encodeURIComponent(category));
+  if (pushHistory) history.pushState({ view: 'board', category, page: currentPage, genSortType, genSortDir, albSortType, albSortDir, postSearchType, postSearchKeyword, baseballTeamFilter, albumReleaseFilter }, '', '#board-' + encodeURIComponent(category));
   backToList();
 }
 
@@ -1128,7 +1160,7 @@ async function openPostView(postId, pushHistory = true) {
 
   if(post.tag === '앨범 평가' && post.album_title) {
     $('btnEvalSame').style.display = 'inline-block';
-    $('btnEvalSame').onclick = () => openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover);
+    $('btnEvalSame').onclick = () => openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover, post.release_type);
   } else $('btnEvalSame').style.display = 'none';
 
   if (currentUser) $('commentAuthor').value = resolveNickname(currentUser);
@@ -1235,6 +1267,7 @@ $('adminEditBtn').addEventListener('click', () => {
     $('selArtist').innerText = post.album_artist;
     $('starInputWrapper').style.display = 'flex';
     setStars(Number(post.rating) || 5);
+    $('postReleaseType').value = post.release_type || '정규';
   }
 
   // 관리자/본인 글이 아니면 유동(비로그인) 글 수정이므로 비밀번호 확인이 필요하다.
@@ -1283,6 +1316,7 @@ $('savePostBtn').addEventListener('click', async () => {
   const content = $('postContent').value; // 본문은 렌더링 시 필터링됨
   const author = escapeHTML($('postAuthor').value.trim()) || '인좋';
   const team = $('postTeam').value;
+  const releaseType = $('postReleaseType').value;
   const guestPw = $('postGuestPw').value.trim();
 
   if (!title.trim()) return alert('제목을 입력해주세요.');
@@ -1298,14 +1332,15 @@ $('savePostBtn').addEventListener('click', async () => {
   $('savePostBtn').disabled = true; $('savePostBtn').textContent = '처리 중...';
   let error;
   if (isEditMode) {
-    const ratingField = tag === '앨범 평가' ? { rating: currentSelectedRating } : {};
+    const ratingField = tag === '앨범 평가' ? { rating: currentSelectedRating, release_type: releaseType } : {};
     if (canDirectEdit) {
       const updateData = { tag, author, title, content, team: tag === '야구' ? team : null, ...ratingField };
       ({ error } = await client.from('posts').update(updateData).eq('id', currentReadPostId));
     } else {
       const { data, error: rpcError } = await client.rpc('edit_post_with_password', {
         p_id: currentReadPostId, p_password: guestPw, p_tag: tag, p_author: author, p_title: title, p_content: content,
-        p_team: tag === '야구' ? team : null, p_rating: tag === '앨범 평가' ? currentSelectedRating : null
+        p_team: tag === '야구' ? team : null, p_rating: tag === '앨범 평가' ? currentSelectedRating : null,
+        p_release_type: tag === '앨범 평가' ? releaseType : null
       });
       error = rpcError || (!data ? { message: '비밀번호가 틀렸습니다.' } : null);
     }
@@ -1313,7 +1348,7 @@ $('savePostBtn').addEventListener('click', async () => {
     const postData = {
       tag, author, title, content, user_id: currentUser ? currentUser.id : null,
       ...(!currentUser && { guest_password: guestPw }),
-      ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating }),
+      ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating, release_type: releaseType }),
       ...(tag === '야구' && { team })
     };
     ({ error } = await client.from('posts').insert([postData]));

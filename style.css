@@ -187,8 +187,8 @@ input:-webkit-autofill:focus {
 .author-wrap{ display:inline-flex; align-items:center; gap:6px; }
 .kakao-mark{ display:inline-flex; align-items:center; margin-left:4px; flex:none; }
 
-/* 야구게시판 팀별 탭 (FM코리아 스타일) */
-#baseballTeamTabs{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+/* 야구게시판 팀별 탭 (FM코리아 스타일) — 앨범 평가의 싱글/EP/정규 탭도 같은 스타일을 쓴다. */
+#baseballTeamTabs, #albumReleaseTabs{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
 .team-tab-btn{ background:var(--panel); border:none; color:var(--muted); padding:8px 18px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm); }
 .team-tab-btn:hover{ color:var(--text); }
 .team-tab-btn.active{ background:var(--team-color, var(--music)); color:#fff; box-shadow:var(--shadow-inset-sm); }
@@ -548,7 +548,7 @@ input:-webkit-autofill:focus {
   .widget-stats { flex: none; font-size: 11px; gap: 6px; white-space: nowrap; }
   .widget-stats .author-wrap { display: none; }
 
-  #baseballTeamTabs { gap: 8px; margin-bottom: 14px; }
+  #baseballTeamTabs, #albumReleaseTabs { gap: 8px; margin-bottom: 14px; }
   .team-tab-btn { padding: 7px 14px; font-size: 12px; }
   .team-badge { font-size: 10px; padding: 1px 6px; margin-left: 4px; }
 

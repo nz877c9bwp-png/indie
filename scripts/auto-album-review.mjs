@@ -118,6 +118,20 @@ async function searchItunes(artist, album) {
   return data.results?.[0] ?? null;
 }
 
+// 앨범 평가 게시판을 싱글/EP/정규 3개 탭으로 나누기 위한 발매 형태 분류.
+// 사이트(app.js)의 classifyReleaseType과 동일한 기준(트랙 수 1~3=싱글, 4~6=EP,
+// 7+=정규, "- EP"/"- Single" 표기가 있으면 그걸 우선)을 쓴다.
+function classifyReleaseType(itunesResult) {
+  const name = itunesResult?.collectionName || "";
+  if (/-\s*Single$/i.test(name)) return "싱글";
+  if (/-\s*EP$/i.test(name)) return "EP";
+  const n = Number(itunesResult?.trackCount);
+  if (!Number.isFinite(n)) return "정규";
+  if (n <= 3) return "싱글";
+  if (n <= 6) return "EP";
+  return "정규";
+}
+
 function extractJson(text) {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -213,7 +227,7 @@ ${sampleContent || "(참고할 기존 글 없음)"}
   return extractJson(finalText);
 }
 
-async function insertPost(review, coverUrl, albumTitle, albumArtist) {
+async function insertPost(review, coverUrl, albumTitle, albumArtist, releaseType) {
   const guestPassword = Math.random().toString(36).slice(2, 12);
   const body = {
     tag: "앨범 평가",
@@ -225,6 +239,7 @@ async function insertPost(review, coverUrl, albumTitle, albumArtist) {
     album_artist: albumArtist,
     album_cover: coverUrl,
     rating: review.rating,
+    release_type: releaseType,
   };
 
   // select=id,title로 반환 컬럼을 제한해야 한다 — anon 롤은 posts에 컬럼 단위
@@ -281,8 +296,10 @@ async function main() {
   const coverUrl = itunesResult.artworkUrl100.replace("100x100bb", "300x300bb");
   const albumTitle = itunesResult.collectionName;
   const albumArtist = itunesResult.artistName;
+  const releaseType = classifyReleaseType(itunesResult);
+  console.log("Release type:", releaseType, `(trackCount: ${itunesResult.trackCount})`);
 
-  const inserted = await insertPost(review, coverUrl, albumTitle, albumArtist);
+  const inserted = await insertPost(review, coverUrl, albumTitle, albumArtist, releaseType);
   console.log("Inserted post:", JSON.stringify(inserted));
 }
 
