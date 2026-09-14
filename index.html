@@ -337,9 +337,10 @@
         </div>
         
         <div id="recTrackSearchWrap" style="display:none; margin-bottom:16px;">
-          <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">곡 검색해서 추가 (Apple Music) — 검색 결과에서 직접 고르면 정확한 커버가 저장됩니다</div>
+          <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">곡 검색해서 추가 (YouTube) — 검색 결과에서 직접 고르면 그 링크로 바로 들을 수 있게 저장됩니다</div>
           <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-            <input type="search" id="recTrackQuery" autocomplete="off" placeholder="예: 잔나비 주저하는 연인들을 위해" style="flex:1; min-width:150px; height:38px;">
+            <input type="text" id="recTrackArtist" autocomplete="off" placeholder="아티스트 (예: 잔나비)" style="flex:1; min-width:120px; height:38px;">
+            <input type="text" id="recTrackSong" autocomplete="off" placeholder="곡명 (예: 주저하는 연인들을 위해)" style="flex:1; min-width:150px; height:38px;">
             <button type="button" id="btnSearchRecTrack" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:4px; font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
           </div>
           <div id="recTrackResults" class="search-result-row"></div>

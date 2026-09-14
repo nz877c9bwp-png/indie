@@ -276,6 +276,9 @@ function formatRecommendContent(content) {
       textWrap.append(element('div', 'rec-track-song', item.song), element('div', 'rec-track-artist', item.artist));
       li.dataset.artist = item.artist;
       li.dataset.song = item.song;
+      li.classList.add('rec-track-clickable');
+      // 링크가 아직(검색 전) 없을 수도 있으니 클릭 시점에 dataset.url을 다시 확인한다.
+      li.addEventListener('click', () => { if (li.dataset.url) window.open(li.dataset.url, '_blank', 'noopener'); });
     } else {
       li.classList.add('rec-track-comment');
       textWrap.append(element('div', 'rec-track-song', item.line));
@@ -288,42 +291,51 @@ function formatRecommendContent(content) {
   return list;
 }
 
-// iTunes는 한국 스토어(KR)에 먼저 있는지 보고, 없으면 미국(US) 스토어도 본다
-// (작은 국내 인디 발매곡이 KR에만 있는 경우가 꽤 있다).
+// 유튜브를 기본 검색 소스로 쓴다 — 국내 소규모 인디 발매곡은 애플뮤직(iTunes)엔
+// 아예 없는 경우가 많지만 유튜브엔 있는 경우가 많고, 무엇보다 클릭하면 바로
+// 들을 수 있는 링크가 생긴다(iTunes는 커버만 주고 30초 미리듣기 링크뿐이라
+// "바로 듣기"엔 못 쓴다).
+//
+// 순서: (1) 글쓰기 화면에서 사용자가 직접 고른 적 있는 곡인지 track_art 표를
+// 먼저 확인 — 한 번 검증된 매칭은 항상 우선. (2) 유튜브 검색(키가 설정돼
+// 있으면) — 찾으면 그 결과도 track_art에 같이 저장해서(자동 매칭이라도) 같은
+// 곡을 다시 볼 때 할당량을 또 쓰지 않게 한다. (3) 유튜브 키가 없거나 유튜브에서도
+// 못 찾으면 iTunes(KR→US)로 최소한 커버만이라도 보여준다(링크는 없음).
 //
 // Deezer 공개 검색도 시도해봤는데(키 없이 JSONP로 호출은 됨), 작은 국내
 // 인디 곡은 카탈로그에 거의 없어서 엉뚱한 서양 곡을 "그럴듯하게" 잘못
-// 매칭해주는 경우가 많았다(예: "김마리 - 비행소녀" -> 전혀 무관한
-// "Kimmarie - Fly!"). 커버가 없는 것보다 틀린 커버가 뜨는 게 더 나쁘므로
-// 뺐다. 마지막으로 유튜브 검색을 시도한다 — 앨범 커버는 아니고 영상
-// 썸네일이지만, 국내 소규모 인디 발매곡은 유튜브엔 있는 경우가 많다.
-//
-// 자동 검색 전에, 글쓰기 화면의 곡 검색에서 사용자가 직접 고른 적 있는 곡인지
-// track_art 표를 먼저 확인한다. 한 번 사람이 확인한 매칭은 항상 그걸 우선한다.
+// 매칭해주는 경우가 많아서(예: "김마리 - 비행소녀" -> 전혀 무관한
+// "Kimmarie - Fly!") 뺐다 — iTunes도 같은 문제가 있어서(라자냐/Lasagna
+// 사례) 여기 있는 어떤 자동 검색도 100% 정확하진 않다는 점은 감안해야 한다.
 async function searchTrackArt(artist, song) {
   const key = `${artist}|${song}`;
   try {
-    const { data } = await client.from('track_art').select('cover,album,duration_ms').eq('key', key).maybeSingle();
-    if (data) return { cover: data.cover, album: data.album, duration: formatTrackDuration(data.duration_ms) };
+    const { data } = await client.from('track_art').select('cover,album,duration_ms,url').eq('key', key).maybeSingle();
+    if (data) return { cover: data.cover, album: data.album, duration: formatTrackDuration(data.duration_ms), url: data.url };
   } catch { /* 조회 실패해도 자동 검색으로 계속 진행 */ }
 
   const term = encodeURIComponent(`${artist} ${song}`);
-  for (const country of ['KR', 'US']) {
-    try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
-      const data = await res.json();
-      const r = data.results?.[0];
-      if (r) return { cover: r.artworkUrl100 || r.artworkUrl60 || null, duration: formatTrackDuration(r.trackTimeMillis), album: r.collectionName || null };
-    } catch { /* 다음 소스로 넘어간다 */ }
-  }
   if (YOUTUBE_API_KEY) {
     try {
       const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${term}&key=${YOUTUBE_API_KEY}`);
       const data = await res.json();
       const r = data.items?.[0];
+      const videoId = r?.id?.videoId;
       const thumb = r?.snippet?.thumbnails;
-      if (thumb) return { cover: thumb.high?.url || thumb.medium?.url || thumb.default?.url || null, duration: null, album: null };
-    } catch { /* 못 찾으면 커버 없이 둔다 */ }
+      if (videoId) {
+        const art = { cover: thumb?.high?.url || thumb?.medium?.url || thumb?.default?.url || null, duration: null, album: null, url: `https://www.youtube.com/watch?v=${videoId}` };
+        client.from('track_art').upsert({ key, artist, song, cover: art.cover, url: art.url }).then(({ error }) => { if (error) console.error('track_art auto-cache 실패:', error.message); });
+        return art;
+      }
+    } catch { /* 유튜브 실패(할당량 소진 등)하면 iTunes로 넘어간다 */ }
+  }
+  for (const country of ['KR', 'US']) {
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
+      const data = await res.json();
+      const r = data.results?.[0];
+      if (r) return { cover: r.artworkUrl100 || r.artworkUrl60 || null, duration: formatTrackDuration(r.trackTimeMillis), album: r.collectionName || null, url: null };
+    } catch { /* 다음 소스로 넘어간다 */ }
   }
   return null;
 }
@@ -347,6 +359,7 @@ async function loadRecommendTrackArt(list, rows) {
       }
       if (myToken !== recTrackArtToken) return;
       row.dataset.album = art?.album || '';
+      if (art?.url) row.dataset.url = art.url;
       const img = row.querySelector('.rec-track-art');
       if (art?.cover) {
         setImageSource(img, art.cover);
@@ -584,54 +597,56 @@ window.selectAlbum = (title, artist, cover, releaseType) => {
   setStars(5);
 };
 
-// 추천곡 본문에 "아티스트 - 곡명" 줄을 자동 검색으로 추측해서 채우는 대신, 검색
-// 결과 중 사용자가 직접 골라서 추가하게 한다. 자동 검색이 가끔 제목만 비슷한
-// 무관한 곡을 매칭하는 문제(예: "집토끼 - 라자냐"가 이탈리아 스톡뮤직으로
-// 잘못 매칭됨)가 있어서, 직접 고른 곡은 track_art 표에 저장해두고 이후로는
-// 그 검증된 매칭을 자동 검색보다 우선해서 보여준다.
+// 추천곡 본문에 "아티스트 - 곡명" 줄을 자동 검색으로 추측해서 채우는 대신, 유튜브
+// 검색 결과 중 사용자가 직접 골라서 추가하게 한다. 자동 검색이 가끔 제목만
+// 비슷한 무관한 곡을 매칭하는 문제(예: "집토끼 - 라자냐"가 이탈리아 스톡뮤직으로
+// 잘못 매칭됨)가 있어서, 직접 고른 곡의 영상 링크는 track_art 표에 저장해두고
+// 이후로는 그 검증된 매칭을 자동 검색보다 우선해서 보여주고(클릭하면 그 링크로
+// 바로 이동해 들을 수 있다). 유튜브 영상 제목엔 "(Official MV)" 같은 군더더기가
+// 붙어있거나 가수/곡명이 안 나뉘어 있어서, 본문에 들어갈 "아티스트 - 곡명" 줄은
+// 검색 결과가 아니라 사용자가 직접 입력한 두 칸(아티스트/곡명)에서 만든다.
 $('btnSearchRecTrack').addEventListener('click', async () => {
-  const query = $('recTrackQuery').value.trim();
-  if (!query) return alert('검색어를 입력하세요.');
+  const artist = $('recTrackArtist').value.trim();
+  const song = $('recTrackSong').value.trim();
+  if (!artist || !song) return alert('아티스트와 곡명을 모두 입력하세요.');
+  if (!YOUTUBE_API_KEY) return alert('유튜브 검색 키가 아직 설정되지 않았습니다.');
   $('recTrackResults').innerHTML = '<div style="color:var(--muted); font-size:12px;">곡 찾는 중...</div>';
   try {
-    const term = encodeURIComponent(query).replace(/%20/g, '+');
-    let res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=KR&limit=15`);
-    let data = await res.json();
-    if (!data.results?.length) {
-      res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=US&limit=15`);
-      data = await res.json();
-    }
-    if (!data.results?.length) {
-      $('recTrackResults').innerHTML = '<div style="color:var(--admin); font-size:13px;">결과가 없습니다. 영문으로 검색해보세요.</div>';
+    const term = encodeURIComponent(`${artist} ${song}`);
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${term}&key=${YOUTUBE_API_KEY}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || 'youtube api error');
+    if (!data.items?.length) {
+      $('recTrackResults').innerHTML = '<div style="color:var(--admin); font-size:13px;">결과가 없습니다.</div>';
       return;
     }
-    $('recTrackResults').replaceChildren(...data.results.map(t => {
-      const coverUrl = typeof t.artworkUrl100 === 'string' ? t.artworkUrl100.replace('100x100bb', '300x300bb') : '';
+    $('recTrackResults').replaceChildren(...data.items.map(v => {
+      const thumb = v.snippet.thumbnails;
+      const coverUrl = thumb?.medium?.url || thumb?.default?.url || '';
+      const videoId = v.id.videoId;
       const card = element('div', 'search-item');
-      card.addEventListener('click', () => pickRecTrack(t.artistName, t.trackName, coverUrl, t.collectionName, t.trackTimeMillis));
+      card.addEventListener('click', () => pickRecTrack(artist, song, coverUrl, videoId));
       const img = element('img');
-      img.addEventListener('error', () => img.src = 'https://via.placeholder.com/300x300?text=No+Image', { once: true });
       setImageSource(img, coverUrl);
-      card.append(img, element('div', 's-title', t.trackName), element('div', 's-artist', t.artistName));
+      card.append(img, element('div', 's-title', v.snippet.title), element('div', 's-artist', v.snippet.channelTitle));
       return card;
     }));
-  } catch {
-    $('recTrackResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 서버 오류입니다.</div>';
+  } catch (e) {
+    $('recTrackResults').innerHTML = `<div style="color:var(--admin); font-size:12px;">검색 실패: ${escapeHTML(e.message || '오류')}</div>`;
   }
 });
 
-window.pickRecTrack = async (artist, song, cover, album, durationMs) => {
+window.pickRecTrack = async (artist, song, cover, videoId) => {
   const textarea = $('postContent');
   const line = `${artist} - ${song}`;
   textarea.value = textarea.value.trim() ? `${textarea.value}\n${line}` : line;
-  $('recTrackQuery').value = '';
   $('recTrackResults').replaceChildren();
 
   const key = `${artist}|${song}`;
   const safeCover = imageUrl(cover);
-  const duration = formatTrackDuration(durationMs);
-  recTrackArtCache.set(key, { cover: safeCover, album: album || null, duration });
-  const { error } = await client.from('track_art').upsert({ key, artist, song, cover: safeCover, album: album || null, duration_ms: durationMs || null });
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  recTrackArtCache.set(key, { cover: safeCover, album: null, duration: null, url });
+  const { error } = await client.from('track_art').upsert({ key, artist, song, cover: safeCover, url });
   if (error) console.error('track_art upsert failed:', error.message);
 };
 

@@ -405,8 +405,10 @@ create table if not exists public.track_art (
   cover text,
   album text,
   duration_ms integer,
+  url text,
   created_at timestamptz not null default now()
 );
+alter table public.track_art add column if not exists url text;
 alter table public.track_art enable row level security;
 drop policy if exists "track_art read" on public.track_art;
 drop policy if exists "track_art insert" on public.track_art;

@@ -285,6 +285,10 @@ input:-webkit-autofill:focus {
 .rec-track-artist { color:var(--muted); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* 곡 형식이 아닌 자유 코멘트 줄은 커버가 없어 길이가 들쭉날쭉하므로 잘라내지 않고 줄바꿈을 허용한다. */
 .rec-track-comment .rec-track-song { white-space:normal; font-weight:500; word-break:break-word; }
+/* 유튜브 링크를 찾은 곡은 클릭하면 바로 재생되니 클릭 가능한 느낌을 준다. */
+.rec-track-clickable { cursor:pointer; }
+.rec-track-clickable:hover { background:var(--panel-alt); }
+.rec-track-clickable:hover .rec-track-song { color:var(--music); }
 
 .review-list { display:flex; flex-direction:column; gap:16px; margin-top:20px;}
 .review-card { background:var(--panel); padding:20px; border-radius:var(--radius); cursor:pointer; transition:0.2s; box-shadow:var(--shadow-sm);}
