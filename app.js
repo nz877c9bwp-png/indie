@@ -762,20 +762,75 @@ function renderPagination(totalPages) {
   area.append(next);
 }
 
+// 앨범 상세를 열 때마다 iTunes에 다시 물어보지 않게 트랙리스트를 캐싱한다.
+const albumTracklistCache = new Map();
+let tracklistRequestToken = 0;
+
+function formatTrackDuration(ms) {
+  const n = Number(ms);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  const totalSec = Math.round(n / 1000);
+  return `${Math.floor(totalSec / 60)}:${String(totalSec % 60).padStart(2, '0')}`;
+}
+
+async function loadAlbumTracklist(title, artist) {
+  const cacheKey = `${title}|${artist}`;
+  const myToken = ++tracklistRequestToken;
+  const list = $('adTracklist');
+
+  if (albumTracklistCache.has(cacheKey)) {
+    list.replaceChildren(...renderTracklistItems(albumTracklistCache.get(cacheKey)));
+    return;
+  }
+
+  list.innerHTML = '<li class="ad-track-empty">트랙리스트 불러오는 중...</li>';
+  try {
+    const term = encodeURIComponent(`${artist} ${title}`);
+    const searchRes = await fetch(`https://itunes.apple.com/search?term=${term}&entity=album&country=US&limit=1`);
+    const searchData = await searchRes.json();
+    const collectionId = searchData.results?.[0]?.collectionId;
+    if (!collectionId) throw new Error('no collection match');
+
+    const lookupRes = await fetch(`https://itunes.apple.com/lookup?id=${collectionId}&entity=song`);
+    const lookupData = await lookupRes.json();
+    const tracks = (lookupData.results || [])
+      .filter(r => r.wrapperType === 'track')
+      .sort((a, b) => (a.trackNumber || 0) - (b.trackNumber || 0));
+
+    if (myToken !== tracklistRequestToken) return; // 그새 다른 앨범으로 넘어갔으면 무시
+    albumTracklistCache.set(cacheKey, tracks);
+    list.replaceChildren(...renderTracklistItems(tracks));
+  } catch {
+    if (myToken !== tracklistRequestToken) return;
+    list.innerHTML = '<li class="ad-track-empty">트랙리스트를 불러오지 못했습니다.</li>';
+  }
+}
+
+function renderTracklistItems(tracks) {
+  if (!tracks.length) return [element('li', 'ad-track-empty', '트랙리스트를 찾을 수 없습니다.')];
+  return tracks.map(t => {
+    const li = element('li', 'ad-track-row');
+    li.append(element('span', 'ad-track-name', t.trackName || ''), element('span', 'ad-track-dur', formatTrackDuration(t.trackTimeMillis)));
+    return li;
+  });
+}
+
 window.openAlbumDetail = (title, artist, pushHistory = true) => {
   const albumPosts = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title === title && p.album_artist === artist);
   if(!albumPosts.length) return;
-  
+
   const avgRating = albumPosts.reduce((s, p) => s + Number(p.rating||0), 0) / albumPosts.length;
   setImageSource($('adCover'), albumPosts[0].album_cover);
   $('adTitle').innerText = title; $('adArtist').innerText = artist;
   $('adScore').replaceChildren(`★ ${avgRating.toFixed(1)} `, element('span', '', `(${albumPosts.length}명 참여)`));
+  $('adEvalBtn').onclick = () => openWriteWithAlbumParams(title, artist, albumPosts[0].album_cover, albumPosts[0].release_type);
   $('adReviews').replaceChildren(...albumPosts.map(p => {
     const card = element('div', 'review-card'); card.onclick = () => openPostView(p.id);
     const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)')), element('span', 'rc-stars', `전체 ★${avgRating.toFixed(1)} · 작성자 ★${formatRating(p.rating)}`));
     card.append(header, element('div', 'rc-title', escapeHTML(p.title)), element('div', 'rc-content', contentPreview(p.content)));
     return card;
   }));
+  loadAlbumTracklist(title, artist);
   switchView('albumDetail');
   if (pushHistory) history.pushState({ view: 'albumDetail', albumTitle: title, albumArtist: artist }, '', '#album');
 };

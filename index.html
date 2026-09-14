@@ -159,10 +159,12 @@
           <div id="adArtist" class="ad-artist"></div>
           <div id="adScore" class="ad-score"></div>
           <div class="ad-actions">
-            <button class="write-btn" onclick="openWriteWithAlbumParams($('adTitle').innerText, $('adArtist').innerText, $('adCover').src)" style="background:var(--special);">나도 평가하기</button>
+            <button class="write-btn" id="adEvalBtn" style="background:var(--special);">나도 평가하기</button>
           </div>
         </div>
       </div>
+      <h3 style="border-bottom:1px solid var(--border); padding-bottom:12px; color:var(--text); font-size:18px;">트랙리스트</h3>
+      <ol class="ad-tracklist" id="adTracklist"></ol>
       <h3 style="border-bottom:1px solid var(--border); padding-bottom:12px; color:var(--text); font-size:18px;">유저 리뷰</h3>
       <div class="review-list" id="adReviews"></div>
     </div>
