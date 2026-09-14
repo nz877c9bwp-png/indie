@@ -60,7 +60,12 @@ function escapeHTML(str) {
 const SUPABASE_URL = 'https://jvitmimabxupkhrksudu.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY';
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const ADMIN_EMAIL = 'bkseungah010223@gmail.com'; 
+const ADMIN_EMAIL = 'bkseungah010223@gmail.com';
+// 추천곡 트랙 커버가 iTunes(KR/US)에 없을 때 마지막으로 시도할 유튜브 검색용 키.
+// 구글 클라우드 콘솔에서 "웹사이트 제한(https://duli.kr/*)" + "YouTube Data API v3만
+// 허용"으로 제한해서 발급받은 키를 여기에 넣는다. 빈 문자열이면(키를 아직 안 넣었으면)
+// 유튜브 검색 자체를 건너뛴다 — 이 리포를 포크해서 쓰는 다른 배포에서도 안전하게 동작한다.
+const YOUTUBE_API_KEY = '';
 
 // --- 상태 관리 변수 ---
 let currentPosts = [], currentCategory = '전체'; 
@@ -290,8 +295,8 @@ function formatRecommendContent(content) {
 // 인디 곡은 카탈로그에 거의 없어서 엉뚱한 서양 곡을 "그럴듯하게" 잘못
 // 매칭해주는 경우가 많았다(예: "김마리 - 비행소녀" -> 전혀 무관한
 // "Kimmarie - Fly!"). 커버가 없는 것보다 틀린 커버가 뜨는 게 더 나쁘므로
-// 뺐다. YouTube는 검색에 API 키가 필요해서(무료 발급 가능) 아직 연동
-// 안 했다 — 필요하면 키 발급 절차를 안내할 수 있다.
+// 뺐다. 마지막으로 유튜브 검색을 시도한다 — 앨범 커버는 아니고 영상
+// 썸네일이지만, 국내 소규모 인디 발매곡은 유튜브엔 있는 경우가 많다.
 async function searchTrackArt(artist, song) {
   const term = encodeURIComponent(`${artist} ${song}`);
   for (const country of ['KR', 'US']) {
@@ -301,6 +306,15 @@ async function searchTrackArt(artist, song) {
       const r = data.results?.[0];
       if (r) return { cover: r.artworkUrl100 || r.artworkUrl60 || null, duration: formatTrackDuration(r.trackTimeMillis), album: r.collectionName || null };
     } catch { /* 다음 소스로 넘어간다 */ }
+  }
+  if (YOUTUBE_API_KEY) {
+    try {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${term}&key=${YOUTUBE_API_KEY}`);
+      const data = await res.json();
+      const r = data.items?.[0];
+      const thumb = r?.snippet?.thumbnails;
+      if (thumb) return { cover: thumb.high?.url || thumb.medium?.url || thumb.default?.url || null, duration: null, album: null };
+    } catch { /* 못 찾으면 커버 없이 둔다 */ }
   }
   return null;
 }
