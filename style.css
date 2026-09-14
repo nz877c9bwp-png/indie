@@ -622,14 +622,21 @@ input:-webkit-autofill:focus {
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
 
   .col-category { flex: 0 0 auto; order: 1; }
-  .col-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 500; padding-left: 0 !important; overflow: hidden; order: 2; }
+  .col-title { flex: 1 1 auto; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; order: 2; }
+
+  /* 제목은 눈에 잘 띄게 키우고, 말머리·댓글수 뱃지나 조회/추천/날짜 같은 부가 정보는
+     한 단계씩 더 줄여서 제목과의 크기 대비를 뚜렷하게 뒀다. */
+  .col-category .tag { font-size: 10px; padding: 2px 8px; }
+  .col-title .notice-badge { font-size: 10px; }
+  .col-title .dc-cmt-count { font-size: 11px; }
+  .col-title .dc-comment-count { font-size: 10px; }
 
   /* 디시/펨코 모바일 목록처럼 제목은 한 줄 그대로 두고, 조회·추천·날짜는 그 아래 별도
      줄로 내린다. tr이 flex-wrap 상태이므로, 태그+제목(order 1~2) 바로 뒤(order 3)에
      너비만 100%·높이는 0인 보이지 않는 구분선을 order로 끼워 넣으면 그 지점에서
      줄바꿈이 일어나고, 뒤이은 날짜·조회·추천(order 4~6)은 그 새 줄에 나란히 놓인다. */
   .dc-table tr::after { content: ''; order: 3; flex-basis: 100%; height: 0; }
-  .col-date, .col-views, .col-likes { flex: 0 0 auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .col-date, .col-views, .col-likes { flex: 0 0 auto; font-size: 10px; color: var(--muted); white-space: nowrap; }
   .col-date { order: 4; }
   .col-views { order: 5; }
   .col-likes { order: 6; }
