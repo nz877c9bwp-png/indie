@@ -1084,6 +1084,7 @@ function changeBoard(category, pushHistory = true, restoreState = null) {
   if (isBaseball) { baseballTeamFilter = restoreState?.baseballTeamFilter || '전체'; renderBaseballTabs(); }
   if (isAlbum) { albumReleaseFilter = restoreState?.albumReleaseFilter || '정규'; renderAlbumReleaseTabs(); }
   if (!isAlbum) $('boardTitle').innerText = category === '전체' ? '전체 게시판' : category + ' 게시판';
+  $('colDateHeader').textContent = category === '추천곡' ? '곡수' : '작성일';
 
   document.querySelectorAll('.sidebar a').forEach(link => link.classList.toggle('active', link.getAttribute('onclick')?.includes(`'${category}'`)));
   postSearchType = restoreState?.postSearchType || 'all';
