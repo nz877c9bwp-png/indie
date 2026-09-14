@@ -326,6 +326,7 @@ input:-webkit-autofill:focus {
 .btn-recommend { background:var(--panel); border:none; color:var(--music); padding:11px 26px; border-radius:999px; font-size:14px; font-weight:bold; cursor:pointer; transition:0.2s; font-family:inherit; display:flex; align-items:center; gap:8px; box-shadow:var(--shadow-sm);}
 .btn-recommend:hover { transform:translateY(-1px); }
 .btn-recommend:active { box-shadow:var(--shadow-inset); transform:none; }
+.btn-dislike { color:var(--admin); }
 
 .view-controls { display:flex; gap:10px;}
 .btn-list { background:var(--panel); color:var(--text); border:none; padding:9px 20px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:inherit; font-weight:600; transition:0.2s; box-shadow:var(--shadow-sm);}

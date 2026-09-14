@@ -13,6 +13,11 @@ $$;
 alter table public.posts
   add column if not exists user_id uuid references auth.users(id);
 
+-- 비추천: recs와 같은 패턴(로그인 1인 1회는 서버 dedup 테이블, 유동은 로컬 캐시 1회).
+-- language sql 함수(increment_recs 등)는 생성 시점에 컬럼 존재를 검사하므로, 해당
+-- 함수들보다 먼저(파일 위쪽에서) 컬럼을 만들어 둬야 한다.
+alter table public.posts add column if not exists dislikes integer not null default 0;
+
 -- 같이 갈 사람/장터 게시판은 카카오 로그인 사용자만 글을 쓸 수 있게 제한한다.
 -- auth.jwt()의 app_metadata.provider는 클라이언트가 조작할 수 없는 서버 발급 값이라 이걸로 검사한다.
 create or replace function public.is_kakao_session() returns boolean
@@ -54,6 +59,13 @@ drop function if exists public.increment_recs(bigint);
 create function public.increment_recs(p_id bigint) returns void
 language sql security definer set search_path = public as $$
   update public.posts set recs = coalesce(recs, 0) + 1 where id = p_id;
+$$;
+
+-- 유동(비로그인) 비추천: recs와 동일하게 서버 dedup 없이 클라이언트 로컬 캐시로만 1회 제한한다.
+drop function if exists public.increment_dislikes(bigint);
+create function public.increment_dislikes(p_id bigint) returns void
+language sql security definer set search_path = public as $$
+  update public.posts set dislikes = coalesce(dislikes, 0) + 1 where id = p_id;
 $$;
 
 -- comments 테이블: 읽기는 누구나, 작성은 로그인 사용자(본인 user_id로만) 또는 유동, 삭제는 작성자 또는 관리자.
@@ -207,7 +219,7 @@ alter table public.posts add constraint posts_release_type_check
 -- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
 revoke select on public.posts from anon, authenticated;
 grant select (id, created_at, tag, author, title, content, team, user_id,
-              album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count, release_type)
+              album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type)
   on public.posts to anon, authenticated;
 revoke select on public.comments from anon, authenticated;
 grant select (id, created_at, post_id, parent_id, author, content, user_id, is_kakao)
@@ -236,6 +248,30 @@ end;
 $$;
 revoke execute on function public.toggle_recommendation(bigint) from public, anon;
 grant execute on function public.toggle_recommendation(bigint) to authenticated;
+
+-- 로그인 사용자 비추천: 1인 1회. post_recommendations와 동일한 구조.
+create table if not exists public.post_dislikes (
+  post_id bigint not null references public.posts(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (post_id, user_id)
+);
+alter table public.post_dislikes enable row level security;
+revoke all on public.post_dislikes from anon, authenticated;
+
+create or replace function public.toggle_dislike(p_id bigint) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then
+    raise exception 'login required';
+  end if;
+  -- 이미 비추천했으면 PK 위반 에러가 나고, 클라이언트는 그걸 "이미 비추천한 게시글" 로 표시한다.
+  insert into public.post_dislikes (post_id, user_id) values (p_id, auth.uid());
+  update public.posts set dislikes = coalesce(dislikes, 0) + 1 where id = p_id;
+end;
+$$;
+revoke execute on function public.toggle_dislike(bigint) from public, anon;
+grant execute on function public.toggle_dislike(bigint) to authenticated;
 
 -- 앨범 평가 별점을 0.5 단위로 매길 수 있도록 정수 -> 소수(1자리) 컬럼으로 변경.
 alter table public.posts alter column rating type numeric(2,1) using rating::numeric(2,1);
@@ -311,6 +347,7 @@ begin
     raise exception '로그인이 필요합니다.';
   end if;
   delete from public.post_recommendations where user_id = v_uid;
+  delete from public.post_dislikes where user_id = v_uid;
   update public.posts set user_id = null where user_id = v_uid;
   update public.comments set user_id = null where user_id = v_uid;
   delete from auth.users where id = v_uid;

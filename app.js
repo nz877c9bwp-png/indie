@@ -48,6 +48,16 @@ function addRecommendedCache(postId) {
   if (!cache.includes(postId)) { cache.push(postId); try { localStorage.setItem('recommendedPosts', JSON.stringify(cache)); } catch {} }
 }
 
+// 비추천도 추천과 동일한 방식(유동은 로컬 캐시 1회 제한)으로 처리한다.
+function getDislikedCache() {
+  try { return JSON.parse(localStorage.getItem('dislikedPosts') || '[]'); } catch { return []; }
+}
+function hasCachedDislike(postId) { return getDislikedCache().includes(postId); }
+function addDislikedCache(postId) {
+  const cache = getDislikedCache();
+  if (!cache.includes(postId)) { cache.push(postId); try { localStorage.setItem('dislikedPosts', JSON.stringify(cache)); } catch {} }
+}
+
 // XSS 방어: 악성 스크립트 태그 무력화
 function escapeHTML(str) {
   if (!str) return '';
@@ -789,7 +799,7 @@ window.openWriteWithAlbumParams = (title, artist, cover, releaseType) => {
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count, release_type').order('id', { ascending: false });
+  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type').order('id', { ascending: false });
   if (!error && data) currentPosts = data.filter(p => !isBlocked(p, 'post'));
   renderPosts(); 
 }
@@ -1538,11 +1548,15 @@ async function openPostView(postId, pushHistory = true) {
   }
   $('readViews').textContent = (post.views || 0) + 1;
   $('readRecs').textContent = $('btnRecCount').textContent = post.recs || 0;
+  $('readDislikes').textContent = $('btnDislikeCount').textContent = post.dislikes || 0;
 
-  // 유동(비로그인) 사용자가 이 글을 이미 추천했으면 버튼을 비활성화해서 재추천 시도를 막는다.
+  // 유동(비로그인) 사용자가 이 글을 이미 추천/비추천했으면 버튼을 비활성화해서 중복 시도를 막는다.
   const alreadyRecommended = !currentUser && hasCachedRecommend(postId);
   $('recommendBtn').disabled = alreadyRecommended;
   $('recommendBtn').style.opacity = alreadyRecommended ? '0.5' : '';
+  const alreadyDisliked = !currentUser && hasCachedDislike(postId);
+  $('dislikeBtn').disabled = alreadyDisliked;
+  $('dislikeBtn').style.opacity = alreadyDisliked ? '0.5' : '';
 
   // 수정/삭제: 관리자, 본인이 쓴 글, 유동(비로그인) 글(비밀번호로 인증) 모두 가능.
   const isAuthor = currentUser && currentUser.id === post.user_id;
@@ -1638,6 +1652,46 @@ $('recommendBtn').addEventListener('click', async () => {
     // 로컬 데이터도 갱신
     const post = currentPosts.find(p => p.id === currentReadPostId);
     if(post) post.recs = newRecs;
+  }
+});
+
+// 비추천 로직: 추천과 완전히 동일한 구조(로그인은 서버 dedup RPC, 유동은 로컬 캐시로 1회 제한).
+$('dislikeBtn').addEventListener('click', async () => {
+  const prevDislikes = parseInt($('btnDislikeCount').textContent);
+
+  if (!currentUser) {
+    if (hasCachedDislike(currentReadPostId)) return alert('이미 비추천한 게시글입니다.');
+    $('btnDislikeCount').textContent = '...';
+    const { error } = await client.rpc('increment_dislikes', { p_id: currentReadPostId });
+    if (error) {
+      alert('비추천 처리에 실패했습니다.');
+      $('btnDislikeCount').textContent = prevDislikes;
+      return;
+    }
+    addDislikedCache(currentReadPostId);
+    $('dislikeBtn').disabled = true;
+    $('dislikeBtn').style.opacity = '0.5';
+    alert('비추천 완료!');
+    const newDislikes = prevDislikes + 1;
+    $('readDislikes').textContent = $('btnDislikeCount').textContent = newDislikes;
+    const post = currentPosts.find(p => p.id === currentReadPostId);
+    if (post) post.dislikes = newDislikes;
+    return;
+  }
+
+  $('btnDislikeCount').textContent = '...';
+
+  const { error } = await client.rpc('toggle_dislike', { p_id: currentReadPostId });
+
+  if (error) {
+    alert('이미 비추천한 게시글입니다.');
+    $('btnDislikeCount').textContent = prevDislikes;
+  } else {
+    alert('비추천 완료!');
+    const newDislikes = prevDislikes + 1;
+    $('readDislikes').textContent = $('btnDislikeCount').textContent = newDislikes;
+    const post = currentPosts.find(p => p.id === currentReadPostId);
+    if (post) post.dislikes = newDislikes;
   }
 });
 
