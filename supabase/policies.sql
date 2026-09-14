@@ -240,4 +240,25 @@ $$;
 revoke execute on function public.set_notice(bigint, boolean) from public, anon;
 grant execute on function public.set_notice(bigint, boolean) to authenticated;
 
+-- 회원 탈퇴: 개인정보(계정)는 즉시 파기하되, 다른 이용자와의 대화 맥락이 남아있는
+-- 게시물/댓글 본문 자체는 유지하고 계정 연결만 끊는다(유동 글처럼 남음).
+-- auth.users를 직접 지워야 해서 SECURITY DEFINER로 만든다 (클라이언트는 anon key로
+-- auth 스키마에 직접 접근 못 하므로 이 RPC가 유일한 탈퇴 경로다).
+create or replace function public.delete_own_account() returns void
+language plpgsql security definer set search_path = public, auth as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then
+    raise exception '로그인이 필요합니다.';
+  end if;
+  delete from public.post_recommendations where user_id = v_uid;
+  update public.posts set user_id = null where user_id = v_uid;
+  update public.comments set user_id = null where user_id = v_uid;
+  delete from auth.users where id = v_uid;
+end;
+$$;
+revoke execute on function public.delete_own_account() from public, anon;
+grant execute on function public.delete_own_account() to authenticated;
+
 notify pgrst, 'reload schema';

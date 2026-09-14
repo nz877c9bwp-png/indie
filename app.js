@@ -30,7 +30,7 @@ function relocateAuthButtons() {
     authRelocateButtons.forEach(btn => slot.appendChild(btn));
   } else {
     const headerActions = document.querySelector('.user-actions');
-    const anchor = $('showSettingsBtn');
+    const anchor = $('logoutBtn');
     authRelocateButtons.forEach(btn => headerActions.insertBefore(btn, anchor));
   }
 }
@@ -237,31 +237,16 @@ client.auth.onAuthStateChange((event, session) => {
     $('userStatus').replaceChildren(status, '님');
 
     $('showLoginBtn').style.display = $('showSignupBtn').style.display = 'none';
-    $('showSettingsBtn').style.display = $('logoutBtn').style.display = $('myPageBtn').style.display = 'inline-block';
+    $('logoutBtn').style.display = $('myPageBtn').style.display = 'inline-block';
 
     if(authorInput) authorInput.value = nickname;
   } else {
     currentUser = null; isAdmin = false;
     $('userStatus').replaceChildren();
     $('showLoginBtn').style.display = $('showSignupBtn').style.display = 'inline-block';
-    $('showSettingsBtn').style.display = $('logoutBtn').style.display = $('myPageBtn').style.display = 'none';
-    if(authorInput) authorInput.value = ''; 
+    $('logoutBtn').style.display = $('myPageBtn').style.display = 'none';
+    if(authorInput) authorInput.value = '';
   }
-});
-
-window.openSettings = () => {
-  $('settingNickname').value = currentUser ? resolveNickname(currentUser) : '';
-  toggleModal('settingsModal', true);
-};
-
-$('doSaveSettingsBtn').addEventListener('click', async () => {
-  const newNick = $('settingNickname').value.trim();
-  if(!newNick) return alert('변경할 닉네임을 입력해주세요.');
-  $('doSaveSettingsBtn').disabled = true; $('doSaveSettingsBtn').textContent = '저장 중...';
-  const { error } = await client.auth.updateUser({ data: { nickname: newNick } });
-  $('doSaveSettingsBtn').disabled = false; $('doSaveSettingsBtn').textContent = '저장하기';
-  if (error) alert('실패: ' + error.message);
-  else { alert('변경 완료!'); toggleModal('settingsModal', false); location.reload(); }
 });
 
 $('doSignupBtn').addEventListener('click', async () => {
@@ -781,9 +766,13 @@ window.switchMyPageTab = (tab) => {
   myPageTab = tab;
   $('btnMyTabPosts').classList.toggle('active', tab === 'posts');
   $('btnMyTabComments').classList.toggle('active', tab === 'comments');
+  $('btnMyTabSettings').classList.toggle('active', tab === 'settings');
   $('myPostsArea').style.display = tab === 'posts' ? 'block' : 'none';
   $('myCommentsList').style.display = tab === 'comments' ? 'block' : 'none';
-  if (tab === 'posts') renderMyPosts(); else renderMyComments();
+  $('mySettingsArea').style.display = tab === 'settings' ? 'flex' : 'none';
+  if (tab === 'posts') renderMyPosts();
+  else if (tab === 'comments') renderMyComments();
+  else renderMySettings();
 };
 
 function renderMyPosts() {
@@ -854,6 +843,59 @@ async function renderMyComments() {
     return card;
   }));
 }
+
+function renderMySettings() {
+  $('mySettingNickname').value = resolveNickname(currentUser);
+  const kakao = isKakaoUser();
+  $('mySettingsPasswordCard').style.display = kakao ? 'none' : 'block';
+
+  const info = $('mySettingsAccountInfo');
+  const joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString('ko-KR') : '-';
+  info.replaceChildren(...[
+    ['가입 방식', kakao ? '카카오 로그인' : '이메일'],
+    ['이메일', currentUser.email || '(비공개)'],
+    ['가입일', joinDate],
+  ].map(([label, value]) => {
+    const row = element('div');
+    row.append(`${label}: `, element('strong', '', value));
+    return row;
+  }));
+}
+
+$('mySaveNicknameBtn').addEventListener('click', async () => {
+  const newNick = $('mySettingNickname').value.trim();
+  if (!newNick) return alert('변경할 닉네임을 입력해주세요.');
+  const btn = $('mySaveNicknameBtn');
+  btn.disabled = true; btn.textContent = '저장 중...';
+  const { error } = await client.auth.updateUser({ data: { nickname: newNick } });
+  btn.disabled = false; btn.textContent = '변경';
+  if (error) alert('실패: ' + error.message);
+  else { alert('닉네임이 변경되었습니다.'); location.reload(); }
+});
+
+$('mySavePasswordBtn').addEventListener('click', async () => {
+  const pw = $('mySettingNewPw').value;
+  const pwConfirm = $('mySettingNewPwConfirm').value;
+  if (pw.length < 6) return alert('비밀번호는 6자 이상이어야 합니다.');
+  if (pw !== pwConfirm) return alert('비밀번호가 서로 일치하지 않습니다.');
+  const btn = $('mySavePasswordBtn');
+  btn.disabled = true; btn.textContent = '변경 중...';
+  const { error } = await client.auth.updateUser({ password: pw });
+  btn.disabled = false; btn.textContent = '비밀번호 변경';
+  if (error) alert('실패: ' + error.message);
+  else { alert('비밀번호가 변경되었습니다.'); $('mySettingNewPw').value = ''; $('mySettingNewPwConfirm').value = ''; }
+});
+
+$('myDeleteAccountBtn').addEventListener('click', async () => {
+  if (!confirm('정말 탈퇴하시겠습니까?\n계정 정보(이메일, 로그인 연동)는 즉시 삭제되며 되돌릴 수 없습니다.\n작성한 글/댓글은 내용은 남고 작성자 연결만 해제됩니다.')) return;
+  const btn = $('myDeleteAccountBtn');
+  btn.disabled = true; btn.textContent = '처리 중...';
+  const { error } = await client.rpc('delete_own_account');
+  if (error) { btn.disabled = false; btn.textContent = '회원 탈퇴'; return alert('실패: ' + error.message); }
+  await client.auth.signOut();
+  alert('탈퇴 처리가 완료되었습니다. 이용해주셔서 감사합니다.');
+  location.href = location.pathname;
+});
 
 // restoreState가 있으면(뒤로/앞으로가기로 이 게시판에 되돌아온 경우) 그때의
 // 페이지/정렬/검색/응원팀 상태를 그대로 복원한다. 없으면(사이드바 클릭 등

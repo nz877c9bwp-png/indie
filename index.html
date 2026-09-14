@@ -36,7 +36,6 @@
       <button id="showLoginBtn" class="auth-btn" onclick="toggleModal('loginModal', true)">로그인</button>
       <button id="showSignupBtn" class="auth-btn" onclick="$('signupConsent').checked = false; toggleModal('signupModal', true)">회원가입</button>
       <button id="myPageBtn" class="auth-btn" style="display:none;" onclick="openMyPage()">마이페이지</button>
-      <button id="showSettingsBtn" class="auth-btn" style="display:none;" onclick="openSettings()">설정</button>
       <button id="logoutBtn" class="auth-btn" style="display:none;">로그아웃</button>
       <button class="write-btn" id="openWriteBtn">글쓰기</button>
     </div>
@@ -351,6 +350,8 @@
           <button id="btnMyTabPosts" class="active" onclick="switchMyPageTab('posts')">내가 쓴 글</button>
           <span style="color:var(--border); font-size:11px;">|</span>
           <button id="btnMyTabComments" onclick="switchMyPageTab('comments')">내가 쓴 댓글</button>
+          <span style="color:var(--border); font-size:11px;">|</span>
+          <button id="btnMyTabSettings" onclick="switchMyPageTab('settings')">설정</button>
         </div>
       </div>
 
@@ -372,6 +373,36 @@
       </div>
 
       <div class="review-list" id="myCommentsList" style="display:none;"></div>
+
+      <div class="settings-panel" id="mySettingsArea" style="display:none;">
+        <div class="settings-card">
+          <h3>닉네임 변경</h3>
+          <div class="settings-row">
+            <input type="text" id="mySettingNickname" placeholder="새 닉네임 입력">
+            <button class="btn-settings-save" id="mySaveNicknameBtn">변경</button>
+          </div>
+        </div>
+
+        <div class="settings-card" id="mySettingsPasswordCard">
+          <h3>비밀번호 변경</h3>
+          <div class="settings-row settings-row-stacked">
+            <input type="password" id="mySettingNewPw" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password">
+            <input type="password" id="mySettingNewPwConfirm" placeholder="새 비밀번호 확인" autocomplete="new-password">
+            <button class="btn-settings-save" id="mySavePasswordBtn">비밀번호 변경</button>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h3>계정 정보</h3>
+          <div class="settings-info" id="mySettingsAccountInfo"></div>
+        </div>
+
+        <div class="settings-card settings-danger">
+          <h3>회원 탈퇴</h3>
+          <p class="settings-danger-desc">탈퇴 시 계정 정보(이메일, 로그인 연동 등)는 개인정보 처리방침에 따라 즉시 삭제됩니다. 작성하신 게시물/댓글은 내용은 유지되되 작성자 연결만 해제되어 유동 글처럼 남습니다. 이 작업은 되돌릴 수 없습니다.</p>
+          <button class="btn-settings-danger" id="myDeleteAccountBtn">회원 탈퇴</button>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -417,17 +448,6 @@
     </div>
     <div class="oauth-divider">또는</div>
     <button id="kakaoSignupBtn" class="kakao-btn">카카오로 회원가입</button>
-  </div>
-</div>
-
-<div class="modal" id="settingsModal">
-  <div class="modal-content small">
-    <h2>설정 (닉네임 변경)</h2>
-    <input type="text" id="settingNickname" placeholder="새 닉네임 입력">
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="toggleModal('settingsModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
-      <button class="btn-save" id="doSaveSettingsBtn" style="background:var(--music); color:var(--bg);">저장하기</button>
-    </div>
   </div>
 </div>
 
