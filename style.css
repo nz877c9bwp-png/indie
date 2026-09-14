@@ -531,7 +531,7 @@ input:-webkit-autofill:focus {
      문제가 있었어서, post-table-wrap과 같은 패턴(바깥 블럭 하나에만 그림자,
      안쪽 항목은 구분선으로만 분리)을 그대로 적용한다. */
   .widget-container {
-    margin: 0 20px 20px;
+    margin: 0 12px 20px;
     padding: 0;
     width: auto;
     box-sizing: border-box;
@@ -555,7 +555,7 @@ input:-webkit-autofill:focus {
     flex: none;
     scroll-snap-align: none;
     box-sizing: border-box;
-    padding: 14px 16px;
+    padding: 14px 12px;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
@@ -585,8 +585,8 @@ input:-webkit-autofill:focus {
   .team-tab-btn { padding: 7px 14px; font-size: 12px; }
   .team-badge { font-size: 10px; padding: 1px 6px; margin-left: 4px; }
 
-  .post-table-wrap { margin: 0 20px 28px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
-  .view-box, #writeSection, #albumDetailSection { margin: 0 20px 28px; width: auto; }
+  .post-table-wrap { margin: 0 12px 28px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
+  .view-box, #writeSection, #albumDetailSection { margin: 0 12px 28px; width: auto; }
   #albumBoardFooter { margin-bottom: 28px; }
   .table-scroll { overflow-x: visible; overflow-y: visible; border-radius: 0; }
   .dc-table { display: block; min-width: 0; border: none; width: 100%; box-sizing: border-box; }
@@ -621,7 +621,7 @@ input:-webkit-autofill:focus {
       align-items: center;
       column-gap: 8px;
       row-gap: 4px;
-      padding: 14px 16px;
+      padding: 14px 12px;
       background: transparent;
       border-radius: 0;
       border-bottom: 1px solid var(--panel-alt);
