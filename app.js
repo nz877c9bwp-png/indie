@@ -219,6 +219,32 @@ function formatContent(value) {
   return fragment;
 }
 
+// 추천곡 게시글은 "언제 올렸는지"보다 "몇 곡 추천했는지"가 더 유용한 정보라
+// 목록의 작성일 자리를 곡 수로 대체한다.
+function dateOrSongCountLabel(post) {
+  if (post.tag === '추천곡') return `${(post.content || '').split('\n').filter(l => l.trim()).length}곡`;
+  return new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
+}
+
+// 추천곡 본문을 문단 텍스트가 아니라 앨범 트랙리스트처럼 번호 매긴 목록으로
+// 보여준다. "아티스트 - 곡명" 형식이면 아티스트를 굵게 구분하고, 그 형식이
+// 아닌 자유 코멘트 줄(추천인이 남긴 설명 등)은 그대로 한 줄로 보여준다.
+function formatRecommendContent(content) {
+  const lines = (content || '').split('\n').map(l => l.trim()).filter(Boolean);
+  const list = element('ol', 'rec-tracklist');
+  list.append(...lines.map(line => {
+    const li = element('li', 'rec-track-row');
+    const idx = line.indexOf(' - ');
+    if (idx > -1) {
+      li.append(element('span', 'rec-track-artist', line.slice(0, idx)), element('span', 'rec-track-song', line.slice(idx + 3)));
+    } else {
+      li.append(element('span', 'rec-track-song', line));
+    }
+    return li;
+  }));
+  return list;
+}
+
 // 글쓰기 중 [img]/유튜브 링크가 텍스트 그대로 보이지 않도록, 실제 업로드 전에도 사진/영상을 미리 보여준다.
 function updateContentPreview() {
   const content = $('postContent').value;
@@ -718,8 +744,7 @@ function renderPosts() {
         if (post.tag === '야구' && post.team) authorWrap.append(teamBadge(post.team));
         authorCell.append(authorWrap);
 
-        const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
-        const dateCell = element('td', 'col-date', dateFormatted);
+        const dateCell = element('td', 'col-date', dateOrSongCountLabel(post));
         const viewsCell = element('td', 'col-views tabular', post.views || 0);
         
         const recsVal = post.recs || 0;
@@ -889,8 +914,7 @@ function renderMyPosts() {
     if (post.comment_count > 0) titleCell.append(element('span', 'dc-cmt-count', `[${post.comment_count}]`));
     if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
 
-    const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
-    const dateCell = element('td', 'col-date', dateFormatted);
+    const dateCell = element('td', 'col-date', dateOrSongCountLabel(post));
     const viewsCell = element('td', 'col-views tabular', post.views || 0);
 
     const recsVal = post.recs || 0;
@@ -1183,8 +1207,8 @@ async function openPostView(postId, pushHistory = true) {
   if (post.is_kakao) $('readAuthor').append(kakaoMark());
   $('readTeamBadge').replaceChildren();
   if (post.tag === '야구' && post.team) $('readTeamBadge').append(teamBadge(post.team));
-  $('readDate').textContent = new Date(post.created_at).toLocaleString('ko-KR');
-  $('readContent').replaceChildren(formatContent(post.content)); // 렌더링 시 escapeHTML 적용됨
+  $('readDate').textContent = post.tag === '추천곡' ? '' : new Date(post.created_at).toLocaleString('ko-KR');
+  $('readContent').replaceChildren(post.tag === '추천곡' ? formatRecommendContent(post.content) : formatContent(post.content)); // 렌더링 시 escapeHTML 적용됨
 
   if (post.tag === '앨범 평가' && post.album_title) {
     $('readAlbumInfo').style.display = 'flex';
