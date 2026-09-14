@@ -931,9 +931,15 @@ function createCommentElement(comment, isReply) {
 
   const authorSpan = element('span', 'ci-author', authorDisplay);
   if (comment.is_kakao) authorSpan.append(kakaoMark());
-  // 댓글 작성자 닉네임이 이 글의 작성자 닉네임과 같으면(예: 인좋) 글쓴이가 단 댓글임을 표시.
+  // 댓글 작성자가 이 글의 작성자와 실제로 같은 사람인지 표시한다.
+  // 로그인 사용자라면 user_id가 같은지로 확실하게 판단하지만, 유동은 그런 게 없어서
+  // 닉네임이 같은지로만 추측한다 — 단, "인좋"/"인좋2"류 기본 닉네임은 여러 사람이
+  // 겹쳐 쓰는 이름이라 그걸로 같은 사람이라 단정하면 안 된다(오탐 사례 발견됨).
   const openPost = currentPosts.find(p => p.id === currentReadPostId);
-  if (openPost && comment.author && comment.author === openPost.author) {
+  const sameLoggedInAuthor = openPost?.user_id && comment.user_id && openPost.user_id === comment.user_id;
+  const isDefaultGuestNickname = /^인좋\d*$/.test(openPost?.author || '');
+  const nameMatchesGuestAuthor = !openPost?.user_id && comment.author && comment.author === openPost?.author && !isDefaultGuestNickname;
+  if (sameLoggedInAuthor || nameMatchesGuestAuthor) {
     authorSpan.append(element('span', 'ci-op-badge', '(글쓴이)'));
   }
 
