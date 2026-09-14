@@ -28,7 +28,7 @@
       <span class="brand-word"><span class="bw-group bw-slot"><span class="bw-big">D</span><span class="bw-small">o</span></span><span class="bw-group bw-slot"><span class="bw-big">U</span></span><span class="bw-group bw-slot"><span class="bw-big">L</span><span class="bw-small">ike</span></span><span class="bw-group bw-slot"><span class="bw-big">I</span><span class="bw-small">ndie</span></span><span class="bw-group"><span class="bw-big bw-kr">.KR</span></span></span>
     </div>
     <div class="search">
-      <input type="text" id="headerSearchInput" name="boardSearchQuery" autocomplete="off" placeholder="게시글 검색" onkeypress="if(event.key === 'Enter') $('headerSearchBtn').click()">
+      <input type="search" id="headerSearchInput" name="boardSearchQuery" autocomplete="off" placeholder="게시글 검색" onkeypress="if(event.key === 'Enter') $('headerSearchBtn').click()">
       <button id="headerSearchBtn">검색</button>
     </div>
     <div class="user-actions">
@@ -197,7 +197,7 @@
           </div>
         </div>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="albumBoardSearchInput" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none; font-size:13px; font-family:inherit;">
+          <input type="search" id="albumBoardSearchInput" autocomplete="off" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none; font-size:13px; font-family:inherit;">
           <button onclick="renderPosts()" style="padding:8px 16px; background:var(--music); border:none; color:var(--bg); border-radius:4px; cursor:pointer; font-weight:bold; font-family:inherit; transition:0.2s;">검색</button>
         </div>
       </div>
@@ -231,7 +231,7 @@
                 <option value="title">제목</option>
                 <option value="author">글쓴이</option>
               </select>
-              <input type="text" id="postSearchInput" name="postSearchQuery" autocomplete="off" placeholder="검색어 입력" onkeypress="if(event.key === 'Enter') $('btnPostSearch').click()" />
+              <input type="search" id="postSearchInput" name="postSearchQuery" autocomplete="off" placeholder="검색어 입력" onkeypress="if(event.key === 'Enter') $('btnPostSearch').click()" />
               <button class="btn-dc-search" id="btnPostSearch">검색</button>
             </div>
             <button class="btn-dc-write" onclick="$('openWriteBtn').click()">글쓰기</button>
@@ -260,7 +260,7 @@
                 <option value="artistTerm">가수명만</option>
                 <option value="albumTerm">앨범명만</option>
               </select>
-              <input type="text" id="albumQuery" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px;">
+              <input type="search" id="albumQuery" autocomplete="off" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px;">
               <button type="button" id="btnSearchAlbum" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:4px; font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
             </div>
             <div id="albumResults" class="search-result-row"></div>
