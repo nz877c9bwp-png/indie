@@ -1710,6 +1710,11 @@ window.addEventListener('popstate', (e) => {
 
 // 휠클릭/새 탭 열기 등으로 #post-123 같은 주소에 바로 들어왔을 때, 게시판 목록이 아니라 해당 글이 뜨게 한다.
 function routeFromHash() {
+  // 외부(구글 API 할당량 신청서 등)에 "개인정보처리방침 URL"로 직접 링크할 수 있게,
+  // 모달을 페이지 로드 시점에 바로 띄워주는 딥링크를 만든다.
+  if (location.hash === '#privacy') {
+    toggleModal('privacyModal', true);
+  }
   const postMatch = location.hash.match(/^#post-(\d+)/);
   if (postMatch) {
     const postId = Number(postMatch[1]);
@@ -1727,6 +1732,11 @@ function routeFromHash() {
   history.replaceState({ view: 'board', category: '전체' }, '', location.pathname + location.search);
   changeBoard('전체', false);
 }
+
+// #privacy는 게시글 데이터가 필요 없어서, fetchPosts()를 기다리지 않고 곧바로 연다.
+// (fetchPosts 완료를 기다렸다가 routeFromHash 안에서 처리하면, 이 fetch가 오래 걸릴 때
+// 그사이 다른 코드가 location.hash를 이미 지워버리는 경우가 있어 레이스가 생겼다.)
+if (location.hash === '#privacy') toggleModal('privacyModal', true);
 
 // 초기화: 게시글을 먼저 불러온 뒤에 주소를 반영해야 #post-123 링크로 바로 들어왔을 때 그 글을 찾을 수 있다.
 fetchPosts().then(routeFromHash);
