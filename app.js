@@ -521,19 +521,22 @@ $('kakaoSignupBtn').addEventListener('click', kakaoAuth);
 // 받은 id_token을 Supabase에 넘긴다. 웹뷰 안의 Apple 웹 로그인은 세션이 앱으로 안 넘어오고 심사에서도 문제 된다.
 async function appleAuth() {
   const cap = window.Capacitor;
-  if (cap?.isNativePlatform?.() && cap.isPluginAvailable?.('SignInWithApple')) return appleAuthNative(cap.registerPlugin('SignInWithApple'));
+  // 페이지에 주입되는 Capacitor 브리지에는 registerPlugin이 없어서, 저수준 nativePromise로 플러그인을 직접 부른다.
+  if (cap?.isNativePlatform?.() && cap.isPluginAvailable?.('SignInWithApple')) return appleAuthNative(opts => cap.nativePromise('SignInWithApple', 'authorize', opts));
   const { error } = await client.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: location.origin } });
   if (error) alert('Apple 인증 실패: ' + error.message);
 }
-async function appleAuthNative(SignInWithApple) {
+async function appleAuthNative(authorize) {
   // Apple에는 nonce의 SHA-256을, Supabase에는 원본 nonce를 넘겨야 id_token 검증이 맞아떨어진다.
   const nonce = crypto.randomUUID();
   const hashed = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(nonce)))].map(b => b.toString(16).padStart(2, '0')).join('');
   let response;
   try {
-    ({ response } = await SignInWithApple.authorize({ clientId: 'kr.duli.app', redirectURI: location.origin, scopes: 'email name', nonce: hashed }));
-  } catch {
-    return; // 사용자가 Apple 창을 닫은 경우
+    ({ response } = await authorize({ clientId: 'kr.duli.app', redirectURI: location.origin, scopes: 'email name', nonce: hashed }));
+  } catch (e) {
+    // 1001 = 사용자가 Apple 창을 닫음. 그 외는 설정/플러그인 문제라 그대로 보여준다.
+    if (!/1001|cancel/i.test(e?.message || '')) alert('Apple 인증 실패: ' + (e?.message || e));
+    return;
   }
   const { error } = await client.auth.signInWithIdToken({ provider: 'apple', token: response.identityToken, nonce });
   if (error) return alert('Apple 인증 실패: ' + error.message);
@@ -541,8 +544,9 @@ async function appleAuthNative(SignInWithApple) {
   if (response.givenName) await client.auth.updateUser({ data: { nickname: (response.familyName || '') + response.givenName } });
   toggleModal('loginModal', false); toggleModal('signupModal', false);
 }
-$('appleLoginBtn').addEventListener('click', appleAuth);
-$('appleSignupBtn').addEventListener('click', appleAuth);
+const appleAuthSafe = () => appleAuth().catch(e => alert('Apple 인증 오류: ' + (e?.message || e)));
+$('appleLoginBtn').addEventListener('click', appleAuthSafe);
+$('appleSignupBtn').addEventListener('click', appleAuthSafe);
 
 $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
 
