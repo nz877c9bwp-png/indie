@@ -1,0 +1,9 @@
+{
+  "appId": "kr.duli.app",
+  "appName": "너 인디 좋아해?",
+  "webDir": "www",
+  "server": {
+    "url": "https://duli.kr",
+    "errorPath": "index.html"
+  }
+}
