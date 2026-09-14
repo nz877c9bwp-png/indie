@@ -253,6 +253,51 @@ $$;
 revoke execute on function public.set_notice(bigint, boolean) from public, anon;
 grant execute on function public.set_notice(bigint, boolean) to authenticated;
 
+-- 추천곡 게시판: 같은 닉네임으로 또 추천곡을 올리면 새 글을 만들지 않고 그
+-- 닉네임의 기존 글에 이어 붙인다("닉네임이 같으면 같은 사람" — 원래 카카오톡
+-- 오픈채팅방 공지의 규칙을 글쓰기 화면에도 그대로 적용). 유동 글이라 원래
+-- 비밀번호를 모르고도 이어 붙일 수 있어야 하므로(예: 가져온 초기 데이터에는
+-- 무작위 비밀번호가 걸려 있다) 비밀번호 검증 없이 닉네임만으로 병합하되,
+-- 이번에 입력한 비밀번호로 갱신해서 이후로는 작성자 본인이 그 비밀번호로
+-- 수정/삭제할 수 있게 한다. 커버는 기존에 없을 때만 새로 채운다(이미 있으면
+-- 유지). 로그인 사용자의 글(user_id 기반)에는 적용하지 않는다 — 그쪽은 실제
+-- 계정으로 식별되니 닉네임 텍스트 일치로 섞을 이유가 없다.
+create or replace function public.upsert_recommend_post(
+  p_author text, p_title text, p_content text, p_password text,
+  p_album_title text default null, p_album_artist text default null, p_album_cover text default null
+) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_id bigint;
+begin
+  select id into v_id from public.posts
+    where tag = '추천곡' and user_id is null and author = p_author
+    order by id limit 1;
+
+  if v_id is not null then
+    -- trg_hash_post_password는 insert에만 걸려있어 update에는 안 타므로 여기서 직접 해시한다.
+    update public.posts set
+      content = content || E'\n' || p_content,
+      guest_password = crypt(p_password, gen_salt('bf', 10)),
+      album_title = coalesce(album_title, p_album_title),
+      album_artist = coalesce(album_artist, p_album_artist),
+      album_cover = coalesce(album_cover, p_album_cover)
+    where id = v_id;
+    return jsonb_build_object('id', v_id, 'appended', true);
+  end if;
+
+  -- insert는 trg_hash_post_password 트리거가 자동으로 해시해주므로 평문 그대로 넣는다.
+  -- 여기서 또 해시해서 넣으면 트리거가 그 해시값을 다시 해시해버려(이중 해시) 저장된
+  -- 비밀번호로 로그인/삭제가 영영 안 되는 버그가 생긴다(실제로 겪은 버그).
+  insert into public.posts (tag, author, title, content, guest_password, album_title, album_artist, album_cover)
+  values ('추천곡', p_author, p_title, p_content, p_password, p_album_title, p_album_artist, p_album_cover)
+  returning id into v_id;
+  return jsonb_build_object('id', v_id, 'appended', false);
+end;
+$$;
+revoke execute on function public.upsert_recommend_post(text, text, text, text, text, text, text) from public;
+grant execute on function public.upsert_recommend_post(text, text, text, text, text, text, text) to anon, authenticated;
+
 -- 회원 탈퇴: 개인정보(계정)는 즉시 파기하되, 다른 이용자와의 대화 맥락이 남아있는
 -- 게시물/댓글 본문 자체는 유지하고 계정 연결만 끊는다(유동 글처럼 남음).
 -- auth.users를 직접 지워야 해서 SECURITY DEFINER로 만든다 (클라이언트는 anon key로

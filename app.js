@@ -1430,6 +1430,7 @@ $('savePostBtn').addEventListener('click', async () => {
 
   $('savePostBtn').disabled = true; $('savePostBtn').textContent = '처리 중...';
   let error;
+  let mergedIntoExisting = false;
   if (isEditMode) {
     const ratingField = tag === '앨범 평가' ? { rating: currentSelectedRating, release_type: releaseType } : {};
     // 추천곡은 커버가 선택 사항이라, 새로 고른(tempAlbum.title이 있는) 경우에만 갱신하고
@@ -1446,6 +1447,15 @@ $('savePostBtn').addEventListener('click', async () => {
       });
       error = rpcError || (!data ? { message: '비밀번호가 틀렸습니다.' } : null);
     }
+  } else if (tag === '추천곡' && !currentUser) {
+    // 추천곡은 유동일 때 닉네임이 같으면 새 글을 안 만들고 기존 글에 이어 붙인다
+    // ("닉네임이 같으면 같은 사람" — 원래 카카오톡 공지 규칙을 그대로 적용).
+    const { data, error: rpcError } = await client.rpc('upsert_recommend_post', {
+      p_author: author, p_title: title, p_content: content, p_password: guestPw,
+      p_album_title: tempAlbum.title, p_album_artist: tempAlbum.artist, p_album_cover: tempAlbum.cover
+    });
+    error = rpcError;
+    mergedIntoExisting = !error && data?.appended === true;
   } else {
     const postData = {
       tag, author, title, content, user_id: currentUser ? currentUser.id : null,
@@ -1458,7 +1468,10 @@ $('savePostBtn').addEventListener('click', async () => {
   }
 
   $('savePostBtn').disabled = false; $('savePostBtn').textContent = isEditMode ? '수정 완료' : '등록하기';
-  if (!error) { alert(isEditMode ? '수정됨' : '등록됨'); returnToBoardAfterAction(); fetchPosts(); }
+  if (!error) {
+    alert(isEditMode ? '수정됨' : (mergedIntoExisting ? `이미 있는 '${author}'님의 추천곡 글에 이어 붙였습니다.` : '등록됨'));
+    returnToBoardAfterAction(); fetchPosts();
+  }
   else if (RESTRICTED_TAGS.includes(tag) && /row-level security/i.test(error.message || '')) {
     // 클라이언트 검증을 어떤 이유로든 못 거친 경우에도(캐시된 구버전 등) 서버 거부 사유를 그대로 노출하지 않고 같은 안내를 보여준다.
     alert('회원 간 거래, 오프라인 만남의 안전을 위해 카카오 로그인 사용자만 글을 쓸 수 있는 게시판입니다.');
