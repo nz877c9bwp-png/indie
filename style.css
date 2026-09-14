@@ -334,8 +334,12 @@ input:-webkit-autofill:focus {
 .settings-row { display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; }
 .settings-row-stacked { flex-direction:column; }
 .settings-row input { flex:1; min-width:180px; background:var(--bg); border:none; color:var(--text); padding:12px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; font-family:inherit; box-sizing:border-box; box-shadow:var(--shadow-inset-sm); }
-.btn-settings-save { background:var(--music); color:#fff; border:none; padding:0 22px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; font-family:inherit; transition:0.2s; white-space:nowrap; }
+.btn-settings-save { background:var(--music); color:#fff; border:none; padding:0 22px; height:42px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; font-family:inherit; transition:0.2s; white-space:nowrap; }
 .btn-settings-save:hover { background:var(--music-hover); }
+/* 세로로 쌓인 행(비밀번호 변경)에서는 버튼이 flex-direction:column의 기본
+   align-self:stretch 때문에 인풋만큼 가로로 길게 늘어나 보기 흉했다.
+   자기 크기만큼만 차지하고 우측 하단에 붙도록 정렬을 바꾼다. */
+.settings-row-stacked .btn-settings-save { align-self:flex-end; margin-top:2px; }
 .settings-info { font-size:13px; color:var(--muted); line-height:1.9; }
 .settings-info strong { color:var(--text); font-weight:700; }
 .settings-danger-desc { font-size:13px; color:var(--muted); line-height:1.6; margin:0 0 16px; }
