@@ -611,9 +611,13 @@ input:-webkit-autofill:focus {
      떨어져 보이는 문제가 있었다). 마지막 열에만 1fr을 둬서 남는 공간이 항상
      오른쪽 끝(추천 뒤)으로 가게 하면, 디시/펨코처럼 날짜·조회·추천이 전부
      제목 시작선에 붙어 왼쪽으로 나란히 정렬된다. */
+  /* 1열(말머리) 너비를 auto로 두면 "자유"(2글자)와 "같이 갈 사람"(6글자)처럼
+     말머리 글자 수가 다를 때마다 제목·앨범커버 시작 위치가 행마다 들쭉날쭉해진다.
+     실제 쓰는 말머리 중 가장 긴 "같이 갈 사람"(~63px) 기준으로 최소 폭을 고정해서,
+     말머리 길이와 무관하게 제목·앨범커버가 항상 같은 세로선에서 시작하게 한다. */
   .dc-table tr {
       display: grid;
-      grid-template-columns: auto auto auto 1fr;
+      grid-template-columns: minmax(68px, auto) auto auto 1fr;
       align-items: center;
       column-gap: 8px;
       row-gap: 4px;
