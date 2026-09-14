@@ -391,4 +391,28 @@ update public.posts set release_type = 'EP' where tag = '앨범 평가' and rele
 update public.posts set release_type = '싱글' where tag = '앨범 평가' and release_type is null and album_title ilike '%- Single';
 update public.posts set release_type = '정규' where tag = '앨범 평가' and release_type is null;
 
+-- 추천곡 트랙 커버 검증 캐시: iTunes/유튜브 자동 검색은 가끔 제목만 얼추 비슷한
+-- 완전히 무관한 곡을 매칭한다(예: "집토끼 - 라자냐"가 이탈리아 테마 스톡뮤직으로
+-- 잘못 매칭됨). 글쓰기 화면에서 검색 결과 중 사용자가 직접 고르면 그 선택을
+-- artist|song 키로 여기 저장해두고, 화면에 곡을 보여줄 때(loadRecommendTrackArt)
+-- 이 표를 자동 검색보다 먼저 확인해서 한 번 검증된 매칭은 계속 정확하게 뜨게 한다.
+-- 추천곡 게시판 자체가 로그인 없이도 자유롭게 쓸 수 있는 신뢰 기반이라, 여기도
+-- SECURITY DEFINER 없이 단순 RLS로 공개 읽기/쓰기를 둔다.
+create table if not exists public.track_art (
+  key text primary key,
+  artist text not null,
+  song text not null,
+  cover text,
+  album text,
+  duration_ms integer,
+  created_at timestamptz not null default now()
+);
+alter table public.track_art enable row level security;
+drop policy if exists "track_art read" on public.track_art;
+drop policy if exists "track_art insert" on public.track_art;
+drop policy if exists "track_art update" on public.track_art;
+create policy "track_art read" on public.track_art for select using (true);
+create policy "track_art insert" on public.track_art for insert to anon, authenticated with check (true);
+create policy "track_art update" on public.track_art for update to anon, authenticated using (true) with check (true);
+
 notify pgrst, 'reload schema';

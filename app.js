@@ -297,7 +297,16 @@ function formatRecommendContent(content) {
 // "Kimmarie - Fly!"). 커버가 없는 것보다 틀린 커버가 뜨는 게 더 나쁘므로
 // 뺐다. 마지막으로 유튜브 검색을 시도한다 — 앨범 커버는 아니고 영상
 // 썸네일이지만, 국내 소규모 인디 발매곡은 유튜브엔 있는 경우가 많다.
+//
+// 자동 검색 전에, 글쓰기 화면의 곡 검색에서 사용자가 직접 고른 적 있는 곡인지
+// track_art 표를 먼저 확인한다. 한 번 사람이 확인한 매칭은 항상 그걸 우선한다.
 async function searchTrackArt(artist, song) {
+  const key = `${artist}|${song}`;
+  try {
+    const { data } = await client.from('track_art').select('cover,album,duration_ms').eq('key', key).maybeSingle();
+    if (data) return { cover: data.cover, album: data.album, duration: formatTrackDuration(data.duration_ms) };
+  } catch { /* 조회 실패해도 자동 검색으로 계속 진행 */ }
+
   const term = encodeURIComponent(`${artist} ${song}`);
   for (const country of ['KR', 'US']) {
     try {
@@ -523,6 +532,7 @@ $('postTag').addEventListener('change', (e) => {
   $('albumSearchWrap').style.display = showAlbumSearch ? 'block' : 'none';
   $('albumSearchLabel').textContent = isRecommend ? '커버를 가져올 곡/앨범 검색 (Apple Music, 선택)' : '평가할 앨범 검색 (Apple Music)';
   $('starInputWrapper').style.display = (isAlbum && tempAlbum.title) ? 'flex' : 'none';
+  $('recTrackSearchWrap').style.display = isRecommend ? 'block' : 'none';
   if (!showAlbumSearch) tempAlbum = { title: null, artist: null, cover: null };
   $('postTeamCustom').style.display = isBaseball ? 'inline-block' : 'none';
   if (!isBaseball) { $('postTeam').value = ''; $('postTeam').dispatchEvent(new Event('change')); }
@@ -572,6 +582,57 @@ window.selectAlbum = (title, artist, cover, releaseType) => {
   $('selTitle').innerText = title; $('selArtist').innerText = artist;
   $('postReleaseType').value = releaseType || '정규';
   setStars(5);
+};
+
+// 추천곡 본문에 "아티스트 - 곡명" 줄을 자동 검색으로 추측해서 채우는 대신, 검색
+// 결과 중 사용자가 직접 골라서 추가하게 한다. 자동 검색이 가끔 제목만 비슷한
+// 무관한 곡을 매칭하는 문제(예: "집토끼 - 라자냐"가 이탈리아 스톡뮤직으로
+// 잘못 매칭됨)가 있어서, 직접 고른 곡은 track_art 표에 저장해두고 이후로는
+// 그 검증된 매칭을 자동 검색보다 우선해서 보여준다.
+$('btnSearchRecTrack').addEventListener('click', async () => {
+  const query = $('recTrackQuery').value.trim();
+  if (!query) return alert('검색어를 입력하세요.');
+  $('recTrackResults').innerHTML = '<div style="color:var(--muted); font-size:12px;">곡 찾는 중...</div>';
+  try {
+    const term = encodeURIComponent(query).replace(/%20/g, '+');
+    let res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=KR&limit=15`);
+    let data = await res.json();
+    if (!data.results?.length) {
+      res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=US&limit=15`);
+      data = await res.json();
+    }
+    if (!data.results?.length) {
+      $('recTrackResults').innerHTML = '<div style="color:var(--admin); font-size:13px;">결과가 없습니다. 영문으로 검색해보세요.</div>';
+      return;
+    }
+    $('recTrackResults').replaceChildren(...data.results.map(t => {
+      const coverUrl = typeof t.artworkUrl100 === 'string' ? t.artworkUrl100.replace('100x100bb', '300x300bb') : '';
+      const card = element('div', 'search-item');
+      card.addEventListener('click', () => pickRecTrack(t.artistName, t.trackName, coverUrl, t.collectionName, t.trackTimeMillis));
+      const img = element('img');
+      img.addEventListener('error', () => img.src = 'https://via.placeholder.com/300x300?text=No+Image', { once: true });
+      setImageSource(img, coverUrl);
+      card.append(img, element('div', 's-title', t.trackName), element('div', 's-artist', t.artistName));
+      return card;
+    }));
+  } catch {
+    $('recTrackResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 서버 오류입니다.</div>';
+  }
+});
+
+window.pickRecTrack = async (artist, song, cover, album, durationMs) => {
+  const textarea = $('postContent');
+  const line = `${artist} - ${song}`;
+  textarea.value = textarea.value.trim() ? `${textarea.value}\n${line}` : line;
+  $('recTrackQuery').value = '';
+  $('recTrackResults').replaceChildren();
+
+  const key = `${artist}|${song}`;
+  const safeCover = imageUrl(cover);
+  const duration = formatTrackDuration(durationMs);
+  recTrackArtCache.set(key, { cover: safeCover, album: album || null, duration });
+  const { error } = await client.from('track_art').upsert({ key, artist, song, cover: safeCover, album: album || null, duration_ms: durationMs || null });
+  if (error) console.error('track_art upsert failed:', error.message);
 };
 
 // 별점을 0.5 단위로, 마우스/터치 드래그로 조절할 수 있게 한다.
