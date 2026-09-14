@@ -277,8 +277,7 @@ function formatRecommendContent(content) {
       li.dataset.artist = item.artist;
       li.dataset.song = item.song;
       li.classList.add('rec-track-clickable');
-      // 링크가 아직(검색 전) 없을 수도 있으니 클릭 시점에 dataset.url을 다시 확인한다.
-      li.addEventListener('click', () => { if (li.dataset.url) window.open(li.dataset.url, '_blank', 'noopener'); });
+      li.addEventListener('click', () => toggleRecTrackPlayer(li));
     } else {
       li.classList.add('rec-track-comment');
       textWrap.append(element('div', 'rec-track-song', item.line));
@@ -289,6 +288,37 @@ function formatRecommendContent(content) {
   list.append(...rows);
   loadRecommendTrackArt(list, rows);
   return list;
+}
+
+function extractYoutubeId(url) {
+  const m = url?.match(/[?&]v=([\w-]{11})/) || url?.match(/youtu\.be\/([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+// 트랙을 클릭하면 새 탭으로 유튜브에 나가는 대신, 그 자리에서 바로 재생되게
+// 임베드 플레이어를 펼친다(글 본문에 유튜브 링크를 붙이면 자동으로 영상이
+// 뜨는 기존 기능과 같은 방식). 다시 클릭하면 접히고, 다른 곡을 클릭하면
+// 동시에 여러 곡이 재생되지 않도록 먼저 열려있던 플레이어를 닫는다.
+function toggleRecTrackPlayer(li) {
+  if (!li.dataset.url) return;
+  const list = li.closest('.rec-tracklist');
+  const alreadyOpen = li.nextElementSibling?.classList?.contains('rec-track-player-row') ? li.nextElementSibling : null;
+  list.querySelectorAll('.rec-track-player-row').forEach((row) => row.remove());
+  list.querySelectorAll('.rec-track-row.rec-track-playing').forEach((row) => row.classList.remove('rec-track-playing'));
+  if (alreadyOpen) return; // 같은 곡을 다시 누른 거면 닫기만 하고 끝낸다.
+
+  const videoId = extractYoutubeId(li.dataset.url);
+  if (!videoId) return;
+  const playerRow = element('li', 'rec-track-player-row');
+  const wrapper = element('div', 'yt-wrapper');
+  const iframe = element('iframe');
+  iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+  iframe.allow = 'autoplay; encrypted-media; fullscreen';
+  iframe.allowFullscreen = true;
+  wrapper.append(iframe);
+  playerRow.append(wrapper);
+  li.insertAdjacentElement('afterend', playerRow);
+  li.classList.add('rec-track-playing');
 }
 
 // 유튜브를 기본 검색 소스로 쓴다 — 국내 소규모 인디 발매곡은 애플뮤직(iTunes)엔

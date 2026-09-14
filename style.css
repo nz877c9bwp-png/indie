@@ -289,6 +289,12 @@ input:-webkit-autofill:focus {
 .rec-track-clickable { cursor:pointer; }
 .rec-track-clickable:hover { background:var(--panel-alt); }
 .rec-track-clickable:hover .rec-track-song { color:var(--music); }
+.rec-track-playing { background:var(--panel-alt); }
+.rec-track-playing .rec-track-song { color:var(--music); }
+/* 클릭한 곡 바로 아래에 펼쳐지는 임베드 플레이어. 글 본문에 유튜브 링크를
+   붙이면 자동으로 영상이 뜨는 .yt-wrapper와 같은 스타일을 재사용한다. */
+.rec-track-player-row { padding:12px 16px 18px; background:var(--panel-alt); }
+.rec-track-player-row .yt-wrapper { margin:0; }
 
 .review-list { display:flex; flex-direction:column; gap:16px; margin-top:20px;}
 .review-card { background:var(--panel); padding:20px; border-radius:var(--radius); cursor:pointer; transition:0.2s; box-shadow:var(--shadow-sm);}
