@@ -48,7 +48,7 @@ test('regression: album averages, review text, navigation and preselected writin
   await expect(page.locator('#writeSection')).toBeVisible();
   await expect(page.locator('#postTag')).toHaveValue('앨범 평가');
   await expect(page.locator('#selTitle')).toHaveText(normalPosts[1].album_title);
-  await expect(page.locator('#starRatingText')).toHaveText('명반! (5점)');
+  await expect(page.locator('#starRatingText')).toHaveText('5점');
   await page.locator('.btn-cancel-write').click();
   await expect(page.locator('#boardSection')).toBeVisible();
   await assertClean(page, state);
@@ -281,7 +281,7 @@ test('regression/security: upstream same-album review action preserves literal m
   await expect(page.locator('#selTitle')).toHaveText(title);
   await expect(page.locator('#selArtist')).toHaveText(artist);
   await expect(page.locator('#selCover')).toHaveAttribute('src', 'https://assets.test/cover.png');
-  await expect(page.locator('#starRatingText')).toHaveText('명반! (5점)');
+  await expect(page.locator('#starRatingText')).toHaveText('5점');
   await expect(page.locator('#selAlbumWrap svg, #selAlbumWrap [onerror]')).toHaveCount(0);
   await page.locator('.btn-cancel-write').click();
   await page.locator('.sidebar a').filter({ hasText: /^앨범 평가$/ }).click();

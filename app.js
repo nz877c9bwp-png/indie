@@ -425,10 +425,7 @@ function setStars(val) {
     const fill = Math.max(0, Math.min(1, val - (parseInt(s.dataset.value) - 1)));
     s.querySelector('.star-fill').style.width = (fill * 100) + '%';
   });
-  const msgs = ['별로임', '아쉬움', '들을만함', '훌륭함', '명반!'];
-  const labelIdx = Math.min(5, Math.max(1, Math.round(val)));
-  $('starRatingText').innerText = `${msgs[labelIdx-1]} (${val}점)`;
-  $('starRatingText').style.color = val >= 4 ? 'var(--special)' : 'var(--text)';
+  $('starRatingText').innerText = `${formatRating(val)}점`;
 }
 
 $('imageUpload').addEventListener('change', async (e) => {
