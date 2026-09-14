@@ -600,8 +600,9 @@ input:-webkit-autofill:focus {
      행은 그 안에서 옅은 구분선으로만 나눈다. */
   .dc-table tr {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 8px;
+      gap: 4px 8px;
       padding: 14px 16px;
       background: transparent;
       border-radius: 0;
@@ -620,10 +621,18 @@ input:-webkit-autofill:focus {
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
 
-  .col-category { flex: 0 0 auto; }
-  .col-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 500; padding-left: 0 !important; overflow: hidden; }
+  .col-category { flex: 0 0 auto; order: 1; }
+  .col-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 500; padding-left: 0 !important; overflow: hidden; order: 2; }
 
+  /* 디시/펨코 모바일 목록처럼 제목은 한 줄 그대로 두고, 조회·추천·날짜는 그 아래 별도
+     줄로 내린다. tr이 flex-wrap 상태이므로, 태그+제목(order 1~2) 바로 뒤(order 3)에
+     너비만 100%·높이는 0인 보이지 않는 구분선을 order로 끼워 넣으면 그 지점에서
+     줄바꿈이 일어나고, 뒤이은 날짜·조회·추천(order 4~6)은 그 새 줄에 나란히 놓인다. */
+  .dc-table tr::after { content: ''; order: 3; flex-basis: 100%; height: 0; }
   .col-date, .col-views, .col-likes { flex: 0 0 auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .col-date { order: 4; }
+  .col-views { order: 5; }
+  .col-likes { order: 6; }
   .col-date::before { content: ''; }
   .col-views::before { content: '· 조회 '; color: var(--muted-2); }
   .col-likes::before { content: '· 추천 '; color: var(--muted-2); }
