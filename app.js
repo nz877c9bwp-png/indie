@@ -396,9 +396,13 @@ makeCustomSelect('postTeam');
 
 $('postTag').addEventListener('change', (e) => {
   const isAlbum = e.target.value === '앨범 평가';
+  const isRecommend = e.target.value === '추천곡';
+  const showAlbumSearch = isAlbum || isRecommend;
   const isBaseball = e.target.value === '야구';
-  $('albumSearchWrap').style.display = isAlbum ? 'block' : 'none';
-  if (!isAlbum) tempAlbum = { title: null, artist: null, cover: null };
+  $('albumSearchWrap').style.display = showAlbumSearch ? 'block' : 'none';
+  $('albumSearchLabel').textContent = isRecommend ? '커버를 가져올 곡/앨범 검색 (Apple Music, 선택)' : '평가할 앨범 검색 (Apple Music)';
+  $('starInputWrapper').style.display = (isAlbum && tempAlbum.title) ? 'flex' : 'none';
+  if (!showAlbumSearch) tempAlbum = { title: null, artist: null, cover: null };
   $('postTeamCustom').style.display = isBaseball ? 'inline-block' : 'none';
   if (!isBaseball) { $('postTeam').value = ''; $('postTeam').dispatchEvent(new Event('change')); }
 });
@@ -441,7 +445,8 @@ $('btnSearchAlbum').addEventListener('click', async () => {
 
 window.selectAlbum = (title, artist, cover, releaseType) => {
   tempAlbum = { title, artist, cover: imageUrl(cover) };
-  $('selAlbumWrap').style.display = 'flex'; $('starInputWrapper').style.display = 'flex';
+  const isAlbumEval = $('postTag').value === '앨범 평가';
+  $('selAlbumWrap').style.display = 'flex'; $('starInputWrapper').style.display = isAlbumEval ? 'flex' : 'none';
   setImageSource($('selCover'), tempAlbum.cover);
   $('selTitle').innerText = title; $('selArtist').innerText = artist;
   $('postReleaseType').value = releaseType || '정규';
@@ -735,7 +740,7 @@ function renderPosts() {
         titleCell.append(link);
 
         if (post.comment_count > 0) titleCell.append(element('span', 'dc-cmt-count', `[${post.comment_count}]`));
-        if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
+        if (post.tag === '앨범 평가' && post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
         
         const authorCell = element('td', 'col-author');
         const authorWrap = element('span', 'author-wrap');
@@ -912,7 +917,7 @@ function renderMyPosts() {
     link.href = '#post-' + post.id;
     titleCell.append(link);
     if (post.comment_count > 0) titleCell.append(element('span', 'dc-cmt-count', `[${post.comment_count}]`));
-    if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
+    if (post.tag === '앨범 평가' && post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
 
     const dateCell = element('td', 'col-date', dateOrSongCountLabel(post));
     const viewsCell = element('td', 'col-views tabular', post.views || 0);
@@ -1218,6 +1223,13 @@ async function openPostView(postId, pushHistory = true) {
     const albumReviews = currentPosts.filter(p => p.tag === '앨범 평가' && p.album_title === post.album_title && p.album_artist === post.album_artist);
     const avgRating = albumReviews.length ? albumReviews.reduce((s, p) => s + Number(p.rating || 0), 0) / albumReviews.length : Number(post.rating || 0);
     $('readAlbumRating').textContent = `전체평점 ★${avgRating.toFixed(1)}  ·  작성자 평점 ★${formatRating(post.rating)}`;
+  } else if (post.tag === '추천곡' && post.album_cover) {
+    // 추천곡은 평점이 없는 참고용 커버라 이름/평점 없이 이미지만 보여준다.
+    $('readAlbumInfo').style.display = 'flex';
+    setImageSource($('readAlbumCover'), post.album_cover);
+    $('readAlbumName').textContent = post.album_title || '';
+    $('readAlbumArtist').textContent = post.album_artist || '';
+    $('readAlbumRating').textContent = '';
   } else {
     $('readAlbumInfo').style.display = 'none';
   }
@@ -1347,6 +1359,14 @@ $('adminEditBtn').addEventListener('click', () => {
     $('starInputWrapper').style.display = 'flex';
     setStars(Number(post.rating) || 5);
     $('postReleaseType').value = post.release_type || '정규';
+  } else if (post.tag === '추천곡' && post.album_cover) {
+    // 추천곡은 커버가 선택 사항이라, 이미 붙어있으면 그대로 보여주고 없으면 새로 검색하게 둔다.
+    tempAlbum = { title: post.album_title, artist: post.album_artist, cover: post.album_cover };
+    $('albumSearchOnly').style.display = 'none';
+    $('selAlbumWrap').style.display = 'flex';
+    setImageSource($('selCover'), post.album_cover);
+    $('selTitle').innerText = post.album_title || '';
+    $('selArtist').innerText = post.album_artist || '';
   }
 
   // 관리자/본인 글이 아니면 유동(비로그인) 글 수정이므로 비밀번호 확인이 필요하다.
@@ -1412,8 +1432,11 @@ $('savePostBtn').addEventListener('click', async () => {
   let error;
   if (isEditMode) {
     const ratingField = tag === '앨범 평가' ? { rating: currentSelectedRating, release_type: releaseType } : {};
+    // 추천곡은 커버가 선택 사항이라, 새로 고른(tempAlbum.title이 있는) 경우에만 갱신하고
+    // 안 건드렸으면 기존 값을 그대로 둔다(빈 값으로 덮어쓰지 않음).
+    const coverField = tag === '추천곡' && tempAlbum.title ? { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover } : {};
     if (canDirectEdit) {
-      const updateData = { tag, author, title, content, team: tag === '야구' ? team : null, ...ratingField };
+      const updateData = { tag, author, title, content, team: tag === '야구' ? team : null, ...ratingField, ...coverField };
       ({ error } = await client.from('posts').update(updateData).eq('id', currentReadPostId));
     } else {
       const { data, error: rpcError } = await client.rpc('edit_post_with_password', {
@@ -1428,6 +1451,7 @@ $('savePostBtn').addEventListener('click', async () => {
       tag, author, title, content, user_id: currentUser ? currentUser.id : null,
       ...(!currentUser && { guest_password: guestPw }),
       ...(tag === '앨범 평가' && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover, rating: currentSelectedRating, release_type: releaseType }),
+      ...(tag === '추천곡' && tempAlbum.title && { album_title: tempAlbum.title, album_artist: tempAlbum.artist, album_cover: tempAlbum.cover }),
       ...(tag === '야구' && { team })
     };
     ({ error } = await client.from('posts').insert([postData]));
