@@ -110,9 +110,12 @@ input:-webkit-autofill:focus {
   box-shadow: 0 0 0px 1000px var(--bg) inset;
   transition: background-color 9999s ease-in-out 0s;
 }
-.search button{ border:none; background:var(--panel); color:var(--text); padding:0 18px; margin:4px; border-radius:999px; cursor:pointer; font-family:inherit; font-weight:600; transition:0.2s; white-space:nowrap; box-shadow:var(--shadow-sm);}
+/* .search 전체가 이미 하나의 인셋 그림자를 두르고 있는데(box-shadow:var(--shadow-inset-sm)),
+   버튼에 또 자체 그림자를 주면 overflow:hidden 경계에서 중간에 잘려 어색한 선이 보였다.
+   버튼은 그림자 없이 배경색으로만 구분한다. */
+.search button{ border:none; background:var(--panel); color:var(--text); padding:0 18px; margin:4px; border-radius:999px; cursor:pointer; font-family:inherit; font-weight:600; transition:0.2s; white-space:nowrap; box-shadow:none;}
 .search button:hover { color:var(--music); }
-.search button:active { box-shadow:var(--shadow-inset-sm); }
+.search button:active { background:var(--bg); }
 
 .user-actions { display:flex; align-items:center; gap:14px; white-space:nowrap; }
 .auth-btn { background:none; border:none; color:var(--text); cursor:pointer; font-size:13px; font-family:inherit; font-weight:600; padding:0; transition:0.2s;}
