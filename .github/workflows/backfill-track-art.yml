@@ -1,0 +1,24 @@
+name: Backfill Track Art
+
+on:
+  # 유튜브 검색 할당량(하루 100회)이 매일 태평양시 자정에 초기화되므로, 그 이후
+  # 시각에 한 번 돌면서 아직 못 채운 추천곡들을 이어서 처리한다. 620곡 정도면
+  # 하루 80곡씩(DAILY_CAP) 약 일주일이면 다 채워진다.
+  schedule:
+    - cron: '30 8 * * *' # 17:30 KST = 08:30 UTC, 태평양시 자정(할당량 초기화) 이후
+  workflow_dispatch: {}
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Backfill track_art from YouTube
+        run: node scripts/backfill-track-art.mjs
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
