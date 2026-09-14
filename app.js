@@ -1620,11 +1620,19 @@ $('btnPostSearch').addEventListener('click', () => {
 $('headerSearchBtn').addEventListener('click', () => {
   const keyword = $('headerSearchInput').value.trim();
   if (!keyword) return;
-  changeBoard('전체');
-  postSearchType = 'all';
-  postSearchKeyword = keyword;
-  $('postSearchType').value = 'all';
-  $('postSearchInput').value = keyword;
+  // 지금 보고 있던 게시판(전체 포함)을 유지한 채 그 안에서만 검색한다.
+  // 처음 접속해서 아직 게시판을 고르지 않은 상태면 currentCategory 기본값인
+  // '전체'가 그대로 쓰이므로, 이전처럼 전체 검색으로 자연스럽게 동작한다.
+  changeBoard(currentCategory);
+  if (currentCategory === '앨범 평가') {
+    // 앨범 평가 게시판은 postSearchKeyword가 아니라 albumBoardSearchInput을 따로 읽어서 그린다.
+    $('albumBoardSearchInput').value = keyword;
+  } else {
+    postSearchType = 'all';
+    postSearchKeyword = keyword;
+    $('postSearchType').value = 'all';
+    $('postSearchInput').value = keyword;
+  }
   currentPage = 1;
   renderPosts();
 });
