@@ -238,49 +238,77 @@ function dateOrSongCountLabel(post) {
 const recTrackArtCache = new Map();
 let recTrackArtToken = 0;
 
+// 같은 가수 곡들이 원문에서 뿔뿔이 흩어져 있으면 지저분해 보이니, 가수가 처음
+// 등장한 순서를 기준으로 묶는다(안정 정렬 — 그룹 내부/그룹 순서 모두 원래 순서
+// 유지). "아티스트 - 곡명" 형식이 아닌 자유 코멘트 줄은 어떤 그룹에도 안 섞이게
+// 매번 고유 키를 줘서 원래 있던 자리 그대로 둔다.
+function groupRecommendLines(lines) {
+  const parsed = lines.map((line, i) => {
+    const idx = line.indexOf(' - ');
+    return idx > -1
+      ? { line, artist: line.slice(0, idx).trim(), song: line.slice(idx + 3).trim() }
+      : { line, artist: null, song: null, soloKey: `__comment_${i}` };
+  });
+  const order = [];
+  const groups = new Map();
+  parsed.forEach(item => {
+    const key = item.artist ?? item.soloKey;
+    if (!groups.has(key)) { groups.set(key, []); order.push(key); }
+    groups.get(key).push(item);
+  });
+  return order.flatMap(key => groups.get(key));
+}
+
 function formatRecommendContent(content) {
   const lines = (content || '').split('\n').map(l => l.trim()).filter(Boolean);
   const list = element('ol', 'rec-tracklist');
-  const rows = lines.map(line => {
+  const rows = groupRecommendLines(lines).map(item => {
     const li = element('li', 'rec-track-row');
-    const idx = line.indexOf(' - ');
     const img = element('img', 'rec-track-art rec-track-art-empty');
     img.alt = '';
     const textWrap = element('div', 'rec-track-text');
-    if (idx > -1) {
-      const artist = line.slice(0, idx).trim(), song = line.slice(idx + 3).trim();
-      textWrap.append(element('div', 'rec-track-song', song), element('div', 'rec-track-artist', artist));
-      li.dataset.artist = artist;
-      li.dataset.song = song;
+    if (item.artist) {
+      textWrap.append(element('div', 'rec-track-song', item.song), element('div', 'rec-track-artist', item.artist));
+      li.dataset.artist = item.artist;
+      li.dataset.song = item.song;
     } else {
       li.classList.add('rec-track-comment');
-      textWrap.append(element('div', 'rec-track-song', line));
+      textWrap.append(element('div', 'rec-track-song', item.line));
     }
     li.append(img, textWrap);
     return li;
   });
   list.append(...rows);
-  loadRecommendTrackArt(rows);
+  loadRecommendTrackArt(list, rows);
   return list;
 }
 
+// iTunes는 한국 스토어(KR)에 먼저 있는지 보고, 없으면 미국(US) 스토어도 본다
+// (작은 국내 인디 발매곡이 KR에만 있는 경우가 꽤 있다).
+//
+// Deezer 공개 검색도 시도해봤는데(키 없이 JSONP로 호출은 됨), 작은 국내
+// 인디 곡은 카탈로그에 거의 없어서 엉뚱한 서양 곡을 "그럴듯하게" 잘못
+// 매칭해주는 경우가 많았다(예: "김마리 - 비행소녀" -> 전혀 무관한
+// "Kimmarie - Fly!"). 커버가 없는 것보다 틀린 커버가 뜨는 게 더 나쁘므로
+// 뺐다. YouTube는 검색에 API 키가 필요해서(무료 발급 가능) 아직 연동
+// 안 했다 — 필요하면 키 발급 절차를 안내할 수 있다.
 async function searchTrackArt(artist, song) {
-  try {
-    const term = encodeURIComponent(`${artist} ${song}`);
-    const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&limit=1`);
-    const data = await res.json();
-    const r = data.results?.[0];
-    if (!r) return null;
-    return { cover: r.artworkUrl100 || r.artworkUrl60 || null, duration: formatTrackDuration(r.trackTimeMillis) };
-  } catch {
-    return null;
+  const term = encodeURIComponent(`${artist} ${song}`);
+  for (const country of ['KR', 'US']) {
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
+      const data = await res.json();
+      const r = data.results?.[0];
+      if (r) return { cover: r.artworkUrl100 || r.artworkUrl60 || null, duration: formatTrackDuration(r.trackTimeMillis), album: r.collectionName || null };
+    } catch { /* 다음 소스로 넘어간다 */ }
   }
+  return null;
 }
 
 // 한 글에 곡이 많으면(90곡 이상도 있음) 동시에 다 검색하지 않고 몇 개씩만
 // 병렬로 처리한다. 사용자가 다른 글로 넘어가면 토큰이 바뀌어 남은 검색
 // 결과는 화면에 반영하지 않는다.
-async function loadRecommendTrackArt(rows) {
+async function loadRecommendTrackArt(list, rows) {
   const myToken = ++recTrackArtToken;
   let cursor = 0;
   async function worker() {
@@ -295,6 +323,7 @@ async function loadRecommendTrackArt(rows) {
         recTrackArtCache.set(key, art);
       }
       if (myToken !== recTrackArtToken) return;
+      row.dataset.album = art?.album || '';
       const img = row.querySelector('.rec-track-art');
       if (art?.cover) {
         setImageSource(img, art.cover);
@@ -306,6 +335,21 @@ async function loadRecommendTrackArt(rows) {
     }
   }
   await Promise.all(Array.from({ length: Math.min(5, rows.length) }, worker));
+  // 검색이 다 끝난 뒤(collectionName을 다 알게 된 뒤) 같은 가수 안에서 같은
+  // 앨범 곡들도 한 번 더 인접하게 재배치한다. 검색 중간중간 움직이면 산만해서
+  // 한 번에 몰아서 정리한다.
+  if (myToken === recTrackArtToken) regroupRecommendRowsByAlbum(list, rows);
+}
+
+function regroupRecommendRowsByAlbum(list, rows) {
+  const order = [];
+  const groups = new Map();
+  rows.forEach((row, i) => {
+    const key = row.dataset.artist ? `${row.dataset.artist}||${row.dataset.album || ''}` : `__solo_${i}`;
+    if (!groups.has(key)) { groups.set(key, []); order.push(key); }
+    groups.get(key).push(row);
+  });
+  list.append(...order.flatMap(key => groups.get(key))); // 이미 리스트의 자식이라 append하면 위치만 옮겨진다
 }
 
 // 글쓰기 중 [img]/유튜브 링크가 텍스트 그대로 보이지 않도록, 실제 업로드 전에도 사진/영상을 미리 보여준다.
@@ -750,8 +794,9 @@ function renderPosts() {
     if (albumObserver) { albumObserver.disconnect(); albumObserver = null; }
     const tbody = $('postList');
     
-    let filtered = currentCategory === '전체' ? [...currentPosts] : 
-                   (currentCategory === '인디' ? currentPosts.filter(p => ['국내 인디', '해외 인디', '인디'].includes(p.tag)) : 
+    // 추천곡은 전용 게시판에서만 보이게 하고, 전체 게시판(뒤섞여 보이면 지저분함)에서는 뺀다.
+    let filtered = currentCategory === '전체' ? currentPosts.filter(p => p.tag !== '추천곡') :
+                   (currentCategory === '인디' ? currentPosts.filter(p => ['국내 인디', '해외 인디', '인디'].includes(p.tag)) :
                    currentPosts.filter(p => p.tag === currentCategory));
 
     if (currentCategory === '야구' && baseballTeamFilter !== '전체') {
