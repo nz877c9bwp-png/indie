@@ -598,11 +598,19 @@ input:-webkit-autofill:focus {
   /* 카드별로 그림자를 따로 주면 다크모드에서 인접한 행끼리 그림자가 겹쳐 경계가 탁하게 보인다.
      그래서 행 하나하나가 아니라 post-table-wrap 전체를 데스크탑처럼 하나의 통짜 블럭으로 두고,
      행은 그 안에서 옅은 구분선으로만 나눈다. */
+  /* 디시/펨코 모바일 목록처럼 제목은 한 줄, 날짜·조회·추천은 그 아래 한 줄로 두 줄
+     구조를 만든다. flex-wrap+order로 줄바꿈을 흉내 냈던 이전 방식은 두 가지 문제가
+     있었다: (1) 제목이 길면 ellipsis로 가려지기 전의 원래 텍스트 폭으로 줄바꿈
+     여부를 판단해버려서 제목 셀 전체가 통째로 다음 줄로 밀려나 태그만 혼자 남고,
+     (2) 태그 폭이 말머리마다 달라서 둘째 줄(날짜 등)이 태그 밑에서 시작해 제목
+     텍스트/앨범커버 시작 위치와 어긋나 보였다. 그리드로 바꿔서 1열=태그,
+     2~4열=제목·날짜·조회·추천이 항상 같은 2열 시작선에서 정렬되게 했다. */
   .dc-table tr {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
       align-items: center;
-      gap: 4px 8px;
+      column-gap: 8px;
+      row-gap: 4px;
       padding: 14px 16px;
       background: transparent;
       border-radius: 0;
@@ -621,8 +629,8 @@ input:-webkit-autofill:focus {
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
 
-  .col-category { flex: 0 0 auto; order: 1; }
-  .col-title { flex: 1 1 auto; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; order: 2; }
+  .col-category { grid-column: 1; grid-row: 1; }
+  .col-title { grid-column: 2 / span 3; grid-row: 1; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
   /* 제목은 눈에 잘 띄게 키우고, 말머리·댓글수 뱃지나 조회/추천/날짜 같은 부가 정보는
      한 단계씩 더 줄여서 제목과의 크기 대비를 뚜렷하게 뒀다. */
@@ -631,15 +639,12 @@ input:-webkit-autofill:focus {
   .col-title .dc-cmt-count { font-size: 11px; }
   .col-title .dc-comment-count { font-size: 10px; }
 
-  /* 디시/펨코 모바일 목록처럼 제목은 한 줄 그대로 두고, 조회·추천·날짜는 그 아래 별도
-     줄로 내린다. tr이 flex-wrap 상태이므로, 태그+제목(order 1~2) 바로 뒤(order 3)에
-     너비만 100%·높이는 0인 보이지 않는 구분선을 order로 끼워 넣으면 그 지점에서
-     줄바꿈이 일어나고, 뒤이은 날짜·조회·추천(order 4~6)은 그 새 줄에 나란히 놓인다. */
-  .dc-table tr::after { content: ''; order: 3; flex-basis: 100%; height: 0; }
-  .col-date, .col-views, .col-likes { flex: 0 0 auto; font-size: 10px; color: var(--muted); white-space: nowrap; }
-  .col-date { order: 4; }
-  .col-views { order: 5; }
-  .col-likes { order: 6; }
+  /* 둘째 줄: 제목(2열 시작선)과 정확히 같은 위치에서 시작하도록 날짜를 2열에 둔다.
+     썸네일(앨범커버)이 있는 행도 썸네일이 2열에서 시작하므로 함께 맞춰진다. */
+  .col-date, .col-views, .col-likes { font-size: 10px; color: var(--muted); white-space: nowrap; grid-row: 2; }
+  .col-date { grid-column: 2; }
+  .col-views { grid-column: 3; }
+  .col-likes { grid-column: 4; }
   .col-date::before { content: ''; }
   .col-views::before { content: '· 조회 '; color: var(--muted-2); }
   .col-likes::before { content: '· 추천 '; color: var(--muted-2); }
