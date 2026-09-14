@@ -10,10 +10,17 @@
   button{ margin-top:16px; padding:10px 22px; border:none; border-radius:999px; background:#3182F6; color:#fff; font-size:15px; font-weight:700; }
 </style>
 </head>
-<body>
+<body style="visibility:hidden">
   <div>
     <p>인터넷 연결을 확인해 주세요.</p>
     <button onclick="location.replace('https://duli.kr')">다시 시도</button>
   </div>
+  <script>
+    // Capacitor는 외부 링크를 Safari로 넘기며 웹뷰 이동을 취소할 때(오프라인이 아닌데도) 이 페이지를 띄운다.
+    // 네트워크가 살아 있으면 안내를 보여주지 않고 곧바로 이전 화면(앱)으로 돌아간다.
+    fetch('https://duli.kr/?ping=' + Date.now(), { mode: 'no-cors', cache: 'no-store' })
+      .then(() => history.length > 1 ? history.back() : location.replace('https://duli.kr'))
+      .catch(() => { document.body.style.visibility = 'visible'; });
+  </script>
 </body>
 </html>
