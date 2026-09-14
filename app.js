@@ -226,23 +226,82 @@ function dateOrSongCountLabel(post) {
   return new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
 }
 
-// 추천곡 본문을 문단 텍스트가 아니라 앨범 트랙리스트처럼 번호 매긴 목록으로
-// 보여준다. "아티스트 - 곡명" 형식이면 아티스트를 굵게 구분하고, 그 형식이
-// 아닌 자유 코멘트 줄(추천인이 남긴 설명 등)은 그대로 한 줄로 보여준다.
+// 추천곡 본문을 문단 텍스트가 아니라 스포티파이 플레이리스트 행처럼(커버+제목+
+// 아티스트) 보여준다. "아티스트 - 곡명" 형식이면 곡마다 iTunes에서 커버/재생
+// 시간을 찾아 채우고, 그 형식이 아닌 자유 코멘트 줄은 커버 없이 한 줄로 둔다.
+// "아티스트 곡명|아티스트명" 조합으로 캐싱해서, 같은 글을 다시 열거나 같은
+// 곡이 여러 글에 나와도 매번 다시 검색하지 않는다.
+const recTrackArtCache = new Map();
+let recTrackArtToken = 0;
+
 function formatRecommendContent(content) {
   const lines = (content || '').split('\n').map(l => l.trim()).filter(Boolean);
   const list = element('ol', 'rec-tracklist');
-  list.append(...lines.map(line => {
+  const rows = lines.map(line => {
     const li = element('li', 'rec-track-row');
     const idx = line.indexOf(' - ');
+    const img = element('img', 'rec-track-art rec-track-art-empty');
+    img.alt = '';
+    const textWrap = element('div', 'rec-track-text');
     if (idx > -1) {
-      li.append(element('span', 'rec-track-artist', line.slice(0, idx)), element('span', 'rec-track-song', line.slice(idx + 3)));
+      const artist = line.slice(0, idx).trim(), song = line.slice(idx + 3).trim();
+      textWrap.append(element('div', 'rec-track-song', song), element('div', 'rec-track-artist', artist));
+      li.dataset.artist = artist;
+      li.dataset.song = song;
     } else {
-      li.append(element('span', 'rec-track-song', line));
+      li.classList.add('rec-track-comment');
+      textWrap.append(element('div', 'rec-track-song', line));
     }
+    li.append(img, textWrap);
     return li;
-  }));
+  });
+  list.append(...rows);
+  loadRecommendTrackArt(rows);
   return list;
+}
+
+async function searchTrackArt(artist, song) {
+  try {
+    const term = encodeURIComponent(`${artist} ${song}`);
+    const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&limit=1`);
+    const data = await res.json();
+    const r = data.results?.[0];
+    if (!r) return null;
+    return { cover: r.artworkUrl100 || r.artworkUrl60 || null, duration: formatTrackDuration(r.trackTimeMillis) };
+  } catch {
+    return null;
+  }
+}
+
+// 한 글에 곡이 많으면(90곡 이상도 있음) 동시에 다 검색하지 않고 몇 개씩만
+// 병렬로 처리한다. 사용자가 다른 글로 넘어가면 토큰이 바뀌어 남은 검색
+// 결과는 화면에 반영하지 않는다.
+async function loadRecommendTrackArt(rows) {
+  const myToken = ++recTrackArtToken;
+  let cursor = 0;
+  async function worker() {
+    while (cursor < rows.length) {
+      const row = rows[cursor++];
+      const { artist, song } = row.dataset;
+      if (!artist || !song) continue;
+      const key = `${artist}|${song}`;
+      let art = recTrackArtCache.get(key);
+      if (art === undefined) {
+        art = await searchTrackArt(artist, song);
+        recTrackArtCache.set(key, art);
+      }
+      if (myToken !== recTrackArtToken) return;
+      const img = row.querySelector('.rec-track-art');
+      if (art?.cover) {
+        setImageSource(img, art.cover);
+        img.classList.remove('rec-track-art-empty');
+      }
+      if (art?.duration) {
+        row.querySelector('.rec-track-artist')?.append(document.createTextNode(` · ${art.duration}`));
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(5, rows.length) }, worker));
 }
 
 // 글쓰기 중 [img]/유튜브 링크가 텍스트 그대로 보이지 않도록, 실제 업로드 전에도 사진/영상을 미리 보여준다.
