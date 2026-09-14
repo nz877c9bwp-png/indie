@@ -657,6 +657,13 @@ input:-webkit-autofill:focus {
 
 .kakao-btn{ width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:#FEE500; color:#191919; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer; box-shadow:var(--shadow-sm); transition:0.2s;}
 .kakao-btn:active{ box-shadow:var(--shadow-inset); }
+/* Sign in with Apple (심사 지침 4.8). 다크 배경에선 흰 버튼을 쓰라는 Apple 가이드에 맞춰 아래 미디어쿼리에서 반전. */
+.apple-btn{ width:100%; margin-top:8px; padding:12px; border:none; border-radius:var(--radius-sm); background:#000; color:#fff; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:var(--shadow-sm); transition:0.2s;}
+.apple-btn:active{ box-shadow:var(--shadow-inset); }
+@media (prefers-color-scheme: dark){ .apple-btn{ background:#fff; color:#000; } }
+/* 게시글 신고/차단 (심사 지침 1.2). 댓글의 .ci-actions 버튼과 같은 톤. */
+.mod-actions button{ background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; padding:0; margin-left:12px; font-family:inherit; font-weight:bold; }
+.mod-actions button:hover{ color:var(--admin); text-decoration:underline; }
 .oauth-divider{ display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--muted); font-size:12px;}
 .oauth-divider::before, .oauth-divider::after{ content:''; flex:1; height:1px; background:var(--panel-alt);}
 

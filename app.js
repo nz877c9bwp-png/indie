@@ -61,6 +61,10 @@ const SUPABASE_URL = 'https://jvitmimabxupkhrksudu.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY';
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_EMAIL = 'bkseungah010223@gmail.com';
+// 앱스토어 심사 지침 1.2: 부적절한 내용을 걸러내는 최소한의 장치. 걸리면 등록을 막는다.
+// ponytail: 단순 포함 검사라 우회는 쉽다. 실제 방어선은 신고 + 관리자 삭제.
+const BANNED_WORDS = ['씨발', '시발', '병신', '좆까', '니미', '느금'];
+const hasBannedWord = text => BANNED_WORDS.some(w => text.includes(w));
 // 추천곡 트랙 커버가 iTunes(KR/US)에 없을 때 마지막으로 시도할 유튜브 검색용 키.
 // 구글 클라우드 콘솔에서 "웹사이트 제한(https://duli.kr/*)" + "YouTube Data API v3만
 // 허용"으로 제한해서 발급받은 키를 여기에 넣는다. 빈 문자열이면(키를 아직 안 넣었으면)
@@ -501,6 +505,15 @@ async function kakaoAuth() {
 $('kakaoLoginBtn').addEventListener('click', kakaoAuth);
 $('kakaoSignupBtn').addEventListener('click', kakaoAuth);
 
+// 앱스토어 심사 지침 4.8: 카카오 같은 소셜 로그인을 제공하면 Apple 로그인(또는 동급)을 같이 제공해야 한다.
+// Supabase 대시보드에서 Apple 프로바이더를 켜야 동작한다 (설정 절차: docs/apple-signin-setup.md).
+async function appleAuth() {
+  const { error } = await client.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: location.origin } });
+  if (error) alert('Apple 인증 실패: ' + error.message);
+}
+$('appleLoginBtn').addEventListener('click', appleAuth);
+$('appleSignupBtn').addEventListener('click', appleAuth);
+
 $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
 
 // --- 글쓰기 및 앨범 검색 ---
@@ -777,7 +790,7 @@ window.openWriteWithAlbumParams = (title, artist, cover, releaseType) => {
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
   const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count, release_type').order('id', { ascending: false });
-  if (!error && data) currentPosts = data;
+  if (!error && data) currentPosts = data.filter(p => !isBlocked(p, 'post'));
   renderPosts(); 
 }
 
@@ -1200,13 +1213,14 @@ async function renderMyComments() {
 
 function renderMySettings() {
   $('mySettingNickname').value = resolveNickname(currentUser);
-  const kakao = isKakaoUser();
-  $('mySettingsPasswordCard').style.display = kakao ? 'none' : 'block';
+  const provider = currentUser?.app_metadata?.provider;
+  const social = provider === 'kakao' || provider === 'apple';
+  $('mySettingsPasswordCard').style.display = social ? 'none' : 'block';
 
   const info = $('mySettingsAccountInfo');
   const joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString('ko-KR') : '-';
   info.replaceChildren(...[
-    ['가입 방식', kakao ? '카카오 로그인' : '이메일'],
+    ['가입 방식', provider === 'kakao' ? '카카오 로그인' : provider === 'apple' ? 'Apple 로그인' : '이메일'],
     ['이메일', currentUser.email || '(비공개)'],
     ['가입일', joinDate],
   ].map(([label, value]) => {
@@ -1289,13 +1303,46 @@ function changeBoard(category, pushHistory = true, restoreState = null) {
   backToList();
 }
 
+// --- 신고/차단 (앱스토어 심사 지침 1.2: 사용자 생성 콘텐츠) ---
+window.reportContent = async (type, id) => {
+  const reason = prompt('신고 사유를 적어주세요. (욕설·혐오, 도배·광고, 권리 침해 등)');
+  if (reason === null) return;
+  const { error } = await client.from('reports').insert([{ target_type: type, target_id: id, reason: reason.trim() || null, reporter_id: currentUser?.id || null }]);
+  alert(error ? '신고 접수에 실패했습니다: ' + error.message : '신고가 접수되었습니다. 확인 후 조치하겠습니다.');
+};
+
+// 차단은 이 기기(브라우저)에만 저장한다. 로그인 사용자는 user_id로, 유동은 닉네임으로 식별하되
+// "인좋"류 기본 닉네임은 여러 사람이 같이 쓰는 이름이라 그 글/댓글 하나만 숨긴다.
+// ponytail: localStorage라 기기 간 동기화 안 됨. 필요해지면 blocks 테이블로 옮긴다.
+const blockedKeys = new Set((() => { try { return JSON.parse(localStorage.getItem('blockedUsers') || '[]'); } catch { return []; } })());
+const blockKey = (item, type) => item.user_id ? 'u:' + item.user_id : (/^인좋\d*$/.test(item.author || '') ? `${type}:${item.id}` : 'n:' + item.author);
+const isBlocked = (item, type) => blockedKeys.has(blockKey(item, type));
+function blockAuthor(item, type) {
+  if (!confirm(`'${item.author || 'ㅇㅇ'}'님의 글과 댓글을 더 이상 보지 않을까요?`)) return false;
+  blockedKeys.add(blockKey(item, type));
+  try { localStorage.setItem('blockedUsers', JSON.stringify([...blockedKeys])); } catch {}
+  currentPosts = currentPosts.filter(p => !isBlocked(p, 'post'));
+  return true;
+}
+window.blockPostAuthor = () => {
+  const post = currentPosts.find(p => p.id === currentReadPostId);
+  if (post && blockAuthor(post, 'post')) returnToBoardAfterAction();
+};
+window.unblockAll = () => {
+  if (!blockedKeys.size) return alert('차단한 사용자가 없습니다.');
+  if (!confirm(`차단 ${blockedKeys.size}건을 모두 해제할까요?`)) return;
+  blockedKeys.clear();
+  try { localStorage.removeItem('blockedUsers'); } catch {}
+  fetchPosts();
+};
+
 // --- 댓글 및 대댓글 기능 ---
 async function fetchAndRenderComments() {
   if (!currentReadPostId) return;
   const { data, error } = await client.from('comments').select('id, created_at, post_id, parent_id, author, content, user_id, is_kakao').eq('post_id', currentReadPostId).order('id', { ascending: true });
   if (error) return console.error('댓글 불러오기 실패:', error);
   
-  currentComments = data || [];
+  currentComments = (data || []).filter(c => !isBlocked(c, 'comment'));
   $('commentCount').textContent = currentComments.length;
 
   // 유동 댓글 기본 닉네임: 이 글의 댓글 중 이미 쓰인 "인좋"류와 안 겹치는 다음 번호로.
@@ -1353,6 +1400,11 @@ function createCommentElement(comment, isReply) {
     replyBtn.onclick = () => toggleReplyForm(comment.id);
     actions.append(replyBtn);
   }
+  const reportBtn = element('button', '', '신고');
+  reportBtn.onclick = () => reportContent('comment', comment.id);
+  const blockBtn = element('button', '', '차단');
+  blockBtn.onclick = () => { if (blockAuthor(comment, 'comment')) fetchAndRenderComments(); };
+  actions.append(reportBtn, blockBtn);
   
   // 관리자/작성자는 바로 삭제, 유동(비로그인) 댓글은 비밀번호로 삭제 가능하니 버튼 노출
   const isCommentAuthor = currentUser && currentUser.id === comment.user_id;
@@ -1414,6 +1466,7 @@ window.submitComment = async (parentId = null) => {
   const guestPw = $(pwId).value.trim();
 
   if (!content) return alert('댓글 내용을 입력해주세요.');
+  if (hasBannedWord(content)) return alert('부적절한 표현이 포함되어 등록할 수 없습니다.');
   if (!currentUser && !guestPw) return alert('유동 댓글은 비밀번호가 필요합니다. (나중에 삭제할 때 사용)');
 
   const btn = parentId ? $(`replyForm_${parentId}`).querySelector('button') : $('btnSubmitComment');
@@ -1661,6 +1714,7 @@ $('savePostBtn').addEventListener('click', async () => {
   const guestPw = $('postGuestPw').value.trim();
 
   if (!title.trim()) return alert('제목을 입력해주세요.');
+  if (hasBannedWord(title + content)) return alert('부적절한 표현이 포함되어 등록할 수 없습니다.');
   if (tag === '앨범 평가' && !tempAlbum.title && !isEditMode) return alert('검색을 통해 평가할 앨범을 선택해주세요!');
   if (tag === '야구' && !team) return alert('응원하는 팀을 선택해주세요!');
   if (RESTRICTED_TAGS.includes(tag) && !(isAdmin || isKakaoUser())) return alert('회원 간 거래, 오프라인 만남의 안전을 위해 카카오 로그인 사용자만 글을 쓸 수 있는 게시판입니다.');

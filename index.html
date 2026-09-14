@@ -108,6 +108,7 @@
             <div class="view-meta-right">
               <span>조회 <span id="readViews" style="color:var(--text); font-weight:600;">0</span></span>
               <span>추천 <span id="readRecs" style="color:var(--music); font-weight:600;">0</span></span>
+              <span class="mod-actions"><button onclick="reportContent('post', currentReadPostId)">신고</button><button onclick="blockPostAuthor()">차단</button></span>
             </div>
           </div>
         </div>
@@ -436,7 +437,8 @@
     <p style="margin:0 0 8px 0;">타인의 명예를 훼손하거나 저작권을 침해하는 게시글은 통보 없이 삭제될 수 있습니다.</p>
     <p style="margin:0;">
       관리자 이메일: bkseungah010223@gmail.com | 
-      <a onclick="toggleModal('privacyModal', true)">[개인정보 처리방침 및 이용약관]</a>
+      <a onclick="toggleModal('privacyModal', true)">[개인정보 처리방침 및 이용약관]</a> |
+      <a onclick="unblockAll()">[차단 해제]</a>
     </p>
   </div>
 </footer>
@@ -453,6 +455,7 @@
     </div>
     <div class="oauth-divider">또는</div>
     <button id="kakaoLoginBtn" class="kakao-btn">카카오로 로그인</button>
+    <button id="appleLoginBtn" class="apple-btn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>Apple로 로그인</button>
   </div>
 </div>
 
@@ -471,6 +474,7 @@
     </div>
     <div class="oauth-divider">또는</div>
     <button id="kakaoSignupBtn" class="kakao-btn">카카오로 회원가입</button>
+    <button id="appleSignupBtn" class="apple-btn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>Apple로 회원가입</button>
   </div>
 </div>
 
