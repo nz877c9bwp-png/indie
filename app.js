@@ -219,10 +219,14 @@ function formatContent(value) {
   return fragment;
 }
 
+function songCount(post) {
+  return (post.content || '').split('\n').filter(l => l.trim()).length;
+}
+
 // 추천곡 게시글은 "언제 올렸는지"보다 "몇 곡 추천했는지"가 더 유용한 정보라
 // 목록의 작성일 자리를 곡 수로 대체한다.
 function dateOrSongCountLabel(post) {
-  if (post.tag === '추천곡') return `${(post.content || '').split('\n').filter(l => l.trim()).length}곡`;
+  if (post.tag === '추천곡') return `${songCount(post)}곡`;
   return new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
 }
 
@@ -614,10 +618,18 @@ async function fetchPosts() {
 }
 
 function updateGenSortLabels() {
+  // 추천곡 게시판엔 "최신순/인기순"이 안 맞아서(다 한꺼번에 올라온 글이라 최신순 의미가
+  // 없고, 추천 대신 곡 수/조회수가 더 유용해서) 같은 버튼 두 개를 "곡 많은순/조회수순"으로
+  // 재활용한다. genSortType('latest'/'popular') 값 자체는 그대로 쓰고 라벨/정렬 기준만 바꾼다.
+  const isRecommend = currentCategory === '추천곡';
   $('btnSortLatest').className = genSortType === 'latest' ? 'active' : '';
-  $('btnSortLatest').innerText = genSortType === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순';
+  $('btnSortLatest').innerText = isRecommend
+    ? (genSortType === 'latest' && genSortDir === 'asc' ? '곡 적은순' : '곡 많은순')
+    : (genSortType === 'latest' && genSortDir === 'asc' ? '오래된순' : '최신순');
   $('btnSortPopular').className = genSortType === 'popular' ? 'active' : '';
-  $('btnSortPopular').innerText = genSortType === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순';
+  $('btnSortPopular').innerText = isRecommend
+    ? (genSortType === 'popular' && genSortDir === 'asc' ? '조회수 낮은순' : '조회수순')
+    : (genSortType === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순');
 }
 function updateAlbSortLabels() {
   $('btnSortAlbumReview').className = albSortType === 'review' ? 'active' : '';
@@ -759,7 +771,12 @@ function renderPosts() {
     const pinNotices = currentCategory === '전체' && !postSearchKeyword;
     filtered.sort((a, b) => {
       if (pinNotices && a.is_notice !== b.is_notice) return a.is_notice ? -1 : 1;
-      let diff = genSortType === 'popular' ? ((b.recs !== a.recs ? (b.recs||0) - (a.recs||0) : (b.views !== a.views ? (b.views||0) - (a.views||0) : b.id - a.id))) : (b.id - a.id);
+      let diff;
+      if (currentCategory === '추천곡') {
+        diff = genSortType === 'popular' ? ((b.views || 0) - (a.views || 0)) : (songCount(b) - songCount(a));
+      } else {
+        diff = genSortType === 'popular' ? ((b.recs !== a.recs ? (b.recs||0) - (a.recs||0) : (b.views !== a.views ? (b.views||0) - (a.views||0) : b.id - a.id))) : (b.id - a.id);
+      }
       return genSortDir === 'desc' ? diff : -diff;
     });
 
