@@ -217,6 +217,7 @@ input:-webkit-autofill:focus {
 .dc-title-link { color:var(--text); text-decoration:none; }
 .dc-title-link:hover { color:var(--music); text-decoration:underline; }
 .dc-comment-count { color:var(--special); font-weight:bold; font-size:11px; margin-left:5px; }
+.dc-cmt-count { color:var(--admin); font-weight:800; font-size:12px; margin-left:4px; }
 .dc-album-thumb { width:26px; height:26px; object-fit:cover; border-radius:6px; vertical-align:middle; margin-right:8px; box-shadow:var(--shadow-sm); }
 
 /* 하단 컨트롤 */

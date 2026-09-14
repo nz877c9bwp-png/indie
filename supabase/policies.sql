@@ -190,11 +190,15 @@ grant execute on function public.edit_post_with_password(bigint, text, text, tex
 -- 공지 기능에 쓰는 컬럼. 아래 select 권한 목록에 포함되므로 그보다 먼저 생성해야 한다.
 alter table public.posts add column if not exists is_notice boolean not null default false;
 
+-- 게시물 목록에 댓글 수를 보여주기 위한 컬럼. views/recs와 같은 패턴으로 실제 댓글
+-- insert/delete 시점에 트리거로 갱신하고(아래), 매번 댓글을 세는 쿼리를 날리지 않는다.
+alter table public.posts add column if not exists comment_count integer not null default 0;
+
 -- 유동 비밀번호 해시는 클라이언트에 내려가면 안 된다 (select * 로 그대로 노출되고 있었다).
 -- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
 revoke select on public.posts from anon, authenticated;
 grant select (id, created_at, tag, author, title, content, team, user_id,
-              album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao)
+              album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count)
   on public.posts to anon, authenticated;
 revoke select on public.comments from anon, authenticated;
 grant select (id, created_at, post_id, parent_id, author, content, user_id, is_kakao)
@@ -260,5 +264,36 @@ end;
 $$;
 revoke execute on function public.delete_own_account() from public, anon;
 grant execute on function public.delete_own_account() to authenticated;
+
+-- 댓글 수 카운트: 댓글 insert/delete 시 posts.comment_count를 갱신한다. 남의 글에 댓글을
+-- 다는 게 대부분이라 posts update RLS(본인 글만 허용)에 걸리므로 security definer로 우회한다.
+create or replace function public.bump_comment_count() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    update public.posts set comment_count = comment_count + 1 where id = new.post_id;
+    return new;
+  elsif tg_op = 'DELETE' then
+    update public.posts set comment_count = greatest(comment_count - 1, 0) where id = old.post_id;
+    return old;
+  end if;
+  return null;
+end;
+$$;
+
+drop trigger if exists trg_comment_count_ins on public.comments;
+create trigger trg_comment_count_ins after insert on public.comments
+  for each row execute function public.bump_comment_count();
+
+drop trigger if exists trg_comment_count_del on public.comments;
+create trigger trg_comment_count_del after delete on public.comments
+  for each row execute function public.bump_comment_count();
+
+-- 트리거가 생기기 전에 이미 달려 있던 댓글들의 수를 한 번 맞춰준다. 이후로는
+-- 위 트리거가 실시간으로 관리하므로, 이 문장은 몇 번을 다시 실행해도 항상
+-- 실제 댓글 수와 같은 값으로 재계산될 뿐이라 안전하다.
+update public.posts p set comment_count = (
+  select count(*) from public.comments c where c.post_id = p.id
+);
 
 notify pgrst, 'reload schema';

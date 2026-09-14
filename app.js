@@ -491,7 +491,7 @@ window.openWriteWithAlbumParams = (title, artist, cover) => {
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao').order('id', { ascending: false });
+  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, is_notice, is_kakao, comment_count').order('id', { ascending: false });
   if (!error && data) currentPosts = data;
   renderPosts(); 
 }
@@ -681,6 +681,7 @@ function renderPosts() {
         link.href = '#post-' + post.id; // 휠클릭/새 탭 열기 시 제목 링크가 실제로 그 글을 가리키게 한다
         titleCell.append(link);
 
+        if (post.comment_count > 0) titleCell.append(element('span', 'dc-cmt-count', `[${post.comment_count}]`));
         if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
         
         const authorCell = element('td', 'col-author');
@@ -803,6 +804,7 @@ function renderMyPosts() {
     const link = element('a', 'dc-title-link', escapeHTML(post.title));
     link.href = '#post-' + post.id;
     titleCell.append(link);
+    if (post.comment_count > 0) titleCell.append(element('span', 'dc-cmt-count', `[${post.comment_count}]`));
     if (post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
 
     const dateFormatted = new Date(post.created_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '');
