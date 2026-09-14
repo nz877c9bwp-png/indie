@@ -39,12 +39,17 @@
     --admin: #FF6B6B;
     --special: #9B87F5;
 
-    --sh-light: 62,66,73;
+    /* 예전 값은 밝은쪽(sh-light)이 배경(43,46,51)이랑 색 차이가 거의 안 나서
+       하이라이트가 약한데, 반대로 어두운쪽(sh-dark)은 순검정을 높은 불투명도로
+       써서 그림자만 과하게 두드러지는 비대칭이 있었다 — 그게 "명암이 부자연스럽다"는
+       원인. 밝은쪽은 배경과 차이가 더 나게 밝히고, 어두운쪽은 불투명도를 낮춰서
+       두 쪽의 무게감을 맞췄다. */
+    --sh-light: 72,77,86;
     --sh-dark: 0,0,0;
-    --shadow-sm: -6px -6px 14px rgba(var(--sh-light),0.6), 6px 6px 16px rgba(var(--sh-dark),0.45);
-    --shadow-md: -10px -10px 22px rgba(var(--sh-light),0.65), 10px 10px 28px rgba(var(--sh-dark),0.55);
-    --shadow-inset: inset -5px -5px 10px rgba(var(--sh-light),0.5), inset 5px 5px 10px rgba(var(--sh-dark),0.5);
-    --shadow-inset-sm: inset -3px -3px 6px rgba(var(--sh-light),0.5), inset 3px 3px 6px rgba(var(--sh-dark),0.5);
+    --shadow-sm: -6px -6px 14px rgba(var(--sh-light),0.55), 6px 6px 16px rgba(var(--sh-dark),0.38);
+    --shadow-md: -10px -10px 22px rgba(var(--sh-light),0.6), 10px 10px 28px rgba(var(--sh-dark),0.42);
+    --shadow-inset: inset -5px -5px 10px rgba(var(--sh-light),0.45), inset 5px 5px 10px rgba(var(--sh-dark),0.4);
+    --shadow-inset-sm: inset -3px -3px 6px rgba(var(--sh-light),0.45), inset 3px 3px 6px rgba(var(--sh-dark),0.4);
     --panel-glass: rgba(43,46,51,0.97);
   }
 }
