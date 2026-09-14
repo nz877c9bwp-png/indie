@@ -1164,7 +1164,10 @@ function renderMyPosts() {
   tbody.replaceChildren(...myPosts.map(post => {
     const row = element('tr');
     row.style.cursor = 'pointer';
-    row.onclick = () => openPostView(post.id);
+    // 제목 안에 실제 href="#post-N" 링크가 있어서, preventDefault 없이 두면 이 클릭으로
+    // openPostView가 postView를 띄운 직후 앵커의 기본 이동이 popstate(state=null)를 일으켜
+    // 다시 board로 튕겨나간다 (renderPosts의 동일 패턴과 같은 이유로 여기도 막아야 한다).
+    row.onclick = e => { e.preventDefault(); openPostView(post.id); };
 
     const tag = element('td', 'col-category');
     tag.append(element('span', 'tag', post.tag));
