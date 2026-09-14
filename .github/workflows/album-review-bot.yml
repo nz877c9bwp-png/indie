@@ -2,10 +2,10 @@ name: Auto Album Review
 
 on:
   # 매일 오후 3~8시(KST) 매시 정각에 "체크"만 한다 — 실제로 글을 쓸지는
-  # scripts/auto-album-review.mjs 안에서 (1) 마지막 글 이후 3일이 지났는지
+  # scripts/auto-album-review.mjs 안에서 (1) 마지막 글 이후 하루가 지났는지
   # (2) 오늘 이 6번의 체크 중 무작위로 뽑힌 차례인지를 보고 스스로 판단한다.
   # 그래서 실제 등록 시각은 15:00~20:59(KST) 사이에서 매번 랜덤하게 정해지고,
-  # 등록 주기는 평균 3일에 한 번이 된다.
+  # 등록 주기는 하루에 한 번이 된다.
   schedule:
     - cron: '0 6-11 * * *'
   workflow_dispatch:
