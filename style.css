@@ -161,7 +161,12 @@ input:-webkit-autofill:focus {
    등으로 카드가 다 안 들어가면 넘친 카드의 그림자가 스크롤 경계에서 잘려 보였다.
    화면 폭에 맞게 카드 크기/개수가 자동으로 줄어드는 그리드로 바꿔서 항상 그림자가
    안 잘리게 했다. */
-.widget-container { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin:0 0 10px; padding:0;}
+/* auto-fit(minmax(220px,1fr))는 .shell이 넓어져도 main이 최대 1180px로 캡돼 있어서
+   폭에 따라 3칸까지만 들어가는 경우가 생기고, 그러면 HOT 카드가 4개일 때 3개는 한 줄에
+   붙고 1개만 다음 줄에 혼자 남는 "3+1" 배치가 된다. auto-fit이 폭 계산으로 열 개수를
+   정하게 두는 대신 항상 4열로 고정해서, 화면 폭이 얼마든 절대 3+1처럼 어중간하게
+   줄바꿈되지 않게 한다(카드 안 제목은 2줄 클램프+말줄임이라 좁아져도 안전하다). */
+.widget-container { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin:0 0 10px; padding:0;}
 .widget-card { min-width:0; max-width:100%; background:var(--panel); padding:16px; border-radius:var(--radius-lg); cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; position:relative; box-sizing:border-box; box-shadow:var(--shadow-sm);}
 .widget-card:hover { transform:translateY(-3px); }
 .hot-badge { color:var(--music); font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block;}
@@ -460,7 +465,7 @@ input:-webkit-autofill:focus {
     background: var(--panel);
     box-shadow: none;
     border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    padding: calc(24px + env(safe-area-inset-top)) 16px 24px 56px;
+    padding: calc(16px + env(safe-area-inset-top)) 16px 16px 56px;
     box-sizing: border-box;
     overflow-y: auto;
     scrollbar-width: none;
@@ -477,15 +482,18 @@ input:-webkit-autofill:focus {
   }
   .sidebar::-webkit-scrollbar { display: none; }
 
-  .cat-group { display: block; margin-bottom: 18px; }
+  /* 카테고리 그룹(5개)·링크(11개)가 다 펼쳐지면 세로 여백이 쌓여서 화면이 작은 폰에서는
+     마지막 그룹("자작곡")이 화면 밖으로 밀려 잘렸다. 그룹 간격/링크 안쪽 여백을 줄여서
+     전체 목록이 한 화면 안에 들어오도록 했다(폰트 크기는 거의 그대로 둬서 읽기엔 지장 없음). */
+  .cat-group { display: block; margin-bottom: 10px; }
   .cat-group:last-child { margin-bottom: 0; }
-  .cat-head { display: block; padding: 4px 10px 8px; font-weight: 700; font-size: 13px; color: var(--muted); }
+  .cat-head { display: block; padding: 4px 10px 4px; font-weight: 700; font-size: 13px; color: var(--muted); }
   .board-list { display: block; padding: 0; margin: 0; }
   .board-list li { list-style: none; }
   .board-list li a {
-    margin: 2px 0;
-    padding: 12px 14px;
-    font-size: 14px;
+    margin: 1px 0;
+    padding: 8px 14px;
+    font-size: 13.5px;
     background: transparent;
     box-shadow: none;
     border-radius: var(--radius-sm);
@@ -507,8 +515,8 @@ input:-webkit-autofill:focus {
      완전히 비는 일은 없지만) 안전하게 숨긴다. */
   .sidebar-auth-slot:empty { display: none; }
   .sidebar-auth-slot {
-    padding-bottom: 10px;
-    margin-bottom: 18px;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
     border-bottom: 1px solid var(--panel-alt);
   }
   .sidebar-auth-slot .auth-btn {
