@@ -148,7 +148,13 @@ input:-webkit-autofill:focus {
 .shell{ max-width:1180px; margin:0 auto; padding:20px; display:grid; grid-template-columns:230px 1fr; gap:36px; flex:1; width:100%; box-sizing:border-box;}
 .shell > * { min-width: 0; }
 
-.sidebar{ background:var(--panel); align-self:start; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:6px;}
+/* app.js의 initSidebarSpring()이 사이드바를 스크롤에 맞춰 아래로 따라 내려오게 하다가
+   본문(main) 하단에 닿으면 멈추는데, 사이드바 자체 높이가 뷰포트보다 크면(카테고리가
+   많아서) 맨 아래 항목(자작곡 등)이 화면 밖에 걸린 채로 안 내려와서, 본문을 끝까지
+   스크롤해야만 겨우 보이는 문제가 있었다. max-height로 뷰포트 안에 항상 다 들어오게
+   제한하고 넘치는 부분은 사이드바 자체 스크롤로 보게 해서, 본문 스크롤과 무관하게
+   언제든 사이드바 안에서 바로 스크롤해 모든 항목에 닿을 수 있게 했다. */
+.sidebar{ background:var(--panel); align-self:start; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:6px; max-height:calc(100vh - 110px); overflow-y:auto; scrollbar-width:thin; }
 .cat-group{ margin-bottom:6px; }
 .cat-group:last-child{ margin-bottom:0; }
 .cat-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px 6px; font-weight:700; font-size:12.5px; color:var(--muted);}
@@ -459,6 +465,7 @@ input:-webkit-autofill:focus {
     top: 0;
     left: -40px;
     height: 100vh;
+    max-height: none;
     width: auto;
     min-width: 230px;
     max-width: calc(78% + 40px);
