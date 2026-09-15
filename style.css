@@ -17,6 +17,9 @@
   --accent: #7042EF;
   --accent-hover: #5B2FE3;
   --accent-gradient: linear-gradient(135deg, var(--music), var(--accent));
+  /* 그라데이션 배경(로고 배지, CTA 버튼 등)엔 중립색 기준으로 계산된 뉴모피즘 그림자
+     (--shadow-sm)가 탁하게 붕 떠 보여서, 그 대신 포인트컬러 톤의 은은한 글로우를 쓴다. */
+  --accent-glow: 0 6px 16px rgba(112,66,239,0.35);
 
   --radius-sm: 12px;
   --radius: 18px;
@@ -49,6 +52,7 @@
     --accent: #8B5CF6;
     --accent-hover: #A78BFA;
     --accent-gradient: linear-gradient(135deg, var(--music), var(--accent));
+    --accent-glow: 0 6px 18px rgba(139,92,246,0.4);
 
     /* 실제로 자주 쓰이는 다크 뉴모피즘 레시피(배경 #2d3239 → 밝은 그림자 #373d46,
        어두운 그림자 #23272d — 배경 대비 약 ±22% 수준의 "완전 불투명에 가까운"
@@ -112,9 +116,9 @@ header{ background:var(--panel-glass); backdrop-filter:saturate(180%) blur(10px)
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   transition:opacity 0.45s cubic-bezier(0.16,1,0.3,1), backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1), -webkit-backdrop-filter 0.45s cubic-bezier(0.16,1,0.3,1);
 }
-.brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:opacity 0.2s; display:flex; align-items:center; gap:28px; }
-.brand:hover{ opacity:0.85; }
-.logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--accent-gradient); box-shadow:var(--shadow-sm); flex:none; }
+.brand{ font-size:20px; white-space:nowrap; cursor:pointer; transition:filter 0.2s; display:flex; align-items:center; gap:28px; }
+.brand:hover{ filter:brightness(1.12); }
+.logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--accent-gradient); box-shadow:var(--accent-glow); flex:none; }
 
 .brand-word{ display:inline-flex; align-items:baseline; gap:2px; }
 .bw-group{ display:inline-flex; align-items:baseline; flex:none; }
@@ -151,7 +155,7 @@ input:-webkit-autofill:focus {
 .auth-btn { background:none; border:none; color:var(--text); cursor:pointer; font-size:13px; font-family:inherit; font-weight:600; padding:0; transition:0.2s;}
 .auth-btn:hover { background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 
-.write-btn{ background:var(--accent-gradient); color:#fff; font-weight:700; border:none; padding:10px 20px; cursor:pointer; font-size:13px; border-radius:999px; font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm);}
+.write-btn{ background:var(--accent-gradient); color:#fff; font-weight:700; border:none; padding:10px 20px; cursor:pointer; font-size:13px; border-radius:999px; font-family:inherit; transition:0.2s; box-shadow:var(--accent-glow);}
 .write-btn:hover { filter:brightness(1.08); }
 .write-btn:active { box-shadow:var(--shadow-inset); filter:none; }
 
@@ -269,9 +273,8 @@ input:-webkit-autofill:focus {
 
 .btn-dc-search { background: var(--panel); color: var(--text); border: none; padding: 8px 18px; cursor: pointer; font-weight: bold; border-radius: var(--radius-sm); font-family:inherit; transition: 0.2s; box-shadow:var(--shadow-sm); }
 .btn-dc-search:hover { background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; }
-.btn-dc-write { background: var(--accent-gradient); color: #fff; border: none; padding: 8px 18px; cursor: pointer; font-weight: bold; border-radius: var(--radius-sm); font-family:inherit; transition: 0.2s; box-shadow:var(--shadow-sm); }
+.btn-dc-write { background: var(--accent-gradient); color: #fff; border: none; padding: 8px 18px; cursor: pointer; font-weight: bold; border-radius: var(--radius-sm); font-family:inherit; transition: 0.2s; box-shadow:var(--accent-glow); }
 .btn-dc-write:hover { filter:brightness(1.08); }
-.btn-dc-write:hover { background: var(--music-hover); }
 
 /* 앨범 그리드 및 뷰 영역 */
 #albumGrid { display:none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:14px 16px; margin-top:20px; width:100%; box-sizing:border-box;}
@@ -361,9 +364,8 @@ input:-webkit-autofill:focus {
 .view-controls { display:flex; gap:10px;}
 .btn-list { background:var(--panel); color:var(--text); border:none; padding:9px 20px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:inherit; font-weight:600; transition:0.2s; box-shadow:var(--shadow-sm);}
 .btn-list:hover { background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; }
-.btn-admin-edit { background:var(--accent-gradient); color:#fff; border:none; padding:9px 20px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-weight:700; transition:0.2s; box-shadow:var(--shadow-sm);}
+.btn-admin-edit { background:var(--accent-gradient); color:#fff; border:none; padding:9px 20px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-weight:700; transition:0.2s; box-shadow:var(--accent-glow);}
 .btn-admin-edit:hover { filter:brightness(1.08); }
-.btn-admin-edit:hover { background:var(--music-hover); }
 .btn-admin-delete { background:var(--admin); color:#fff; border:none; padding:9px 20px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-weight:700; transition:0.2s; box-shadow:var(--shadow-sm);}
 .btn-admin-delete:hover { filter:brightness(1.08); }
 
@@ -411,7 +413,7 @@ input:-webkit-autofill:focus {
 
 .write-footer { padding:16px 26px 26px; display:flex; justify-content:flex-end; gap:12px;}
 .btn-cancel-write { background:var(--panel); color:var(--text); border:none; padding:11px 26px; border-radius:var(--radius-sm); font-size:14px; cursor:pointer; font-weight:bold; transition:0.2s; box-shadow:var(--shadow-sm);}
-.btn-submit-write { background:var(--accent-gradient); color:#fff; border:none; padding:11px 34px; border-radius:var(--radius-sm); font-size:14px; cursor:pointer; font-weight:bold; transition:0.2s; box-shadow:var(--shadow-sm);}
+.btn-submit-write { background:var(--accent-gradient); color:#fff; border:none; padding:11px 34px; border-radius:var(--radius-sm); font-size:14px; cursor:pointer; font-weight:bold; transition:0.2s; box-shadow:var(--accent-glow);}
 .btn-submit-write:hover { filter:brightness(1.08); }
 
 /* 마이페이지 > 설정 탭 */
@@ -423,7 +425,6 @@ input:-webkit-autofill:focus {
 .settings-row input { flex:1; min-width:180px; background:var(--bg); border:none; color:var(--text); padding:12px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; font-family:inherit; box-sizing:border-box; box-shadow:var(--shadow-inset-sm); }
 .btn-settings-save { background:var(--accent-gradient); color:#fff; border:none; padding:0 22px; height:42px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; font-family:inherit; transition:0.2s; white-space:nowrap; }
 .btn-settings-save:hover { filter:brightness(1.08); }
-.btn-settings-save:hover { background:var(--music-hover); }
 /* 세로로 쌓인 행(비밀번호 변경)에서는 버튼이 flex-direction:column의 기본
    align-self:stretch 때문에 인풋만큼 가로로 길게 늘어나 보기 흉했다.
    자기 크기만큼만 차지하고 우측 하단에 붙도록 정렬을 바꾼다. */
@@ -759,8 +760,7 @@ input:-webkit-autofill:focus {
 .cw-author input { background: var(--bg); border: none; color: var(--text); padding: 9px 12px; border-radius: var(--radius-sm); outline: none; font-size: 13px; width: 120px; font-family: inherit; box-shadow:var(--shadow-inset-sm);}
 .cw-input { display: flex; gap: 10px; box-sizing:border-box; width:100%; }
 .cw-input textarea { flex: 1; background: var(--bg); border: none; color: var(--text); padding: 12px 14px; border-radius: var(--radius-sm); outline: none; font-size: 13px; resize: none; height: 70px; font-family: inherit; box-sizing:border-box; min-width:0; box-shadow:var(--shadow-inset-sm);}
-.cw-input button { background: var(--accent-gradient); color: #fff; border: none; font-weight: bold; padding: 0 24px; border-radius: var(--radius-sm); cursor: pointer; transition: 0.2s; font-family: inherit; white-space:nowrap; box-shadow:var(--shadow-sm); }
+.cw-input button { background: var(--accent-gradient); color: #fff; border: none; font-weight: bold; padding: 0 24px; border-radius: var(--radius-sm); cursor: pointer; transition: 0.2s; font-family: inherit; white-space:nowrap; box-shadow:var(--accent-glow); }
 .cw-input button:hover { filter:brightness(1.08); }
-.cw-input button:hover { background: var(--music-hover); }
 
 .reply-write-form { margin-top: 12px; padding: 15px; background: var(--bg); border-radius: var(--radius-sm); display: none; box-sizing:border-box; width:100%; box-shadow:var(--shadow-inset-sm); }
