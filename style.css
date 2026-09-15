@@ -10,7 +10,7 @@
   --music: #3182F6;
   --music-hover: #1B64DA;
   --admin: #E14545;
-  --special: #6F5CE0;
+  --special: var(--music); /* 보라색 대신 기존 UI 파란색과 통일 */
 
   --radius-sm: 12px;
   --radius: 18px;
@@ -38,7 +38,7 @@
     --music: #4B93FA;
     --music-hover: #6FA8FB;
     --admin: #FF6B6B;
-    --special: #9B87F5;
+    --special: var(--music);
 
     /* 실제로 자주 쓰이는 다크 뉴모피즘 레시피(배경 #2d3239 → 밝은 그림자 #373d46,
        어두운 그림자 #23272d — 배경 대비 약 ±22% 수준의 "완전 불투명에 가까운"
