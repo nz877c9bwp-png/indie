@@ -890,7 +890,8 @@ function renderPosts() {
       const card = element('div', 'widget-card');
       card.onclick = () => openPostView(post.id);
       const stats = element('div', 'widget-stats');
-      const recs = element('span', '', `추천 ${post.recs || 0}`); recs.style.color = 'var(--accent)';
+      const recs = element('span', '', `추천 ${post.recs || 0}`);
+      recs.style.cssText = "background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;";
       const author = element('span', 'author-wrap'); author.style.marginLeft = 'auto';
       author.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
       if (post.is_kakao) author.append(kakaoMark());

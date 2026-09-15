@@ -107,7 +107,7 @@
             </div>
             <div class="view-meta-right">
               <span>조회 <span id="readViews" style="color:var(--text); font-weight:600;">0</span></span>
-              <span>추천 <span id="readRecs" style="color:var(--accent); font-weight:600;">0</span></span>
+              <span>추천 <span id="readRecs" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:600;">0</span></span>
               <span>비추천 <span id="readDislikes" style="color:var(--admin); font-weight:600;">0</span></span>
               <span class="mod-actions"><button onclick="reportContent('post', currentReadPostId)">신고</button><button onclick="blockPostAuthor()">차단</button></span>
             </div>
@@ -127,7 +127,7 @@
         
         <!-- 댓글 영역 시작 -->
         <div class="comment-section">
-          <div class="comment-count">댓글 <span id="commentCount" style="color:var(--accent)">0</span></div>
+          <div class="comment-count">댓글 <span id="commentCount" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">0</span></div>
           <ul class="comment-list" id="commentList"></ul>
           
           <div class="comment-write">
@@ -144,7 +144,7 @@
           <button class="btn-recommend" id="recommendBtn">추천 <span id="btnRecCount">0</span></button>
           <button class="btn-recommend btn-dislike" id="dislikeBtn">비추천 <span id="btnDislikeCount">0</span></button>
           <div class="view-controls">
-            <button class="write-btn" id="btnEvalSame" style="display:none; background:var(--special);">나도 평가하기</button>
+            <button class="write-btn" id="btnEvalSame" style="display:none; background:var(--accent-gradient);">나도 평가하기</button>
             <button class="btn-admin-edit" id="adminNoticeBtn" style="display:none;">공지 등록</button>
             <button class="btn-admin-edit" id="adminEditBtn" style="display:none;">수정</button>
             <button class="btn-admin-delete" id="adminDeleteBtn" style="display:none;">삭제</button>
@@ -163,7 +163,7 @@
           <div id="adArtist" class="ad-artist"></div>
           <div id="adScore" class="ad-score"></div>
           <div class="ad-actions">
-            <button class="write-btn" id="adEvalBtn" style="background:var(--special);">나도 평가하기</button>
+            <button class="write-btn" id="adEvalBtn" style="background:var(--accent-gradient);">나도 평가하기</button>
           </div>
         </div>
       </div>
@@ -267,7 +267,7 @@
                 <option value="albumTerm">앨범명만</option>
               </select>
               <input type="search" id="albumQuery" autocomplete="off" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
-              <button type="button" id="btnSearchAlbum" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
+              <button type="button" id="btnSearchAlbum" style="background:var(--accent-gradient); color:#fff; border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
             </div>
             <div id="albumResults" class="search-result-row"></div>
           </div>
@@ -344,7 +344,7 @@
           <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
             <input type="text" id="recTrackArtist" autocomplete="off" placeholder="아티스트 (예: 잔나비)" style="flex:1; min-width:120px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
             <input type="text" id="recTrackSong" autocomplete="off" placeholder="곡명 (예: 주저하는 연인들을 위해)" style="flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
-            <button type="button" id="btnSearchRecTrack" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
+            <button type="button" id="btnSearchRecTrack" style="background:var(--accent-gradient); color:#fff; border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
           </div>
           <div id="recTrackResults" class="search-result-row"></div>
         </div>
@@ -468,7 +468,7 @@
     <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)" autocomplete="new-password">
     <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); margin-bottom:16px; cursor:pointer; line-height:1.4;">
       <input type="checkbox" id="signupConsent" style="width:auto; margin:2px 0 0 0;">
-      <span>[필수] 만 14세 이상이며, 개인정보 수집 및 이용약관에 동의합니다. <a onclick="toggleModal('privacyModal', true)" style="color:var(--accent); text-decoration:underline;">내용 보기</a></span>
+      <span>[필수] 만 14세 이상이며, 개인정보 수집 및 이용약관에 동의합니다. <a onclick="toggleModal('privacyModal', true)" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-decoration:underline; text-decoration-color:var(--accent);">내용 보기</a></span>
     </label>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="toggleModal('signupModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
