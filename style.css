@@ -151,15 +151,15 @@ input:-webkit-autofill:focus {
 /* app.js의 initSidebarSpring()이 사이드바를 스크롤에 맞춰 아래로 따라 내려오게 하다가
    본문(main) 하단에 닿으면 멈추는데, 사이드바 자체 높이가 뷰포트보다 크면(카테고리가
    많아서) 맨 아래 항목(자작곡 등)이 화면 밖에 걸린 채로 안 내려와서, 본문을 끝까지
-   스크롤해야만 겨우 보이는 문제가 있었다. max-height로 뷰포트 안에 항상 다 들어오게
-   제한하고 넘치는 부분은 사이드바 자체 스크롤로 보게 해서, 본문 스크롤과 무관하게
-   언제든 사이드바 안에서 바로 스크롤해 모든 항목에 닿을 수 있게 했다. */
-.sidebar{ background:var(--panel); align-self:start; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:6px; max-height:calc(100vh - 110px); overflow-y:auto; scrollbar-width:thin; }
-.cat-group{ margin-bottom:6px; }
+   스크롤해야만 겨우 보이는 문제가 있었다. 사이드바에 별도 스크롤을 넣는 대신, 모바일
+   드로어 때와 같은 방향으로 그룹 간격·링크 안쪽 여백 자체를 줄여서 사이드바 전체
+   높이가 웬만한 화면 높이 안에는 그냥 다 들어오게 했다. */
+.sidebar{ background:var(--panel); align-self:start; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:6px; }
+.cat-group{ margin-bottom:4px; }
 .cat-group:last-child{ margin-bottom:0; }
-.cat-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px 6px; font-weight:700; font-size:12.5px; color:var(--muted);}
+.cat-head{ display:flex; align-items:center; justify-content:space-between; padding:8px 14px 4px; font-weight:700; font-size:12.5px; color:var(--muted);}
 .board-list{list-style:none; margin:0; padding:2px 0;}
-.board-list li a{ display:block; margin:2px 6px; padding:9px 12px; border-radius:var(--radius-sm); font-size:13px; color:var(--muted); transition:0.15s;}
+.board-list li a{ display:block; margin:1px 6px; padding:7px 12px; border-radius:var(--radius-sm); font-size:13px; color:var(--muted); transition:0.15s;}
 .board-list li a:hover{ color:var(--text); }
 .board-list li a.active{color:var(--music); background:var(--panel); font-weight:700; box-shadow:var(--shadow-inset-sm);}
 
@@ -465,7 +465,6 @@ input:-webkit-autofill:focus {
     top: 0;
     left: -40px;
     height: 100vh;
-    max-height: none;
     width: auto;
     min-width: 230px;
     max-width: calc(78% + 40px);
