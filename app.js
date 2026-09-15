@@ -1472,9 +1472,9 @@ function createCommentElement(comment, depth) {
   const replyForm = element('div', 'reply-write-form');
   replyForm.id = `replyForm_${comment.id}`;
   replyForm.innerHTML = `
-    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname(currentComments.map(c => c.author)))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" style="${currentUser ? 'display:none;' : ''}"></div>
+    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" autocomplete="off" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname(currentComments.map(c => c.author)))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" autocomplete="new-password" style="${currentUser ? 'display:none;' : ''}"></div>
     <div class="cw-input">
-      <textarea id="replyContent_${comment.id}" placeholder="답글을 입력하세요."></textarea>
+      <textarea id="replyContent_${comment.id}" placeholder="답글을 입력하세요." autocomplete="off"></textarea>
       <button onclick="submitComment(${comment.id})">등록</button>
     </div>
   `;

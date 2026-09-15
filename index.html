@@ -131,9 +131,9 @@
           <ul class="comment-list" id="commentList"></ul>
           
           <div class="comment-write">
-            <div class="cw-author"><input type="text" id="commentAuthor" placeholder="닉네임 (유동)"><input type="password" id="commentGuestPw" placeholder="비밀번호" maxlength="20"></div>
+            <div class="cw-author"><input type="text" id="commentAuthor" placeholder="닉네임 (유동)" autocomplete="off"><input type="password" id="commentGuestPw" placeholder="비밀번호" maxlength="20" autocomplete="new-password"></div>
             <div class="cw-input">
-              <textarea id="commentContent" placeholder="타인의 권리를 침해하거나 명예를 훼손하는 댓글은 제재를 받을 수 있습니다."></textarea>
+              <textarea id="commentContent" placeholder="타인의 권리를 침해하거나 명예를 훼손하는 댓글은 제재를 받을 수 있습니다." autocomplete="off"></textarea>
               <button id="btnSubmitComment">등록</button>
             </div>
           </div>
@@ -334,9 +334,9 @@
             <option value="한화">한화 이글스</option>
             <option value="KIA">KIA 타이거즈</option>
           </select>
-          <input type="text" id="postAuthor" placeholder="작성자 (유동)">
-          <input type="password" id="postGuestPw" placeholder="비밀번호 (삭제시 필요)" maxlength="20">
-          <input type="text" id="postTitle" placeholder="제목을 입력해 주세요.">
+          <input type="text" id="postAuthor" placeholder="작성자 (유동)" autocomplete="off">
+          <input type="password" id="postGuestPw" placeholder="비밀번호 (삭제시 필요)" maxlength="20" autocomplete="new-password">
+          <input type="text" id="postTitle" placeholder="제목을 입력해 주세요." autocomplete="off">
         </div>
         
         <div id="recTrackSearchWrap" style="display:none; margin-bottom:16px;">
@@ -354,7 +354,7 @@
           <input type="file" id="imageUpload" accept="image/*" style="display:none;">
           <span style="font-size:12px; color:var(--muted); margin-left:auto;">유튜브 주소를 넣으면 영상 자동 표시</span>
         </div>
-        <textarea id="postContent" placeholder="내용을 입력해 주세요."></textarea>
+        <textarea id="postContent" placeholder="내용을 입력해 주세요." autocomplete="off"></textarea>
 
         <div id="contentPreviewWrap" style="display:none; margin-top:14px;">
           <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px;">미리보기</div>
@@ -404,7 +404,7 @@
         <div class="settings-card">
           <h3>닉네임 변경</h3>
           <div class="settings-row">
-            <input type="text" id="mySettingNickname" placeholder="새 닉네임 입력">
+            <input type="text" id="mySettingNickname" placeholder="새 닉네임 입력" autocomplete="off">
             <button class="btn-settings-save" id="mySaveNicknameBtn">변경</button>
           </div>
         </div>
@@ -449,8 +449,8 @@
 <div class="modal" id="loginModal">
   <div class="modal-content small">
     <h2>로그인</h2>
-    <input type="email" id="loginEmail" placeholder="이메일 (아이디)">
-    <input type="password" id="loginPw" placeholder="비밀번호">
+    <input type="email" id="loginEmail" placeholder="이메일 (아이디)" autocomplete="username">
+    <input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password">
     <div class="modal-btns">
       <button class="btn-cancel" onclick="toggleModal('loginModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
       <button class="btn-save" id="doLoginBtn" style="background:var(--music); color:var(--bg);">로그인</button>
@@ -464,8 +464,8 @@
 <div class="modal" id="signupModal">
   <div class="modal-content small">
     <h2>회원가입</h2>
-    <input type="email" id="signupEmail" placeholder="사용할 이메일 (아이디)">
-    <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)">
+    <input type="email" id="signupEmail" placeholder="사용할 이메일 (아이디)" autocomplete="username">
+    <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)" autocomplete="new-password">
     <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); margin-bottom:16px; cursor:pointer; line-height:1.4;">
       <input type="checkbox" id="signupConsent" style="width:auto; margin:2px 0 0 0;">
       <span>[필수] 만 14세 이상이며, 개인정보 수집 및 이용약관에 동의합니다. <a onclick="toggleModal('privacyModal', true)" style="color:var(--music); text-decoration:underline;">내용 보기</a></span>
