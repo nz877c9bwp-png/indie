@@ -107,7 +107,7 @@
             </div>
             <div class="view-meta-right">
               <span>조회 <span id="readViews" style="color:var(--text); font-weight:600;">0</span></span>
-              <span>추천 <span id="readRecs" style="color:var(--music); font-weight:600;">0</span></span>
+              <span>추천 <span id="readRecs" style="color:var(--accent); font-weight:600;">0</span></span>
               <span>비추천 <span id="readDislikes" style="color:var(--admin); font-weight:600;">0</span></span>
               <span class="mod-actions"><button onclick="reportContent('post', currentReadPostId)">신고</button><button onclick="blockPostAuthor()">차단</button></span>
             </div>
@@ -127,7 +127,7 @@
         
         <!-- 댓글 영역 시작 -->
         <div class="comment-section">
-          <div class="comment-count">댓글 <span id="commentCount" style="color:var(--music)">0</span></div>
+          <div class="comment-count">댓글 <span id="commentCount" style="color:var(--accent)">0</span></div>
           <ul class="comment-list" id="commentList"></ul>
           
           <div class="comment-write">
@@ -175,7 +175,7 @@
 
     <div id="boardSection">
       <div class="board-title-row" style="margin-top:0;">
-        <h1 id="widgetTitle" style="color:var(--music); font-size:16px;">핫게시판 (HOT)</h1>
+        <h1 id="widgetTitle" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-size:16px;">핫게시판 (HOT)</h1>
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
@@ -204,7 +204,7 @@
         </div>
         <div style="display:flex; gap:8px;">
           <input type="search" id="albumBoardSearchInput" autocomplete="off" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); outline:none; font-size:13px; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
-          <button onclick="renderPosts()" style="padding:8px 16px; background:var(--music); border:none; color:var(--bg); border-radius:var(--radius-sm); cursor:pointer; font-weight:bold; font-family:inherit; transition:0.2s;">검색</button>
+          <button onclick="renderPosts()" style="padding:8px 16px; background:var(--accent-gradient); border:none; color:#fff; border-radius:var(--radius-sm); cursor:pointer; font-weight:bold; font-family:inherit; transition:0.2s;">검색</button>
         </div>
       </div>
       
@@ -259,7 +259,7 @@
       <div class="write-body">
         <div id="albumSearchWrap">
           <div id="albumSearchOnly">
-            <div id="albumSearchLabel" style="font-weight:600; margin-bottom:8px; color:var(--music);">평가할 앨범 검색 (Apple Music)</div>
+            <div id="albumSearchLabel" style="font-weight:600; margin-bottom:8px; background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">평가할 앨범 검색 (Apple Music)</div>
             <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
               <select id="searchType" style="background:var(--bg); border:none; color:var(--text); padding:0 10px; border-radius:var(--radius-sm); outline:none; font-family:inherit; height:38px; box-shadow:var(--shadow-inset-sm);">
                 <option value="all">통합검색</option>
@@ -340,7 +340,7 @@
         </div>
         
         <div id="recTrackSearchWrap" style="display:none; margin-bottom:16px;">
-          <div style="font-weight:600; margin-bottom:8px; color:var(--music);">곡 검색해서 추가 (YouTube) — 검색 결과에서 직접 고르면 그 링크로 바로 들을 수 있게 저장됩니다</div>
+          <div style="font-weight:600; margin-bottom:8px; background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">곡 검색해서 추가 (YouTube) — 검색 결과에서 직접 고르면 그 링크로 바로 들을 수 있게 저장됩니다</div>
           <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
             <input type="text" id="recTrackArtist" autocomplete="off" placeholder="아티스트 (예: 잔나비)" style="flex:1; min-width:120px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
             <input type="text" id="recTrackSong" autocomplete="off" placeholder="곡명 (예: 주저하는 연인들을 위해)" style="flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
@@ -453,7 +453,7 @@
     <input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password">
     <div class="modal-btns">
       <button class="btn-cancel" onclick="toggleModal('loginModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
-      <button class="btn-save" id="doLoginBtn" style="background:var(--music); color:var(--bg);">로그인</button>
+      <button class="btn-save" id="doLoginBtn" style="background:var(--accent-gradient); color:#fff;">로그인</button>
     </div>
     <div class="oauth-divider">또는</div>
     <button id="kakaoLoginBtn" class="kakao-btn">카카오로 로그인</button>
@@ -468,11 +468,11 @@
     <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)" autocomplete="new-password">
     <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); margin-bottom:16px; cursor:pointer; line-height:1.4;">
       <input type="checkbox" id="signupConsent" style="width:auto; margin:2px 0 0 0;">
-      <span>[필수] 만 14세 이상이며, 개인정보 수집 및 이용약관에 동의합니다. <a onclick="toggleModal('privacyModal', true)" style="color:var(--music); text-decoration:underline;">내용 보기</a></span>
+      <span>[필수] 만 14세 이상이며, 개인정보 수집 및 이용약관에 동의합니다. <a onclick="toggleModal('privacyModal', true)" style="color:var(--accent); text-decoration:underline;">내용 보기</a></span>
     </label>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="toggleModal('signupModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
-      <button class="btn-save" id="doSignupBtn" style="background:var(--music); color:var(--bg);">가입하기</button>
+      <button class="btn-save" id="doSignupBtn" style="background:var(--accent-gradient); color:#fff;">가입하기</button>
     </div>
     <div class="oauth-divider">또는</div>
     <button id="kakaoSignupBtn" class="kakao-btn">카카오로 회원가입</button>
