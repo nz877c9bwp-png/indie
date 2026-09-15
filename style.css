@@ -354,6 +354,9 @@ input:-webkit-autofill:focus {
 .write-body { padding:14px 26px 26px; }
 .write-row { display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap;}
 .write-row select, .write-row input { background:var(--bg); border:none; color:var(--text); padding:12px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; font-family:inherit; box-sizing:border-box; box-shadow:var(--shadow-inset-sm);}
+/* 말머리·작성자·비밀번호는 한 줄에 같이 두고, 제목만 항상 그 아래 줄로 뗀다.
+   flex-wrap 상태에서 flex-basis:100%를 주면 이 항목부터 새 줄로 넘어간다. */
+.write-row #postTitle { flex: 1 1 100%; }
 /* 기본 select 대신 쓰는 커스텀 드롭다운 (펼친 목록까지 사이트 톤으로 맞추기 위함) */
 .custom-select { position:relative; width:150px; }
 .custom-select-trigger {
