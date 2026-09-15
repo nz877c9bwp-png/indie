@@ -4,6 +4,12 @@
   "webDir": "www",
   "server": {
     "url": "https://duli.kr",
-    "errorPath": "index.html"
+    "errorPath": "index.html",
+    "allowNavigation": [
+      "jvitmimabxupkhrksudu.supabase.co",
+      "appleid.apple.com",
+      "idmsa.apple.com",
+      "*.kakao.com"
+    ]
   }
 }

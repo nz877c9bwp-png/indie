@@ -517,12 +517,36 @@ $('kakaoSignupBtn').addEventListener('click', kakaoAuth);
 
 // 앱스토어 심사 지침 4.8: 카카오 같은 소셜 로그인을 제공하면 Apple 로그인(또는 동급)을 같이 제공해야 한다.
 // Supabase 대시보드에서 Apple 프로바이더를 켜야 동작한다 (설정 절차: docs/apple-signin-setup.md).
+// 웹에서는 Supabase OAuth(리다이렉트)를 쓰고, iOS 앱 안에서는 Apple 공식 네이티브 로그인 창을 띄운 뒤
+// 받은 id_token을 Supabase에 넘긴다. 웹뷰 안의 Apple 웹 로그인은 세션이 앱으로 안 넘어오고 심사에서도 문제 된다.
 async function appleAuth() {
+  const cap = window.Capacitor;
+  // 페이지에 주입되는 Capacitor 브리지에는 registerPlugin이 없어서, 저수준 nativePromise로 플러그인을 직접 부른다.
+  if (cap?.isNativePlatform?.() && cap.isPluginAvailable?.('SignInWithApple')) return appleAuthNative(opts => cap.nativePromise('SignInWithApple', 'authorize', opts));
   const { error } = await client.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: location.origin } });
   if (error) alert('Apple 인증 실패: ' + error.message);
 }
-$('appleLoginBtn').addEventListener('click', appleAuth);
-$('appleSignupBtn').addEventListener('click', appleAuth);
+async function appleAuthNative(authorize) {
+  // Apple에는 nonce의 SHA-256을, Supabase에는 원본 nonce를 넘겨야 id_token 검증이 맞아떨어진다.
+  const nonce = crypto.randomUUID();
+  const hashed = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(nonce)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  let response;
+  try {
+    ({ response } = await authorize({ clientId: 'kr.duli.app', redirectURI: location.origin, scopes: 'email name', nonce: hashed }));
+  } catch (e) {
+    // 1001 = 사용자가 Apple 창을 닫음. 그 외는 설정/플러그인 문제라 그대로 보여준다.
+    if (!/1001|cancel/i.test(e?.message || '')) alert('Apple 인증 실패: ' + (e?.message || e));
+    return;
+  }
+  const { error } = await client.auth.signInWithIdToken({ provider: 'apple', token: response.identityToken, nonce });
+  if (error) return alert('Apple 인증 실패: ' + error.message);
+  // Apple은 이름을 첫 로그인 때 한 번만 알려주므로 그때 닉네임으로 저장해 둔다.
+  if (response.givenName) await client.auth.updateUser({ data: { nickname: (response.familyName || '') + response.givenName } });
+  toggleModal('loginModal', false); toggleModal('signupModal', false);
+}
+const appleAuthSafe = () => appleAuth().catch(e => alert('Apple 인증 오류: ' + (e?.message || e)));
+$('appleLoginBtn').addEventListener('click', appleAuthSafe);
+$('appleSignupBtn').addEventListener('click', appleAuthSafe);
 
 $('logoutBtn').addEventListener('click', async () => { await client.auth.signOut(); alert('로그아웃 됨'); });
 
