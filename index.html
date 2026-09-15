@@ -203,7 +203,7 @@
           </div>
         </div>
         <div style="display:flex; gap:8px;">
-          <input type="search" id="albumBoardSearchInput" autocomplete="off" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none; font-size:13px; font-family:inherit;">
+          <input type="search" id="albumBoardSearchInput" autocomplete="off" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); outline:none; font-size:13px; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
           <button onclick="renderPosts()" style="padding:8px 16px; background:var(--music); border:none; color:var(--bg); border-radius:var(--radius-sm); cursor:pointer; font-weight:bold; font-family:inherit; transition:0.2s;">검색</button>
         </div>
       </div>
@@ -261,12 +261,12 @@
           <div id="albumSearchOnly">
             <div id="albumSearchLabel" style="font-weight:bold; margin-bottom:8px; color:var(--special);">평가할 앨범 검색 (Apple Music)</div>
             <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-              <select id="searchType" style="background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0 10px; border-radius:var(--radius-sm); outline:none; font-family:inherit; height:38px;">
+              <select id="searchType" style="background:var(--bg); border:none; color:var(--text); padding:0 10px; border-radius:var(--radius-sm); outline:none; font-family:inherit; height:38px; box-shadow:var(--shadow-inset-sm);">
                 <option value="all">통합검색</option>
                 <option value="artistTerm">가수명만</option>
                 <option value="albumTerm">앨범명만</option>
               </select>
-              <input type="search" id="albumQuery" autocomplete="off" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit;">
+              <input type="search" id="albumQuery" autocomplete="off" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
               <button type="button" id="btnSearchAlbum" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
             </div>
             <div id="albumResults" class="search-result-row"></div>
@@ -342,8 +342,8 @@
         <div id="recTrackSearchWrap" style="display:none; margin-bottom:16px;">
           <div style="font-weight:bold; margin-bottom:8px; color:var(--special);">곡 검색해서 추가 (YouTube) — 검색 결과에서 직접 고르면 그 링크로 바로 들을 수 있게 저장됩니다</div>
           <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-            <input type="text" id="recTrackArtist" autocomplete="off" placeholder="아티스트 (예: 잔나비)" style="flex:1; min-width:120px; height:38px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit;">
-            <input type="text" id="recTrackSong" autocomplete="off" placeholder="곡명 (예: 주저하는 연인들을 위해)" style="flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit;">
+            <input type="text" id="recTrackArtist" autocomplete="off" placeholder="아티스트 (예: 잔나비)" style="flex:1; min-width:120px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
+            <input type="text" id="recTrackSong" autocomplete="off" placeholder="곡명 (예: 주저하는 연인들을 위해)" style="flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
             <button type="button" id="btnSearchRecTrack" style="background:var(--special); color:var(--bg); border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
           </div>
           <div id="recTrackResults" class="search-result-row"></div>
