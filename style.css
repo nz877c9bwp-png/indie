@@ -369,7 +369,7 @@ input:-webkit-autofill:focus {
 #postGuestPw { width: 150px; }
 #postTitle { flex:1; min-width:200px;}
 
-.write-toolbar { background:transparent; padding:10px 4px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+.write-toolbar { background:transparent; padding:10px 4px; margin-bottom:10px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
 .btn-toolbar { background:var(--panel); border:none; color:var(--text); cursor:pointer; font-size:13px; font-weight:bold; padding:8px 14px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:6px; transition:0.2s; box-shadow:var(--shadow-sm);}
 .btn-toolbar:hover { color:var(--music); }
 
