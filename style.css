@@ -242,7 +242,12 @@ input:-webkit-autofill:focus {
 .col-views { width: 8%; color:var(--muted); }
 .col-likes { width: 8%; color:var(--muted); }
 
-.dc-title-link { color:var(--text); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1 1 auto; }
+/* flex:1 1 auto(성장 허용)로 두면 제목이 짧을 때 링크 박스 자체가 남는 공간을 억지로
+   채우도록 늘어나서, 바로 뒤에 오는 댓글수/별점 뱃지가 실제 글자에서 멀리 떨어져
+   다음 칸(글쓴이)에 붙어 보이는 문제가 있었다. flex-grow를 0으로 둬서 링크는 내용
+   길이만큼만 차지하고(길 때는 flex-shrink로 줄어들며 ellipsis 처리), 뱃지가 항상
+   글자 바로 옆에 붙게 했다. */
+.dc-title-link { color:var(--text); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:0 1 auto; }
 .dc-title-link:hover { background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-decoration:underline; text-decoration-color:var(--accent); }
 .dc-comment-count { background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:bold; font-size:11px; margin-left:5px; flex:0 0 auto; }
 .dc-cmt-count { color:var(--admin); font-weight:800; font-size:12px; margin-left:4px; flex:0 0 auto; }
