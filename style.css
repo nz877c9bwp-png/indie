@@ -428,6 +428,14 @@ input:-webkit-autofill:focus {
 #postGuestPw { width: 150px; }
 #postTitle { flex:1; min-width:200px;}
 
+/* 유동 글/댓글 삭제용 비밀번호는 실제 계정이 아니라 type="password"를 쓰면 크롬이
+   "비밀번호를 저장하시겠습니까?" 팝업을 띄운다 — autocomplete="off"로는 이 팝업을 못
+   막는다(크롬이 의도적으로 무시함). type="text"로 바꾸고 이 클래스로 화면에만 점(•)으로
+   보이게 해서, 크롬이 애초에 "비밀번호 필드"로 인식하지 못하게 한다.
+   (Firefox는 -webkit-text-security를 지원하지 않아 평문으로 보일 수 있음 — 민감한
+   실제 비밀번호가 아니라 감수 가능한 트레이드오프로 판단) */
+.pseudo-password { -webkit-text-security: disc; text-security: disc; }
+
 .write-toolbar { background:transparent; padding:10px 4px; margin-bottom:10px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
 .btn-toolbar { background:var(--panel); border:none; color:var(--text); cursor:pointer; font-size:13px; font-weight:bold; padding:8px 14px; border-radius:var(--radius-sm); display:flex; align-items:center; gap:6px; transition:0.2s; box-shadow:var(--shadow-sm);}
 .btn-toolbar:hover { background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; }
