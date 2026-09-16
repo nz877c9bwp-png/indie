@@ -82,7 +82,12 @@ const hasBannedWord = text => BANNED_WORDS.some(w => text.includes(w));
 const YOUTUBE_API_KEY = 'AIzaSyALwR11EPar0GDl__PIzSMHagT8ngQ8Ueo';
 
 // --- 상태 관리 변수 ---
-let currentPosts = [], currentCategory = '전체'; 
+let currentPosts = [], currentCategory = '전체';
+// 추천곡 글 중 아직 track_art에 안 채워진 곡이 하나라도 있으면, 그 글을 열어보는 것만으로
+// 방문자가 실시간 유튜브 검색(할당량 소모)을 트리거하게 된다. 백필이 다 끝나기 전까지는
+// 그런 글 자체를 목록/HOT에서 숨겨서 아무도 실수로 못 열어보게 한다 — 백필이 매일 조금씩
+// 채워나가면서 자연히 순차적으로 노출된다.
+let trackArtKeys = new Set();
 let genSortType = 'latest', genSortDir = 'desc';
 let albSortType = 'review', albSortDir = 'desc';
 let albumRenderCount = 12, lastAlbumSignature = null, albumObserver = null;
@@ -352,16 +357,17 @@ function toggleRecTrackPlayer(li) {
   li.classList.add('rec-track-playing');
 }
 
-// 유튜브를 기본 검색 소스로 쓴다 — 국내 소규모 인디 발매곡은 애플뮤직(iTunes)엔
-// 아예 없는 경우가 많지만 유튜브엔 있는 경우가 많고, 무엇보다 클릭하면 바로
-// 들을 수 있는 링크가 생긴다(iTunes는 커버만 주고 30초 미리듣기 링크뿐이라
-// "바로 듣기"엔 못 쓴다).
+// 커버는 애플뮤직(iTunes) 정식 앨범아트를 먼저 쓴다 — 유튜브 썸네일은 뮤비 캡처라
+// 곡마다 스타일이 제각각이라 목록이 지저분해 보인다. 재생 링크는 애플뮤직에 없으므로
+// (30초 미리듣기뿐) 클릭하면 바로 들을 수 있게 유튜브 검색은 커버 유무와 무관하게
+// 항상 시도한다 — 애플뮤직에 커버가 있으면 유튜브 썸네일은 버리고 애플뮤직 걸 쓴다.
 //
 // 순서: (1) 글쓰기 화면에서 사용자가 직접 고른 적 있는 곡인지 track_art 표를
-// 먼저 확인 — 한 번 검증된 매칭은 항상 우선. (2) 유튜브 검색(키가 설정돼
-// 있으면) — 찾으면 그 결과도 track_art에 같이 저장해서(자동 매칭이라도) 같은
-// 곡을 다시 볼 때 할당량을 또 쓰지 않게 한다. (3) 유튜브 키가 없거나 유튜브에서도
-// 못 찾으면 iTunes(KR→US)로 최소한 커버만이라도 보여준다(링크는 없음).
+// 먼저 확인 — 한 번 검증된 매칭은 항상 우선. (2) 애플뮤직(iTunes, KR→US)에서
+// 커버/앨범/재생시간 조회 — 키가 필요 없고 순차로 호출한다. (3) 유튜브 검색
+// (키가 설정돼 있으면) — 재생 링크를 얻고, 애플뮤직에 커버가 없었으면 유튜브
+// 썸네일로 대체한다. 찾은 결과는 track_art에 저장해서 같은 곡을 다시 볼 때
+// 할당량을 또 쓰지 않게 한다.
 //
 // Deezer 공개 검색도 시도해봤는데(키 없이 JSONP로 호출은 됨), 작은 국내
 // 인디 곡은 카탈로그에 거의 없어서 엉뚱한 서양 곡을 "그럴듯하게" 잘못
@@ -376,6 +382,17 @@ async function searchTrackArt(artist, song) {
   } catch { /* 조회 실패해도 자동 검색으로 계속 진행 */ }
 
   const term = encodeURIComponent(`${artist} ${song}`);
+
+  let itunesCover = null, itunesAlbum = null, itunesDuration = null;
+  for (const country of ['KR', 'US']) {
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
+      const data = await res.json();
+      const r = data.results?.[0];
+      if (r) { itunesCover = r.artworkUrl100 || r.artworkUrl60 || null; itunesAlbum = r.collectionName || null; itunesDuration = formatTrackDuration(r.trackTimeMillis); break; }
+    } catch { /* 다음 국가로 */ }
+  }
+
   if (YOUTUBE_API_KEY) {
     try {
       const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${term}&key=${YOUTUBE_API_KEY}`);
@@ -384,20 +401,17 @@ async function searchTrackArt(artist, song) {
       const videoId = r?.id?.videoId;
       const thumb = r?.snippet?.thumbnails;
       if (videoId) {
-        const art = { cover: thumb?.high?.url || thumb?.medium?.url || thumb?.default?.url || null, duration: null, album: null, url: `https://www.youtube.com/watch?v=${videoId}` };
+        const art = {
+          cover: itunesCover || thumb?.high?.url || thumb?.medium?.url || thumb?.default?.url || null,
+          duration: itunesDuration, album: itunesAlbum,
+          url: `https://www.youtube.com/watch?v=${videoId}`,
+        };
         client.from('track_art').upsert({ key, artist, song, cover: art.cover, url: art.url }).then(({ error }) => { if (error) console.error('track_art auto-cache 실패:', error.message); });
         return art;
       }
-    } catch { /* 유튜브 실패(할당량 소진 등)하면 iTunes로 넘어간다 */ }
+    } catch { /* 유튜브 실패(할당량 소진 등)해도 애플뮤직 결과만이라도 아래에서 반환 */ }
   }
-  for (const country of ['KR', 'US']) {
-    try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
-      const data = await res.json();
-      const r = data.results?.[0];
-      if (r) return { cover: r.artworkUrl100 || r.artworkUrl60 || null, duration: formatTrackDuration(r.trackTimeMillis), album: r.collectionName || null, url: null };
-    } catch { /* 다음 소스로 넘어간다 */ }
-  }
+  if (itunesCover) return { cover: itunesCover, album: itunesAlbum, duration: itunesDuration, url: null };
   return null;
 }
 
@@ -844,9 +858,20 @@ window.openWriteWithAlbumParams = (title, artist, cover, releaseType) => {
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type, ip_prefix, is_admin_author').order('id', { ascending: false });
+  const [{ data, error }, { data: trackArtRows }] = await Promise.all([
+    client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type, ip_prefix, is_admin_author').order('id', { ascending: false }),
+    client.from('track_art').select('key'),
+  ]);
   if (!error && data) currentPosts = data.filter(p => !isBlocked(p, 'post'));
-  renderPosts(); 
+  trackArtKeys = new Set((trackArtRows || []).map(r => r.key));
+  renderPosts();
+}
+
+// 추천곡 글의 곡 중 하나라도 아직 track_art에 없으면 false — 그런 글은 목록에서 숨긴다.
+function isRecPostFullyCached(post) {
+  if (post.tag !== '추천곡') return true;
+  const lines = (post.content || '').split('\n').map(l => l.trim()).filter(Boolean);
+  return groupRecommendLines(lines).every(item => !item.artist || trackArtKeys.has(`${item.artist}|${item.song}`));
 }
 
 function updateGenSortLabels() {
@@ -911,7 +936,7 @@ function syncBoardHistoryState() {
 function renderPosts() {
   const widgetArea = $('topWidgetArea');
   const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
-  const hotPosts = currentPosts.filter(p => (p.recs > 0 || p.views > 5) && new Date(p.created_at).getTime() >= threeDaysAgo).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 4);
+  const hotPosts = currentPosts.filter(p => (p.recs > 0 || p.views > 5) && new Date(p.created_at).getTime() >= threeDaysAgo && isRecPostFullyCached(p)).sort((a, b) => (b.recs !== a.recs) ? b.recs - a.recs : b.views - a.views).slice(0, 4);
   
   if (hotPosts.length) {
     widgetArea.replaceChildren(...hotPosts.map((post, i) => {
@@ -996,6 +1021,11 @@ function renderPosts() {
     let filtered = currentCategory === '전체' ? currentPosts.filter(p => p.tag !== '추천곡') :
                    (currentCategory === '인디' ? currentPosts.filter(p => ['국내 인디', '해외 인디', '인디'].includes(p.tag)) :
                    currentPosts.filter(p => p.tag === currentCategory));
+
+    // 추천곡 글은 곡이 하나라도 아직 안 채워졌으면(썸네일/재생 준비 안 됨) 목록에서 숨긴다 —
+    // 방문자가 열어보는 것만으로 실시간 유튜브 검색이 트리거되는 걸 막기 위함. 백필이
+    // 진행되면서 다 채워진 글부터 자연히 순차적으로 노출된다.
+    if (currentCategory === '추천곡') filtered = filtered.filter(isRecPostFullyCached);
 
     if (currentCategory === '야구' && baseballTeamFilter !== '전체') {
       filtered = filtered.filter(p => p.team === baseballTeamFilter);
