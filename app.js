@@ -800,7 +800,7 @@ $('openWriteBtn').onclick = () => {
   $('postGuestPw').style.display = currentUser ? 'none' : '';
   // 유동은 더 이상 닉네임을 직접 고르지 않는다 — 닉네임은 아무나 똑같이 따라 쓸 수 있어
   // 사칭 오탐의 원인이 됐다. 구분은 오직 IP로만 한다(ip_prefix, 서버가 직접 기록).
-  $('postAuthor').value = currentUser ? resolveNickname(currentUser) : 'ㅇㅇ';
+  $('postAuthor').value = currentUser ? resolveNickname(currentUser) : '인좋';
   $('postAuthor').style.display = currentUser ? '' : 'none';
 
   updateRestrictedTagOptions();
@@ -1511,7 +1511,7 @@ function createCommentElement(comment, depth) {
   const replyForm = element('div', 'reply-write-form');
   replyForm.id = `replyForm_${comment.id}`;
   replyForm.innerHTML = `
-    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" autocomplete="off" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : 'ㅇㅇ'}" style="${currentUser ? '' : 'display:none;'}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" autocomplete="new-password" style="${currentUser ? 'display:none;' : ''}"></div>
+    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" autocomplete="off" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : '인좋'}" style="${currentUser ? '' : 'display:none;'}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" autocomplete="new-password" style="${currentUser ? 'display:none;' : ''}"></div>
     <div class="cw-input">
       <textarea id="replyContent_${comment.id}" placeholder="답글을 입력하세요." autocomplete="off"></textarea>
       <button onclick="submitComment(${comment.id})">등록</button>
@@ -1536,7 +1536,7 @@ window.submitComment = async (parentId = null) => {
   const contentId = parentId ? `replyContent_${parentId}` : 'commentContent';
   const pwId = parentId ? `replyGuestPw_${parentId}` : 'commentGuestPw';
 
-  const author = escapeHTML($(authorId).value.trim()) || 'ㅇㅇ';
+  const author = escapeHTML($(authorId).value.trim()) || '인좋';
   const content = $(contentId).value.trim();
   const guestPw = $(pwId).value.trim();
 
@@ -1631,7 +1631,7 @@ async function openPostView(postId, pushHistory = true) {
   } else $('btnEvalSame').style.display = 'none';
 
   // 유동은 더 이상 닉네임을 직접 고르지 않는다 — 구분은 오직 IP로만 한다.
-  $('commentAuthor').value = currentUser ? resolveNickname(currentUser) : 'ㅇㅇ';
+  $('commentAuthor').value = currentUser ? resolveNickname(currentUser) : '인좋';
   $('commentAuthor').style.display = currentUser ? '' : 'none';
   $('commentContent').value = ''; $('commentGuestPw').value = '';
   $('commentGuestPw').style.display = currentUser ? 'none' : '';
@@ -1839,7 +1839,7 @@ $('savePostBtn').addEventListener('click', async () => {
   const tag = $('postTag').value;
   const title = escapeHTML($('postTitle').value);
   const content = $('postContent').value; // 본문은 렌더링 시 필터링됨
-  const author = escapeHTML($('postAuthor').value.trim()) || 'ㅇㅇ';
+  const author = escapeHTML($('postAuthor').value.trim()) || '인좋';
   const team = $('postTeam').value;
   const releaseType = $('postReleaseType').value;
   const guestPw = $('postGuestPw').value.trim();
