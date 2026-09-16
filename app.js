@@ -849,6 +849,13 @@ function updateGenSortLabels() {
   $('btnSortPopular').innerText = isRecommend
     ? (genSortType === 'popular' && genSortDir === 'asc' ? '조회수 낮은순' : '조회수순')
     : (genSortType === 'popular' && genSortDir === 'asc' ? '비인기순' : '인기순');
+
+  // 추천곡 게시판은 위 두 버튼을 곡수/조회수로 재활용해서 정작 "언제 올라왔는지" 순으로
+  // 볼 방법이 없었다 — 이 게시판에서만 보이는 세 번째 버튼으로 진짜 날짜순 정렬을 추가한다.
+  $('sortDivRecTrackDate').style.display = isRecommend ? '' : 'none';
+  $('btnSortRecTrackDate').style.display = isRecommend ? '' : 'none';
+  $('btnSortRecTrackDate').className = genSortType === 'date' ? 'active' : '';
+  $('btnSortRecTrackDate').innerText = genSortType === 'date' && genSortDir === 'asc' ? '오래된순' : '최신순';
 }
 function updateAlbSortLabels() {
   $('btnSortAlbumReview').className = albSortType === 'review' ? 'active' : '';
@@ -996,7 +1003,9 @@ function renderPosts() {
       if (pinNotices && a.is_notice !== b.is_notice) return a.is_notice ? -1 : 1;
       let diff;
       if (currentCategory === '추천곡') {
-        diff = genSortType === 'popular' ? ((b.views || 0) - (a.views || 0)) : (songCount(b) - songCount(a));
+        diff = genSortType === 'popular' ? ((b.views || 0) - (a.views || 0))
+             : genSortType === 'date' ? (b.id - a.id)
+             : (songCount(b) - songCount(a));
       } else {
         diff = genSortType === 'popular' ? ((b.recs !== a.recs ? (b.recs||0) - (a.recs||0) : (b.views !== a.views ? (b.views||0) - (a.views||0) : b.id - a.id))) : (b.id - a.id);
       }
