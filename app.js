@@ -465,14 +465,6 @@ function firstThumbnail(post) {
   return imagePart ? imagePart.image : null;
 }
 
-// 유동 글/댓글의 기본 닉네임. "인좋"이 이미 쓰였으면 인좋2, 인좋3처럼 안 겹치는 다음 번호를 찾는다.
-function nextGuestNickname(existingAuthors) {
-  const used = new Set(existingAuthors);
-  let candidate = '인좋', n = 2;
-  while (used.has(candidate)) { candidate = `인좋${n}`; n += 1; }
-  return candidate;
-}
-
 // --- 인증 및 계정 설정 ---
 // 카카오 등 소셜 로그인은 이메일 없이 가입될 수 있어 email.split('@')로 바로 닉네임을 뽑으면 안 된다.
 function resolveNickname(user) {
@@ -806,7 +798,10 @@ $('openWriteBtn').onclick = () => {
   $('postTitle').value = ''; $('postContent').value = ''; $('postGuestPw').value = '';
   updateContentPreview();
   $('postGuestPw').style.display = currentUser ? 'none' : '';
-  $('postAuthor').value = currentUser ? resolveNickname(currentUser) : '인좋';
+  // 유동은 더 이상 닉네임을 직접 고르지 않는다 — 닉네임은 아무나 똑같이 따라 쓸 수 있어
+  // 사칭 오탐의 원인이 됐다. 구분은 오직 IP로만 한다(ip_prefix, 서버가 직접 기록).
+  $('postAuthor').value = currentUser ? resolveNickname(currentUser) : 'ㅇㅇ';
+  $('postAuthor').style.display = currentUser ? '' : 'none';
 
   updateRestrictedTagOptions();
   // 보고 있던 게시판을 그대로 미리 선택해준다. 같이 갈 사람/장터라도 일단 선택은 되고,
@@ -1377,11 +1372,12 @@ window.reportContent = async (type, id) => {
   alert(error ? '신고 접수에 실패했습니다: ' + error.message : '신고가 접수되었습니다. 확인 후 조치하겠습니다.');
 };
 
-// 차단은 이 기기(브라우저)에만 저장한다. 로그인 사용자는 user_id로, 유동은 닉네임으로 식별하되
-// "인좋"류 기본 닉네임은 여러 사람이 같이 쓰는 이름이라 그 글/댓글 하나만 숨긴다.
+// 차단은 이 기기(브라우저)에만 저장한다. 로그인 사용자는 user_id로 식별한다. 유동은 닉네임이
+// 전부 "ㅇㅇ"로 똑같아서(구분은 IP로만 함) 닉네임으로는 식별할 수 없으므로, 서버가 기록한
+// ip_prefix로 식별한다 — 그마저도 없으면(과거 데이터 등) 그 글/댓글 하나만 숨긴다.
 // ponytail: localStorage라 기기 간 동기화 안 됨. 필요해지면 blocks 테이블로 옮긴다.
 const blockedKeys = new Set((() => { try { return JSON.parse(localStorage.getItem('blockedUsers') || '[]'); } catch { return []; } })());
-const blockKey = (item, type) => item.user_id ? 'u:' + item.user_id : (/^인좋\d*$/.test(item.author || '') ? `${type}:${item.id}` : 'n:' + item.author);
+const blockKey = (item, type) => item.user_id ? 'u:' + item.user_id : (item.ip_prefix ? 'ip:' + item.ip_prefix : `${type}:${item.id}`);
 const isBlocked = (item, type) => blockedKeys.has(blockKey(item, type));
 function blockAuthor(item, type) {
   if (!requireLogin()) return false;
@@ -1411,10 +1407,6 @@ async function fetchAndRenderComments() {
   
   currentComments = (data || []).filter(c => !isBlocked(c, 'comment'));
   $('commentCount').textContent = currentComments.length;
-
-  // 유동 댓글 기본 닉네임: 이 글의 댓글 중 이미 쓰인 "인좋"류와 안 겹치는 다음 번호로.
-  // 글쓴이 닉네임과 겹쳐도(둘 다 "인좋") 상관없이 댓글은 항상 "인좋"부터 시작한다.
-  if (!currentUser) $('commentAuthor').value = nextGuestNickname(currentComments.map(c => c.author));
 
   const list = $('commentList');
   list.replaceChildren();
@@ -1519,7 +1511,7 @@ function createCommentElement(comment, depth) {
   const replyForm = element('div', 'reply-write-form');
   replyForm.id = `replyForm_${comment.id}`;
   replyForm.innerHTML = `
-    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" autocomplete="off" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : escapeHTML(nextGuestNickname(currentComments.map(c => c.author)))}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" autocomplete="new-password" style="${currentUser ? 'display:none;' : ''}"></div>
+    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" autocomplete="off" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : 'ㅇㅇ'}" style="${currentUser ? '' : 'display:none;'}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" autocomplete="new-password" style="${currentUser ? 'display:none;' : ''}"></div>
     <div class="cw-input">
       <textarea id="replyContent_${comment.id}" placeholder="답글을 입력하세요." autocomplete="off"></textarea>
       <button onclick="submitComment(${comment.id})">등록</button>
@@ -1544,7 +1536,7 @@ window.submitComment = async (parentId = null) => {
   const contentId = parentId ? `replyContent_${parentId}` : 'commentContent';
   const pwId = parentId ? `replyGuestPw_${parentId}` : 'commentGuestPw';
 
-  const author = escapeHTML($(authorId).value.trim()) || '인좋';
+  const author = escapeHTML($(authorId).value.trim()) || 'ㅇㅇ';
   const content = $(contentId).value.trim();
   const guestPw = $(pwId).value.trim();
 
@@ -1638,8 +1630,9 @@ async function openPostView(postId, pushHistory = true) {
     $('btnEvalSame').onclick = () => openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover, post.release_type);
   } else $('btnEvalSame').style.display = 'none';
 
-  if (currentUser) $('commentAuthor').value = resolveNickname(currentUser);
-  // 유동 기본 닉네임은 이 글의 댓글 목록을 불러온 뒤 fetchAndRenderComments에서 채운다 (중복 확인 필요).
+  // 유동은 더 이상 닉네임을 직접 고르지 않는다 — 구분은 오직 IP로만 한다.
+  $('commentAuthor').value = currentUser ? resolveNickname(currentUser) : 'ㅇㅇ';
+  $('commentAuthor').style.display = currentUser ? '' : 'none';
   $('commentContent').value = ''; $('commentGuestPw').value = '';
   $('commentGuestPw').style.display = currentUser ? 'none' : '';
 
@@ -1779,6 +1772,7 @@ $('adminEditBtn').addEventListener('click', () => {
   updateContentPreview();
   if (post.tag === '야구') $('postTeam').value = post.team || '';
   $('postAuthor').value = post.author || 'ㅇㅇ';
+  $('postAuthor').style.display = ''; // 글쓰기 폼에서 유동으로 숨겨져 있었을 수 있으니 수정 시엔 항상 보이게 한다
 
   if (post.tag === '앨범 평가') {
     // 앨범을 다시 검색하게 하지 않고, 기존 앨범 정보를 보여준 채로 리뷰 내용/별점만 수정하게 한다.
@@ -1845,7 +1839,7 @@ $('savePostBtn').addEventListener('click', async () => {
   const tag = $('postTag').value;
   const title = escapeHTML($('postTitle').value);
   const content = $('postContent').value; // 본문은 렌더링 시 필터링됨
-  const author = escapeHTML($('postAuthor').value.trim()) || '인좋';
+  const author = escapeHTML($('postAuthor').value.trim()) || 'ㅇㅇ';
   const team = $('postTeam').value;
   const releaseType = $('postReleaseType').value;
   const guestPw = $('postGuestPw').value.trim();
