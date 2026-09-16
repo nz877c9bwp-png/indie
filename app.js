@@ -275,10 +275,14 @@ let recTrackArtToken = 0;
 // 유지). "아티스트 - 곡명" 형식이 아닌 자유 코멘트 줄은 어떤 그룹에도 안 섞이게
 // 매번 고유 키를 줘서 원래 있던 자리 그대로 둔다.
 function groupRecommendLines(lines) {
+  // "아티스트 - 곡명"처럼 하이픈 앞뒤에 공백이 둘 다 있어야만 인식했는데, "아티스트 -곡명"처럼
+  // 하이픈 뒤 공백을 빼먹으면 그냥 코멘트 줄로 취급돼 유튜브 매칭 자체가 시도되지 않았다
+  // (실제로 겪은 사례: "실리카겔 -ryudejakeiru"). 하이픈 앞 공백은 "K-pop" 같은 단어 안
+  // 하이픈과 구분하기 위해 여전히 필수로 두고, 뒤쪽 공백만 있어도 되고 없어도 되게 한다.
   const parsed = lines.map((line, i) => {
-    const idx = line.indexOf(' - ');
-    return idx > -1
-      ? { line, artist: line.slice(0, idx).trim(), song: line.slice(idx + 3).trim() }
+    const m = line.match(/^(.*?)\s-\s*(.+)$/);
+    return m
+      ? { line, artist: m[1].trim(), song: m[2].trim() }
       : { line, artist: null, song: null, soloKey: `__comment_${i}` };
   });
   const order = [];
