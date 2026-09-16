@@ -9,6 +9,29 @@ language sql stable as $$
   select coalesce(auth.jwt() ->> 'email', '') = 'bkseungah010223@gmail.com';
 $$;
 
+-- 회원(고닉) 닉네임 중복 방지. auth.users는 authenticated 권한으로 직접 못 읽으므로
+-- security definer로 우회한다. resolveNickname()(app.js)과 똑같은 우선순위(nickname →
+-- name → full_name → 이메일 앞부분)로 "실제로 화면에 표시되는 닉네임"을 계산해 비교해야,
+-- 소셜 로그인으로 자동 채워진 이름과도 겹치지 않는지 확인할 수 있다. 본인 계정은 제외한다.
+create or replace function public.is_nickname_taken(p_nickname text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from auth.users
+    where id <> auth.uid()
+    and coalesce(
+      nullif(raw_user_meta_data->>'nickname', ''),
+      nullif(raw_user_meta_data->>'name', ''),
+      nullif(raw_user_meta_data->>'full_name', ''),
+      split_part(email, '@', 1)
+    ) = p_nickname
+  );
+$$;
+-- Supabase는 public 스키마에 함수를 만들면 기본적으로 anon에도 실행 권한을 자동으로
+-- 준다(PUBLIC 상속이 아니라 anon 자체에 별도 grant가 걸림). 로그인한 회원만 쓰는
+-- 기능이라 anon 권한을 명시적으로 걷어낸다.
+revoke execute on function public.is_nickname_taken(text) from public, anon;
+grant execute on function public.is_nickname_taken(text) to authenticated;
+
 -- 유동(비로그인) 글쓰기를 지원하기 위해 posts에도 user_id가 필요하다.
 alter table public.posts
   add column if not exists user_id uuid references auth.users(id);

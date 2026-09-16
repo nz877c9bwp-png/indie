@@ -1297,7 +1297,13 @@ $('mySaveNicknameBtn').addEventListener('click', async () => {
   const newNick = $('mySettingNickname').value.trim();
   if (!newNick) return alert('변경할 닉네임을 입력해주세요.');
   const btn = $('mySaveNicknameBtn');
-  btn.disabled = true; btn.textContent = '저장 중...';
+  btn.disabled = true; btn.textContent = '확인 중...';
+  // 다른 회원이 이미 쓰고 있는 닉네임(소셜 로그인으로 자동 채워진 이름 포함)인지
+  // 먼저 서버에 물어보고, 겹치면 저장 자체를 막는다.
+  const { data: isTaken, error: checkError } = await client.rpc('is_nickname_taken', { p_nickname: newNick });
+  if (checkError) { btn.disabled = false; btn.textContent = '변경'; return alert('중복 확인에 실패했습니다: ' + checkError.message); }
+  if (isTaken) { btn.disabled = false; btn.textContent = '변경'; return alert('이미 다른 회원이 사용 중인 닉네임입니다.'); }
+  btn.textContent = '저장 중...';
   const { error } = await client.auth.updateUser({ data: { nickname: newNick } });
   btn.disabled = false; btn.textContent = '변경';
   if (error) alert('실패: ' + error.message);
