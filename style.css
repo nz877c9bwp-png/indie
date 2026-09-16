@@ -231,6 +231,13 @@ input:-webkit-autofill:focus {
 .author-wrap{ display:inline-flex; align-items:center; gap:6px; }
 .kakao-mark{ display:inline-flex; align-items:center; margin-left:4px; flex:none; }
 
+/* 관리자가 실제로 로그인해서 쓴 글/댓글에 붙는 딱지 — 닉네임이 똑같아도 이 딱지는
+   서버가 저장한 is_admin_author로만 판정되므로 사칭이 불가능하다. */
+.admin-post-badge{ display:inline-block; font-size:10px; font-weight:800; padding:1px 6px; border-radius:9px; background:var(--admin); color:#fff; white-space:nowrap; margin-left:4px; flex:none; }
+/* 유동(비로그인) 글/댓글 옆에 디시처럼 IP 앞 두 자리를 보여준다 — 닉네임이 같아도
+   다른 사람일 수 있다는 걸 알려주는 용도. */
+.ip-tag{ font-size:11px; color:var(--muted-2); font-weight:400; margin-left:2px; white-space:nowrap; }
+
 /* 야구게시판 팀별 탭 (FM코리아 스타일) — 앨범 평가의 싱글/EP/정규 탭도 같은 스타일을 쓴다. */
 #baseballTeamTabs, #albumReleaseTabs{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
 .team-tab-btn{ background:var(--panel); border:none; color:var(--muted); padding:8px 18px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm); }

@@ -18,6 +18,13 @@ alter table public.posts
 -- 함수들보다 먼저(파일 위쪽에서) 컬럼을 만들어 둬야 한다.
 alter table public.posts add column if not exists dislikes integer not null default 0;
 
+-- 유동(비로그인) 글쓴이 식별용: 닉네임이 같다고 같은 사람으로 취급하면 안 되므로(오탐 사례 발견),
+-- 디시처럼 IP 앞 두 자리만 저장해서 구분에 쓴다(개인정보 최소화 차원에서 전체 IP는 저장하지 않음).
+-- 관리자 여부도 삽입 시점에 서버가 세션으로 직접 판정해서 저장한다 — 닉네임만으로는 아무나
+-- 관리자 행세를 할 수 있으므로, 클라이언트가 보내는 값이 아니라 실제 로그인 여부를 믿어야 한다.
+alter table public.posts add column if not exists ip_prefix text;
+alter table public.posts add column if not exists is_admin_author boolean not null default false;
+
 -- 같이 갈 사람/장터 게시판은 카카오 로그인 사용자만 글을 쓸 수 있게 제한한다.
 -- auth.jwt()의 app_metadata.provider는 클라이언트가 조작할 수 없는 서버 발급 값이라 이걸로 검사한다.
 create or replace function public.is_kakao_session() returns boolean
@@ -71,6 +78,8 @@ $$;
 -- comments 테이블: 읽기는 누구나, 작성은 로그인 사용자(본인 user_id로만) 또는 유동, 삭제는 작성자 또는 관리자.
 alter table public.comments
   add column if not exists user_id uuid references auth.users(id);
+alter table public.comments add column if not exists ip_prefix text;
+alter table public.comments add column if not exists is_admin_author boolean not null default false;
 
 alter table public.comments enable row level security;
 
@@ -82,6 +91,38 @@ create policy "comments read" on public.comments for select using (true);
 create policy "comments insert" on public.comments for insert to anon, authenticated
   with check (user_id is null or auth.uid() = user_id);
 create policy "comments delete" on public.comments for delete to authenticated using (auth.uid() = user_id or public.is_admin());
+
+-- 글/댓글이 실제로 저장되는 시점에 서버가 요청 정보를 직접 읽어 ip_prefix/is_admin_author를
+-- 채운다. BEFORE INSERT 트리거라 클라이언트가 이 두 컬럼에 뭘 보내든 여기서 덮어써지므로
+-- 조작이 불가능하다. current_setting(..., true)는 해당 설정이 없으면(=PostgREST 요청이 아닐
+-- 때, 예: supabase db query로 직접 실행) 에러 대신 null을 반환한다.
+create or replace function public.set_author_meta() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  v_headers json;
+  v_ip text;
+begin
+  v_headers := nullif(current_setting('request.headers', true), '')::json;
+  v_ip := trim(split_part(coalesce(v_headers ->> 'x-forwarded-for', ''), ',', 1));
+  if v_ip <> '' then
+    if position('.' in v_ip) > 0 then
+      new.ip_prefix := split_part(v_ip, '.', 1) || '.' || split_part(v_ip, '.', 2);
+    else
+      new.ip_prefix := split_part(v_ip, ':', 1) || ':' || split_part(v_ip, ':', 2);
+    end if;
+  end if;
+  new.is_admin_author := public.is_admin();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_posts_author_meta on public.posts;
+create trigger trg_posts_author_meta before insert on public.posts
+  for each row execute function public.set_author_meta();
+
+drop trigger if exists trg_comments_author_meta on public.comments;
+create trigger trg_comments_author_meta before insert on public.comments
+  for each row execute function public.set_author_meta();
 
 -- 유동(비로그인) 글쓰기: 디씨처럼 닉네임 + 비밀번호로 작성하고, 같은 비밀번호로 본인이 삭제할 수 있게 한다.
 -- 비밀번호는 평문 저장하지 않고 트리거에서 bcrypt로 해시한 뒤 저장한다.
@@ -219,10 +260,11 @@ alter table public.posts add constraint posts_release_type_check
 -- 테이블 단위 select를 걷어내고 guest_password를 뺀 컬럼 단위로만 준다. app.js도 select('*') 대신 컬럼을 명시한다.
 revoke select on public.posts from anon, authenticated;
 grant select (id, created_at, tag, author, title, content, team, user_id,
-              album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type)
+              album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type,
+              ip_prefix, is_admin_author)
   on public.posts to anon, authenticated;
 revoke select on public.comments from anon, authenticated;
-grant select (id, created_at, post_id, parent_id, author, content, user_id, is_kakao)
+grant select (id, created_at, post_id, parent_id, author, content, user_id, is_kakao, ip_prefix, is_admin_author)
   on public.comments to anon, authenticated;
 
 -- 로그인 사용자 추천: 1인 1회. 기록 테이블은 API에서 직접 못 건드리고 아래 RPC(security definer)만 쓴다.

@@ -145,6 +145,19 @@ function kakaoMark() {
   return mark;
 }
 
+// 유동(비로그인) 글/댓글에는 디시처럼 IP 앞 두 자리를 닉네임 옆에 보여준다. 닉네임이 같아도
+// 다른 사람일 수 있으니, 이 정보로 구분하라는 취지 — 회원(user_id 있음)은 표시하지 않는다.
+function ipTag(item) {
+  if (!item || item.user_id || !item.ip_prefix) return null;
+  return element('span', 'ip-tag', `(${item.ip_prefix})`);
+}
+
+// 관리자가 실제로 로그인한 상태로 쓴 글/댓글에는 닉네임과 무관하게 항상 이 뱃지를 붙인다.
+// (닉네임만 "관리자 닉네임"과 똑같이 써도 이 뱃지는 서버가 저장한 is_admin_author로만 판정되므로 위조 불가)
+function adminAuthorBadge() {
+  return element('span', 'admin-post-badge', '관리자');
+}
+
 function renderBaseballTabs() {
   const wrap = $('baseballTeamTabs');
   const names = ['전체', ...KBO_TEAMS.map(t => t.code)];
@@ -823,7 +836,7 @@ window.openWriteWithAlbumParams = (title, artist, cover, releaseType) => {
 
 // --- 게시글 데이터 및 렌더링 ---
 async function fetchPosts() {
-  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type').order('id', { ascending: false });
+  const { data, error } = await client.from('posts').select('id, created_at, tag, author, title, content, team, user_id, album_title, album_artist, album_cover, rating, views, recs, dislikes, is_notice, is_kakao, comment_count, release_type, ip_prefix, is_admin_author').order('id', { ascending: false });
   if (!error && data) currentPosts = data.filter(p => !isBlocked(p, 'post'));
   renderPosts(); 
 }
@@ -894,6 +907,8 @@ function renderPosts() {
       recs.style.cssText = "background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;";
       const author = element('span', 'author-wrap'); author.style.marginLeft = 'auto';
       author.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
+      if (post.is_admin_author) author.append(adminAuthorBadge());
+      const hotIpTag = ipTag(post); if (hotIpTag) author.append(hotIpTag);
       if (post.is_kakao) author.append(kakaoMark());
       if (post.tag === '야구' && post.team) author.append(teamBadge(post.team));
       stats.append(element('span', '', `조회 ${post.views || 0}`), recs, author);
@@ -1034,6 +1049,8 @@ function renderPosts() {
         const authorCell = element('td', 'col-author');
         const authorWrap = element('span', 'author-wrap');
         authorWrap.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
+        if (post.is_admin_author) authorWrap.append(adminAuthorBadge());
+        const rowIpTag = ipTag(post); if (rowIpTag) authorWrap.append(rowIpTag);
         if (post.is_kakao) authorWrap.append(kakaoMark());
         if (post.tag === '야구' && post.team) authorWrap.append(teamBadge(post.team));
         authorCell.append(authorWrap);
@@ -1145,7 +1162,11 @@ window.openAlbumDetail = (title, artist, pushHistory = true) => {
   $('adEvalBtn').onclick = () => openWriteWithAlbumParams(title, artist, albumPosts[0].album_cover, albumPosts[0].release_type);
   $('adReviews').replaceChildren(...albumPosts.map(p => {
     const card = element('div', 'review-card'); card.onclick = () => openPostView(p.id);
-    const header = element('div', 'rc-header'); header.append(element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)')), element('span', 'rc-stars', `전체 ★${avgRating.toFixed(1)} · 작성자 ★${formatRating(p.rating)}`));
+    const header = element('div', 'rc-header');
+    const rcAuthor = element('span', 'rc-author', escapeHTML(p.author || 'ㅇㅇ(유동)'));
+    if (p.is_admin_author) rcAuthor.append(adminAuthorBadge());
+    const rcIpTag = ipTag(p); if (rcIpTag) rcAuthor.append(rcIpTag);
+    header.append(rcAuthor, element('span', 'rc-stars', `전체 ★${avgRating.toFixed(1)} · 작성자 ★${formatRating(p.rating)}`));
     card.append(header, element('div', 'rc-title', escapeHTML(p.title)), element('div', 'rc-content', contentPreview(p.content)));
     return card;
   }));
@@ -1385,7 +1406,7 @@ window.unblockAll = () => {
 // --- 댓글 및 대댓글 기능 ---
 async function fetchAndRenderComments() {
   if (!currentReadPostId) return;
-  const { data, error } = await client.from('comments').select('id, created_at, post_id, parent_id, author, content, user_id, is_kakao').eq('post_id', currentReadPostId).order('id', { ascending: true });
+  const { data, error } = await client.from('comments').select('id, created_at, post_id, parent_id, author, content, user_id, is_kakao, ip_prefix, is_admin_author').eq('post_id', currentReadPostId).order('id', { ascending: true });
   if (error) return console.error('댓글 불러오기 실패:', error);
   
   currentComments = (data || []).filter(c => !isBlocked(c, 'comment'));
@@ -1440,16 +1461,17 @@ function createCommentElement(comment, depth) {
   if (isReply) authorDisplay = '↳ ' + authorDisplay;
 
   const authorSpan = element('span', 'ci-author', authorDisplay);
+  if (comment.is_admin_author) authorSpan.append(adminAuthorBadge());
+  const commentIpTag = ipTag(comment); if (commentIpTag) authorSpan.append(commentIpTag);
   if (comment.is_kakao) authorSpan.append(kakaoMark());
-  // 댓글 작성자가 이 글의 작성자와 실제로 같은 사람인지 표시한다.
-  // 로그인 사용자라면 user_id가 같은지로 확실하게 판단하지만, 유동은 그런 게 없어서
-  // 닉네임이 같은지로만 추측한다 — 단, "인좋"/"인좋2"류 기본 닉네임은 여러 사람이
-  // 겹쳐 쓰는 이름이라 그걸로 같은 사람이라 단정하면 안 된다(오탐 사례 발견됨).
+  // 댓글 작성자가 이 글의 작성자와 실제로 같은 사람인지 표시한다. 닉네임은 누구나 똑같이
+  // 따라 쓸 수 있어서(사칭 오탐 사례 발견됨) 절대 식별 기준으로 쓰지 않는다 — 로그인
+  // 사용자는 user_id가 같은지로, 유동은 서버가 저장한 IP 앞 두 자리(ip_prefix)가 같은지로만
+  // 판단한다.
   const openPost = currentPosts.find(p => p.id === currentReadPostId);
   const sameLoggedInAuthor = openPost?.user_id && comment.user_id && openPost.user_id === comment.user_id;
-  const isDefaultGuestNickname = /^인좋\d*$/.test(openPost?.author || '');
-  const nameMatchesGuestAuthor = !openPost?.user_id && comment.author && comment.author === openPost?.author && !isDefaultGuestNickname;
-  if (sameLoggedInAuthor || nameMatchesGuestAuthor) {
+  const sameGuestByIp = !openPost?.user_id && !comment.user_id && openPost?.ip_prefix && comment.ip_prefix && openPost.ip_prefix === comment.ip_prefix;
+  if (sameLoggedInAuthor || sameGuestByIp) {
     authorSpan.append(element('span', 'ci-op-badge', '(글쓴이)'));
   }
 
@@ -1565,6 +1587,8 @@ async function openPostView(postId, pushHistory = true) {
   
   $('readTitle').textContent = post.title; $('readTag').textContent = post.tag;
   $('readAuthor').replaceChildren(document.createTextNode(post.author || 'ㅇㅇ'));
+  if (post.is_admin_author) $('readAuthor').append(adminAuthorBadge());
+  const readIpTag = ipTag(post); if (readIpTag) $('readAuthor').append(readIpTag);
   if (post.is_kakao) $('readAuthor').append(kakaoMark());
   $('readTeamBadge').replaceChildren();
   if (post.tag === '야구' && post.team) $('readTeamBadge').append(teamBadge(post.team));
