@@ -14,7 +14,7 @@ const SUPABASE_URL = "https://jvitmimabxupkhrksudu.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-const DAILY_CAP = 80; // 100에서 여유를 두고, 방문자가 실시간으로 쓰는 몫도 남겨둔다
+const DAILY_CAP = 50; // 하루 100번 중 절반은 방문자가 실시간으로 검색하는 몫으로 남겨둔다
 
 const sb = (path) => `${SUPABASE_URL}/rest/v1/${path}`;
 const sbHeaders = {
@@ -31,14 +31,16 @@ async function fetchAllRecommendContent() {
 }
 
 function parseLines(content) {
+  // app.js의 groupRecommendLines와 동일한 규칙: 하이픈 앞 공백은 필수("K-pop" 같은 단어 안
+  // 하이픈과 구분하기 위해), 뒤 공백은 있어도 되고 없어도 된다.
   return (content || "")
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean)
     .map((line) => {
-      const idx = line.indexOf(" - ");
-      if (idx === -1) return null;
-      return { artist: line.slice(0, idx).trim(), song: line.slice(idx + 3).trim() };
+      const m = line.match(/^(.*?)\s-\s*(.+)$/);
+      if (!m) return null;
+      return { artist: m[1].trim(), song: m[2].trim() };
     })
     .filter(Boolean);
 }
