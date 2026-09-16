@@ -494,6 +494,14 @@ client.auth.onAuthStateChange((event, session) => {
     $('logoutBtn').style.display = $('myPageBtn').style.display = 'none';
     if(authorInput) authorInput.value = '';
   }
+
+  // 게시글을 열어둔 채로 로그인/로그아웃하면 수정/삭제 버튼, 댓글 삭제 버튼 등
+  // isAdmin/currentUser에 의존하는 UI가 새로고침 전까지 로그인 이전 상태로 남아있던
+  // 문제 — 지금 보고 있는 글이 있으면 그 화면을 다시 그려서 즉시 반영한다.
+  // pushHistory=false라 히스토리/조회수 중복 카운트는 안 된다.
+  if (currentReadPostId && $('postViewSection').style.display === 'block') {
+    openPostView(currentReadPostId, false);
+  }
 });
 
 $('doSignupBtn').addEventListener('click', async () => {
