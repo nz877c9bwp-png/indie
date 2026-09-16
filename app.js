@@ -1006,8 +1006,10 @@ function renderPosts() {
       });
     }
 
-    // 공지글은 전체 게시판(검색 중이 아닐 때)에서 정렬 기준보다 우선해 항상 맨 위에 고정한다.
-    const pinNotices = currentCategory === '전체' && !postSearchKeyword;
+    // 공지글은 어느 게시판/정렬 기준으로 보든(검색 중이 아닐 때) 항상 맨 위에 고정한다.
+    // 전에는 전체 게시판에서만 고정돼서, 추천곡처럼 개별 게시판에서 최신순/인기순으로
+    // 정렬을 바꾸면 공지가 파묻히는 문제가 있었다.
+    const pinNotices = !postSearchKeyword;
     filtered.sort((a, b) => {
       if (pinNotices && a.is_notice !== b.is_notice) return a.is_notice ? -1 : 1;
       let diff;
