@@ -798,10 +798,10 @@ $('openWriteBtn').onclick = () => {
   $('postTitle').value = ''; $('postContent').value = ''; $('postGuestPw').value = '';
   updateContentPreview();
   $('postGuestPw').style.display = currentUser ? 'none' : '';
-  // 유동은 더 이상 닉네임을 직접 고르지 않는다 — 닉네임은 아무나 똑같이 따라 쓸 수 있어
-  // 사칭 오탐의 원인이 됐다. 구분은 오직 IP로만 한다(ip_prefix, 서버가 직접 기록).
+  // 유동은 닉네임을 자유롭게 바꿔도 된다 — 어차피 닉네임은 아무나 똑같이 따라 쓸 수 있어서
+  // "글쓴이" 판정이나 구분에는 전혀 쓰이지 않고(ip_prefix로만 구분), 닉네임을 바꾸더라도
+  // ipTag()가 user_id 없는 글/댓글엔 무조건 IP를 붙여 보여준다.
   $('postAuthor').value = currentUser ? resolveNickname(currentUser) : '인좋';
-  $('postAuthor').style.display = currentUser ? '' : 'none';
 
   updateRestrictedTagOptions();
   // 보고 있던 게시판을 그대로 미리 선택해준다. 같이 갈 사람/장터라도 일단 선택은 되고,
@@ -1511,7 +1511,7 @@ function createCommentElement(comment, depth) {
   const replyForm = element('div', 'reply-write-form');
   replyForm.id = `replyForm_${comment.id}`;
   replyForm.innerHTML = `
-    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" autocomplete="off" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : '인좋'}" style="${currentUser ? '' : 'display:none;'}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" autocomplete="new-password" style="${currentUser ? 'display:none;' : ''}"></div>
+    <div class="cw-author"><input type="text" id="replyAuthor_${comment.id}" placeholder="닉네임 (유동)" autocomplete="off" value="${currentUser ? escapeHTML(resolveNickname(currentUser)) : '인좋'}"><input type="password" id="replyGuestPw_${comment.id}" placeholder="비밀번호" maxlength="20" autocomplete="new-password" style="${currentUser ? 'display:none;' : ''}"></div>
     <div class="cw-input">
       <textarea id="replyContent_${comment.id}" placeholder="답글을 입력하세요." autocomplete="off"></textarea>
       <button onclick="submitComment(${comment.id})">등록</button>
@@ -1630,9 +1630,9 @@ async function openPostView(postId, pushHistory = true) {
     $('btnEvalSame').onclick = () => openWriteWithAlbumParams(post.album_title, post.album_artist, post.album_cover, post.release_type);
   } else $('btnEvalSame').style.display = 'none';
 
-  // 유동은 더 이상 닉네임을 직접 고르지 않는다 — 구분은 오직 IP로만 한다.
+  // 유동은 닉네임을 자유롭게 바꿔도 된다 — 구분은 ip_prefix로만 하고, ipTag()가
+  // user_id 없는 댓글엔 닉네임과 무관하게 무조건 IP를 붙여 보여준다.
   $('commentAuthor').value = currentUser ? resolveNickname(currentUser) : '인좋';
-  $('commentAuthor').style.display = currentUser ? '' : 'none';
   $('commentContent').value = ''; $('commentGuestPw').value = '';
   $('commentGuestPw').style.display = currentUser ? 'none' : '';
 
@@ -1772,7 +1772,6 @@ $('adminEditBtn').addEventListener('click', () => {
   updateContentPreview();
   if (post.tag === '야구') $('postTeam').value = post.team || '';
   $('postAuthor').value = post.author || 'ㅇㅇ';
-  $('postAuthor').style.display = ''; // 글쓰기 폼에서 유동으로 숨겨져 있었을 수 있으니 수정 시엔 항상 보이게 한다
 
   if (post.tag === '앨범 평가') {
     // 앨범을 다시 검색하게 하지 않고, 기존 앨범 정보를 보여준 채로 리뷰 내용/별점만 수정하게 한다.
