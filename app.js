@@ -509,6 +509,7 @@ $('doLoginBtn').addEventListener('click', async () => {
   const { error } = await client.auth.signInWithPassword({ email: $('loginEmail').value, password: $('loginPw').value });
   if(error) alert('로그인 실패'); else toggleModal('loginModal', false);
 });
+$('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') $('doLoginBtn').click(); });
 
 // 카카오는 OAuth 특성상 로그인/회원가입이 동일한 호출이다 (처음 인증하면 자동으로 계정이 생성됨).
 // Supabase는 카카오 로그인에 한해 scopes 옵션과 무관하게 account_email을 강제로 포함시키므로,
