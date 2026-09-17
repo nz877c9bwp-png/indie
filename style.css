@@ -736,7 +736,10 @@ input:-webkit-autofill:focus {
      행만 열이 자동으로 조금 더 늘어난다(행마다 독립된 그리드라 다른 행 정렬에는
      영향 없음). 가운데 정렬이라 태그 좌우 여백도 항상 최소로 고르게 남는다. */
   .col-category { grid-column: 1; grid-row: 1; text-align: center; }
-  .col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 13.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
+  /* 2행(날짜·조회·추천)만 3~5열을 쓰고 1행은 그 자리가 비어있으니, 제목을 2열부터
+     끝(5열)까지 넓혀서 1행에서 그 남는 폭까지 다 쓰게 한다 — 서로 다른 행이라
+     2행의 날짜·조회·추천과는 겹치지 않는다. */
+  .col-title { grid-column: 2 / -1; grid-row: 1; min-width: 0; font-size: 13.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
   .col-category .tag { font-size: 8px; padding: 1px 6px; }
   .col-title .notice-badge { font-size: 10px; }
