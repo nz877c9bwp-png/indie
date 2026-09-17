@@ -120,6 +120,12 @@ function classifyReleaseType(itunesResult) {
 
 // 같이 갈 사람/장터는 카카오 로그인 사용자만 글을 쓸 수 있다 (서버 RLS에서도 동일하게 강제됨).
 const RESTRICTED_TAGS = ['같이 갈 사람', '장터'];
+
+// 게시판 이름을 짧게 보여주기 위한 화면 표시용 라벨. changeBoard/tag 값(DB에 저장된
+// 실제 식별자, RLS·자동화 스크립트가 참조하는 값)은 그대로 두고, 목록의 말머리
+// 태그나 메뉴처럼 자리가 좁은 곳에 보여줄 텍스트만 이걸로 바꿔치기한다.
+const SHORT_BOARD_NAME = { '같이 갈 사람': '동행', '공연 정보': '정보', '공연 후기': '후기', '추천곡': '추천', '앨범 평가': '평가' };
+const shortBoardName = name => SHORT_BOARD_NAME[name] || name;
 const isKakaoUser = () => currentUser?.app_metadata?.provider === 'kakao';
 
 // --- 야구 응원팀 정보 ---
@@ -1079,7 +1085,7 @@ function renderPosts() {
         row.onclick = e => { e.preventDefault(); openPostView(post.id); };
 
         const tag = element('td', 'col-category');
-        tag.append(element('span', 'tag', post.tag));
+        tag.append(element('span', 'tag', shortBoardName(post.tag)));
 
         const titleCell = element('td', 'col-title');
         const thumbUrl = firstThumbnail(post);
@@ -1267,7 +1273,7 @@ function renderMyPosts() {
     row.onclick = e => { e.preventDefault(); openPostView(post.id); };
 
     const tag = element('td', 'col-category');
-    tag.append(element('span', 'tag', post.tag));
+    tag.append(element('span', 'tag', shortBoardName(post.tag)));
 
     const titleCell = element('td', 'col-title');
     const thumbUrl = firstThumbnail(post);
