@@ -691,33 +691,18 @@ input:-webkit-autofill:focus {
   /* 카드별로 그림자를 따로 주면 다크모드에서 인접한 행끼리 그림자가 겹쳐 경계가 탁하게 보인다.
      그래서 행 하나하나가 아니라 post-table-wrap 전체를 데스크탑처럼 하나의 통짜 블럭으로 두고,
      행은 그 안에서 옅은 구분선으로만 나눈다. */
-  /* 디시/펨코 모바일 목록처럼 제목은 한 줄, 날짜·조회·추천은 그 아래 한 줄로 두 줄
-     구조를 만든다. flex-wrap+order로 줄바꿈을 흉내 냈던 이전 방식은 두 가지 문제가
-     있었다: (1) 제목이 길면 ellipsis로 가려지기 전의 원래 텍스트 폭으로 줄바꿈
-     여부를 판단해버려서 제목 셀 전체가 통째로 다음 줄로 밀려나 태그만 혼자 남고,
-     (2) 태그 폭이 말머리마다 달라서 둘째 줄(날짜 등)이 태그 밑에서 시작해 제목
-     텍스트/앨범커버 시작 위치와 어긋나 보였다. 그리드로 바꿔서 1열=태그,
-     2~4열=제목·날짜·조회·추천이 항상 같은 2열 시작선에서 정렬되게 했다.
-
-     2~4열 크기는 auto auto 1fr로 둔다(1fr을 2열에 두면 날짜만 거기 걸리고
-     조회·추천은 3~4열이 행 끝 쪽으로 밀려나 날짜만 왼쪽에 나머지는 오른쪽에
-     떨어져 보이는 문제가 있었다). 마지막 열에만 1fr을 둬서 남는 공간이 항상
-     오른쪽 끝(추천 뒤)으로 가게 하면, 디시/펨코처럼 날짜·조회·추천이 전부
-     제목 시작선에 붙어 왼쪽으로 나란히 정렬된다. */
-  /* 1열(말머리) 너비를 auto로 두면 "자유"(2글자)와 "같이 갈 사람"(6글자)처럼
-     말머리 글자 수가 다를 때마다 제목·앨범커버 시작 위치가 행마다 들쭉날쭉해진다.
-     실제 쓰는 말머리/게시판명 중 가장 긴 "같이 갈 사람"(62.9px) 기준으로 최소 폭을
-     고정해서, 말머리 길이와 무관하게 제목·앨범커버가 항상 같은 세로선에서 시작하게
-     한다. 72px로 잡은 건 가장 긴 태그(62.9px)를 오른쪽 정렬했을 때도 왼쪽 여백이
-     제목 쪽 간격(column-gap 8px)과 비슷하게 남도록 여유를 준 값이다(아래 .col-category
-     참고). */
+  /* 핫게시판(HOT) 카드처럼 한 줄로: 말머리, 제목, 날짜·조회·추천을 전부 한 줄에
+     욱여넣는다. 예전엔 제목 아래 날짜·조회·추천을 별도 줄로 뺐는데, 그러면 행
+     높이가 핫게시판 카드보다 한참 커서(두 줄 vs 한 줄) 화면에 들어가는 글 수가
+     적고 세로 공간을 헛되이 많이 썼다. 게시판 이름을 전부 2글자 안팎으로 줄인
+     덕에(SHORT_BOARD_NAME) 말머리 열 폭을 작게 고정해도 되니, 남는 폭을 제목에
+     몰아주고 날짜/조회/추천은 각자 필요한 만큼만(auto) 차지하게 했다. */
   .dc-table tr {
       display: grid;
-      grid-template-columns: minmax(72px, auto) auto auto 1fr;
+      grid-template-columns: minmax(50px, auto) 1fr auto auto auto;
       align-items: center;
-      column-gap: 8px;
-      row-gap: 3px;
-      padding: 11px 12px;
+      column-gap: 6px;
+      padding: 13px 12px;
       background: transparent;
       border-radius: 0;
       border-bottom: 1px solid var(--panel-alt);
@@ -735,28 +720,25 @@ input:-webkit-autofill:focus {
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
 
-  /* 말머리(최대 "같이 갈 사람" 62.9px)에 맞춰 1열 너비를 72px로 고정해두다 보니,
-     "자유"·"인디"처럼 짧은 게시판 이름 태그를 왼쪽 정렬하면 태그-제목 사이가 크게
-     벌어지고, 오른쪽 정렬하면 반대로 왼쪽 여백만 커 보인다. 가운데 정렬로 두면
-     짧은 태그는 열 안에서 좌우로 고르게 여백을 나눠 가지면서, 열 폭을 거의 다
-     차지하는 가장 긴 태그("같이 갈 사람")는 오른쪽 정렬과 거의 같은 위치(72-62.9≈9px
-     여백)를 유지해 제목 쪽 간격(8px)과도 계속 비슷하게 맞는다. */
+  /* 실제 쓰이는 말머리 중 가장 긴 게 축약 안 된 "자작곡"(41.6px)이라, 50px로 열
+     최소폭을 잡으면 오른쪽 제목 쪽 간격(column-gap 6px)과 왼쪽 여백이 비슷해진다.
+     가운데 정렬로 두면 "자유"·"인디" 같은 2글자 태그도 열 안에서 여백이 고르게
+     나뉜다(앨범 평가 태그 여백을 맞췄던 것과 같은 방식 — 위 앨범 평가 관련 커밋
+     참고). */
   .dc-table td.col-category { grid-column: 1; grid-row: 1; text-align: center; }
-  .col-title { grid-column: 2 / span 3; grid-row: 1; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
+  .col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 14.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
-  /* 제목은 눈에 잘 띄게 키우고, 말머리·댓글수 뱃지나 조회/추천/날짜 같은 부가 정보는
-     한 단계씩 더 줄여서 제목과의 크기 대비를 뚜렷하게 뒀다. */
+  /* 한 줄에 다 들어가야 해서, 핫게시판 부가정보(조회·추천)와 같은 크기로 제목보다
+     한 단계 더 작게 뒀다. */
   .col-category .tag { font-size: 10px; padding: 2px 8px; }
   .col-title .notice-badge { font-size: 10px; }
   .col-title .dc-cmt-count { font-size: 11px; }
   .col-title .dc-comment-count { font-size: 10px; }
 
-  /* 둘째 줄: 제목(2열 시작선)과 정확히 같은 위치에서 시작하도록 날짜를 2열에 둔다.
-     썸네일(앨범커버)이 있는 행도 썸네일이 2열에서 시작하므로 함께 맞춰진다. */
-  .col-date, .col-views, .col-likes { font-size: 10px; color: var(--muted); white-space: nowrap; grid-row: 2; }
-  .col-date { grid-column: 2; }
-  .col-views { grid-column: 3; }
-  .col-likes { grid-column: 4; }
+  .col-date, .col-views, .col-likes { font-size: 10px; color: var(--muted); white-space: nowrap; grid-row: 1; }
+  .col-date { grid-column: 3; }
+  .col-views { grid-column: 4; }
+  .col-likes { grid-column: 5; }
   .col-date::before { content: ''; }
   .col-views::before { content: '· 조회 '; color: var(--muted-2); }
   .col-likes::before { content: '· 추천 '; color: var(--muted-2); }
