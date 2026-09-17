@@ -249,7 +249,7 @@ input:-webkit-autofill:focus {
 #baseballTeamTabs, #albumReleaseTabs{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
 .team-tab-btn{ background:var(--panel); border:none; color:var(--muted); padding:8px 18px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm); }
 .team-tab-btn:hover{ color:var(--text); }
-.team-tab-btn.active{ background:var(--team-color, var(--music)); color:#fff; box-shadow:var(--shadow-inset-sm); }
+.team-tab-btn.active{ background:var(--team-color, var(--accent-gradient)); color:#fff; box-shadow:var(--shadow-inset-sm); }
 
 /* 게시판 테이블 */
 .post-table-wrap { width:100%; box-sizing:border-box; background:var(--panel); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); }
@@ -660,9 +660,19 @@ input:-webkit-autofill:focus {
   .widget-stats { flex: none; font-size: 11px; gap: 6px; white-space: nowrap; }
   .widget-stats .author-wrap { display: none; }
 
-  #baseballTeamTabs, #albumReleaseTabs { gap: 8px; margin-bottom: 14px; }
+  /* 다른 목록 블럭(widget-container, post-table-wrap)과 똑같이 화면 가장자리에서
+     12px 안쪽에서 시작하도록 맞춘다 — 예전엔 좌우 여백이 없어서 이 탭 줄과
+     앨범 평가 검색창만 다른 블럭들보다 왼쪽으로 더 쏠려 보였다. */
+  #baseballTeamTabs, #albumReleaseTabs { gap: 8px; margin: 0 12px 14px; }
   .team-tab-btn { padding: 7px 14px; font-size: 12px; }
   .team-badge { font-size: 10px; padding: 1px 6px; margin-left: 4px; }
+
+  /* 앨범 평가 헤더(제목+정렬버튼+검색창)도 같은 이유로 좌우 12px을 준다.
+     안쪽 제목줄(.board-title-row)은 기본적으로 자체 12px padding을 갖고 있어서
+     여기에 그대로 두면 24px로 이중 들여쓰기가 되므로, 이 헤더 안에서만 0으로
+     되돌려 검색창과 같은 시작선에 맞춘다. */
+  #albumBoardHeader { margin: 0 12px 16px; }
+  #albumBoardHeader .board-title-row { padding: 0; }
 
   .post-table-wrap { margin: 0 12px 28px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
   .view-box, #writeSection, #albumDetailSection { margin: 0 12px 28px; width: auto; }
