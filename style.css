@@ -687,7 +687,9 @@ input:-webkit-autofill:focus {
   #albumBoardHeader { margin: 0 12px 16px; }
   #albumBoardHeader .board-title-row { padding: 0; }
 
-  .post-table-wrap { margin: 0 12px 28px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
+  /* 첫 행이 카드 테두리에 딱 붙어서(여백 0) 위쪽만 유독 답답해 보이던 문제 —
+     카드 자체에 위아래 여백을 줘서 첫/마지막 행도 다른 행들처럼 여유를 갖게 한다. */
+  .post-table-wrap { margin: 0 12px 28px; padding: 8px 0; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
   .view-box, #writeSection, #albumDetailSection { margin: 0 12px 28px; width: auto; }
   #albumBoardFooter { margin-bottom: 28px; }
   .table-scroll { overflow-x: visible; overflow-y: visible; border-radius: 0; }
