@@ -260,9 +260,18 @@ input:-webkit-autofill:focus {
    제목 칸만 화면 폭에 맞게 줄어들며 말줄임표로 잘리게 바꿨다. */
 .dc-table { width:100%; border-collapse:collapse; text-align:center; table-layout:fixed; }
 .dc-table th { background:transparent; color:var(--muted); font-weight:600; padding:14px 0; font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.dc-table td { padding:12px 0; vertical-align:middle; font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dc-table tbody tr { transition:background 0.15s; cursor:pointer; }
 .dc-table tbody tr:hover { background:var(--panel-alt); }
+
+/* 예전엔 이 공통 속성을 .dc-table td(클래스+태그, 명세도 0,1,1)에 몰아뒀는데, 그러면
+   .col-id/.col-date처럼 클래스 하나만 쓰는(명세도 0,1,0) 컬럼별 재정의가 소스 순서와
+   무관하게 항상 진다 — 실제로 이 버그 때문에 아래 .col-id/.col-author/.col-date/
+   .col-views의 color:var(--muted)가 지금까지 한 번도 적용된 적이 없었다(전부 기본
+   var(--text)로 보이고 있었음, getComputedStyle로 확인). .col-xxx와 명세도를
+   똑같이 맞춰서(둘 다 클래스 1개) 이 아래에 있는 컬럼별 규칙이 정상적으로 이기게 했다. */
+.col-id, .col-category, .col-title, .col-author, .col-date, .col-views, .col-likes {
+  padding:12px 0; vertical-align:middle; font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
 
 .col-id { width: 8%; color:var(--muted); }
 .col-category { width: 12%; }
@@ -686,7 +695,11 @@ input:-webkit-autofill:focus {
   .dc-table thead { display: none; }
   .dc-table tbody { display: block; width: 100%; box-sizing: border-box; }
 
-  .dc-table td { width: auto !important; padding: 0; border: none; text-align: left; line-height: 1.2; }
+  /* 데스크탑 쪽과 같은 이유로, 컬럼별 재정의와 명세도를 맞추기 위해 .dc-table td가
+     아니라 .col-xxx를 전부 나열한 선택자에 공통 리셋을 건다. */
+  .col-id, .col-category, .col-title, .col-author, .col-date, .col-views, .col-likes {
+    width: auto !important; padding: 0; border: none; text-align: left; line-height: 1.2;
+  }
 
   /* 카드별로 그림자를 따로 주면 다크모드에서 인접한 행끼리 그림자가 겹쳐 경계가 탁하게 보인다.
      그래서 행 하나하나가 아니라 post-table-wrap 전체를 데스크탑처럼 하나의 통짜 블럭으로 두고,
@@ -722,25 +735,24 @@ input:-webkit-autofill:focus {
      태그가 열을 거의 다 채우게 했다. "자작곡"처럼 3글자라 35px를 넘는 행은 그
      행만 열이 자동으로 조금 더 늘어난다(행마다 독립된 그리드라 다른 행 정렬에는
      영향 없음). 가운데 정렬이라 태그 좌우 여백도 항상 최소로 고르게 남는다. */
-  .dc-table td.col-category { grid-column: 1; grid-row: 1; text-align: center; }
-  .dc-table td.col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 13.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
+  .col-category { grid-column: 1; grid-row: 1; text-align: center; }
+  .col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 13.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
   .col-category .tag { font-size: 8px; padding: 1px 6px; }
   .col-title .notice-badge { font-size: 10px; }
   .col-title .dc-cmt-count { font-size: 11px; }
   .col-title .dc-comment-count { font-size: 10px; }
 
-  /* 텍스트를 전체적으로 더 줄이면서, 날짜/조회/추천도 한 줄에 몰아넣지 않고 두 줄로
-     나눠서 카드 우측 하단에 작게 붙인다 — 1열(말머리)~2열(제목)은 비워두고 그 1fr
-     여백이 오른쪽으로 밀어내는 방식은 기존과 동일, 행만 2줄(2행: 날짜, 3행: 조회·추천)로 늘렸다. */
-  .dc-table td.col-date, .dc-table td.col-views, .dc-table td.col-likes { font-size: 8px; color: var(--muted); white-space: nowrap; text-align: right; }
-  .col-date { grid-row: 2; grid-column: 3 / span 3; }
-  .col-views { grid-row: 3; grid-column: 4; }
-  .col-likes { grid-row: 3; grid-column: 5; }
+  /* 1행=말머리+제목, 2행=날짜·조회·추천 한 줄. 1열(말머리)~2열(제목)은 2행에서
+     비워두고 그 1fr 여백이 3~5열(날짜·조회·추천)을 카드 오른쪽 끝으로 밀어낸다. */
+  .col-date, .col-views, .col-likes { font-size: 10px; color: var(--muted); white-space: nowrap; grid-row: 2; }
+  .col-date { grid-column: 3; }
+  .col-views { grid-column: 4; }
+  .col-likes { grid-column: 5; }
   .col-date::before { content: ''; }
-  .col-views::before { content: '조회 '; color: var(--muted-2); }
+  .col-views::before { content: '· 조회 '; color: var(--muted-2); }
   .col-likes::before { content: '· 추천 '; color: var(--muted-2); }
-  .dc-table td.col-likes { color: var(--admin); font-weight: bold; }
+  .col-likes { color: var(--admin); font-weight: bold; }
 
   .board-footer { padding: 20px; margin-top: 0; width: 100%; box-sizing: border-box; }
 
