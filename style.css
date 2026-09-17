@@ -699,6 +699,7 @@ input:-webkit-autofill:focus {
       grid-template-columns: minmax(30px, auto) 1fr auto auto auto;
       align-items: center;
       column-gap: 8px;
+      row-gap: 2px;
       padding: 11px 8px;
       background: transparent;
       border-radius: 0;
@@ -722,23 +723,24 @@ input:-webkit-autofill:focus {
      행만 열이 자동으로 조금 더 늘어난다(행마다 독립된 그리드라 다른 행 정렬에는
      영향 없음). 가운데 정렬이라 태그 좌우 여백도 항상 최소로 고르게 남는다. */
   .dc-table td.col-category { grid-column: 1; grid-row: 1; text-align: center; }
-  .dc-table td.col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
+  .dc-table td.col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 13.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
-  .col-category .tag { font-size: 9px; padding: 1px 6px; }
+  .col-category .tag { font-size: 8px; padding: 1px 6px; }
   .col-title .notice-badge { font-size: 10px; }
   .col-title .dc-cmt-count { font-size: 11px; }
   .col-title .dc-comment-count { font-size: 10px; }
 
-  /* 2열은 비워둬 날짜·조회·추천을 3~5열(행 오른쪽 끝)로 밀어낸다. 글씨는 기존(10px)보다
-     더 작게(9px). */
-  .col-date, .col-views, .col-likes { font-size: 9px; color: var(--muted); white-space: nowrap; grid-row: 2; }
-  .col-date { grid-column: 3; }
-  .col-views { grid-column: 4; }
-  .col-likes { grid-column: 5; }
+  /* 텍스트를 전체적으로 더 줄이면서, 날짜/조회/추천도 한 줄에 몰아넣지 않고 두 줄로
+     나눠서 카드 우측 하단에 작게 붙인다 — 1열(말머리)~2열(제목)은 비워두고 그 1fr
+     여백이 오른쪽으로 밀어내는 방식은 기존과 동일, 행만 2줄(2행: 날짜, 3행: 조회·추천)로 늘렸다. */
+  .dc-table td.col-date, .dc-table td.col-views, .dc-table td.col-likes { font-size: 8px; color: var(--muted); white-space: nowrap; text-align: right; }
+  .col-date { grid-row: 2; grid-column: 3 / span 3; }
+  .col-views { grid-row: 3; grid-column: 4; }
+  .col-likes { grid-row: 3; grid-column: 5; }
   .col-date::before { content: ''; }
-  .col-views::before { content: '· 조회 '; color: var(--muted-2); }
+  .col-views::before { content: '조회 '; color: var(--muted-2); }
   .col-likes::before { content: '· 추천 '; color: var(--muted-2); }
-  .col-likes { color: var(--admin); font-weight: bold; }
+  .dc-table td.col-likes { color: var(--admin); font-weight: bold; }
 
   .board-footer { padding: 20px; margin-top: 0; width: 100%; box-sizing: border-box; }
 
