@@ -696,10 +696,10 @@ input:-webkit-autofill:focus {
      작게 붙는 형태. */
   .dc-table tr {
       display: grid;
-      grid-template-columns: minmax(35px, auto) 1fr auto auto auto;
+      grid-template-columns: minmax(30px, auto) 1fr auto auto auto;
       align-items: center;
-      column-gap: 6px;
-      padding: 13px 12px;
+      column-gap: 8px;
+      padding: 11px 8px;
       background: transparent;
       border-radius: 0;
       border-bottom: 1px solid var(--panel-alt);
@@ -722,9 +722,9 @@ input:-webkit-autofill:focus {
      행만 열이 자동으로 조금 더 늘어난다(행마다 독립된 그리드라 다른 행 정렬에는
      영향 없음). 가운데 정렬이라 태그 좌우 여백도 항상 최소로 고르게 남는다. */
   .dc-table td.col-category { grid-column: 1; grid-row: 1; text-align: center; }
-  .col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
+  .dc-table td.col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
-  .col-category .tag { font-size: 10px; padding: 2px 8px; }
+  .col-category .tag { font-size: 9px; padding: 1px 6px; }
   .col-title .notice-badge { font-size: 10px; }
   .col-title .dc-cmt-count { font-size: 11px; }
   .col-title .dc-comment-count { font-size: 10px; }
