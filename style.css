@@ -699,7 +699,7 @@ input:-webkit-autofill:focus {
      몰아주고 날짜/조회/추천은 각자 필요한 만큼만(auto) 차지하게 했다. */
   .dc-table tr {
       display: grid;
-      grid-template-columns: minmax(50px, auto) 1fr auto auto auto;
+      grid-template-columns: minmax(35px, auto) 1fr auto auto auto;
       align-items: center;
       column-gap: 6px;
       padding: 13px 12px;
@@ -720,11 +720,10 @@ input:-webkit-autofill:focus {
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
 
-  /* 실제 쓰이는 말머리 중 가장 긴 게 축약 안 된 "자작곡"(41.6px)이라, 50px로 열
-     최소폭을 잡으면 오른쪽 제목 쪽 간격(column-gap 6px)과 왼쪽 여백이 비슷해진다.
-     가운데 정렬로 두면 "자유"·"인디" 같은 2글자 태그도 열 안에서 여백이 고르게
-     나뉜다(앨범 평가 태그 여백을 맞췄던 것과 같은 방식 — 위 앨범 평가 관련 커밋
-     참고). */
+  /* 게시판 이름이 거의 다 2글자(33px 안팎)라, 열 최소폭을 그 폭에 딱 맞춰(35px)
+     태그가 열을 거의 다 채우게 했다. "자작곡"처럼 3글자라 35px를 넘는 행은 그
+     행만 열이 자동으로 조금 더 늘어난다(행마다 독립된 그리드라 다른 행 정렬에는
+     영향 없음). 가운데 정렬이라 태그 좌우 여백도 항상 최소로 고르게 남는다. */
   .dc-table td.col-category { grid-column: 1; grid-row: 1; text-align: center; }
   .col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 14.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
