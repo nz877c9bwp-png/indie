@@ -18,9 +18,11 @@ $('mobileMenuBtn').addEventListener('click', () => toggleSidebarDrawer(true));
 $('sidebarBackdrop').addEventListener('click', () => toggleSidebarDrawer(false));
 document.querySelectorAll('.sidebar a').forEach(a => a.addEventListener('click', () => toggleSidebarDrawer(false)));
 
-// 모바일에서는 좁은 상단바 대신 로그인/회원가입/마이페이지 버튼을 게시판 메뉴(드로어) 맨 위로 옮긴다.
+// 모바일에서는 좁은 상단바 대신 로그인/회원가입/마이페이지/로그아웃 버튼을 게시판 메뉴(드로어) 맨 위로 옮긴다.
 // 같은 엘리먼트를 그대로 옮기는 거라(복제 아님) 기존 show/hide, onclick 로직이 그대로 유지된다.
-const authRelocateButtons = [$('showLoginBtn'), $('showSignupBtn'), $('myPageBtn')];
+// (예전엔 로그아웃만 빠져 있어서, 로그인 상태의 좁은 화면에서 로고+관리자 닉네임+로그아웃+글쓰기가
+// 상단바 폭을 넘어 글쓰기 버튼이 화면 밖으로 밀려나는 문제가 있었다.)
+const authRelocateButtons = [$('showLoginBtn'), $('showSignupBtn'), $('myPageBtn'), $('logoutBtn')];
 authRelocateButtons.forEach(btn => btn.addEventListener('click', () => toggleSidebarDrawer(false)));
 
 const MOBILE_MENU_QUERY = window.matchMedia('(max-width: 840px)');
@@ -30,7 +32,7 @@ function relocateAuthButtons() {
     authRelocateButtons.forEach(btn => slot.appendChild(btn));
   } else {
     const headerActions = document.querySelector('.user-actions');
-    const anchor = $('logoutBtn');
+    const anchor = $('openWriteBtn');
     authRelocateButtons.forEach(btn => headerActions.insertBefore(btn, anchor));
   }
 }
