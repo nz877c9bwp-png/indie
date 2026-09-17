@@ -603,7 +603,11 @@ input:-webkit-autofill:focus {
   }
   .sidebar-auth-slot .auth-btn:hover { color: var(--text); background: var(--panel-alt); }
 
-  .board-title-row { padding: 12px; margin: 0; width: 100%; box-sizing: border-box; }
+  /* 아래 카드(핫게시판/게시글 목록)는 모서리가 26px로 큼직하게 둥글어서, 위에 놓인
+     제목줄을 카드와 똑같이 좌우 12px에 맞추면 카드의 둥근 모서리 때문에 카드 쪽
+     시작선이 눈에는 더 안쪽으로 보여 제목이 오히려 삐져나온 것처럼 보인다.
+     좌우만 살짝(8px) 더 안쪽으로 넣어 둥근 모서리와 시각적으로 맞아떨어지게 한다. */
+  .board-title-row { padding: 12px 20px; margin: 0; width: 100%; box-sizing: border-box; }
 
   /* 핫게시판: 가로 스크롤 캐러셀/그리드 대신 전체 게시판 목록처럼 세로 목록 +
      하나의 통짜 블럭으로. 카드마다 그림자를 따로 주면 다크모드에서 겹쳐 보이던
