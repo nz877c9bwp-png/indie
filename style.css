@@ -691,12 +691,9 @@ input:-webkit-autofill:focus {
   /* 카드별로 그림자를 따로 주면 다크모드에서 인접한 행끼리 그림자가 겹쳐 경계가 탁하게 보인다.
      그래서 행 하나하나가 아니라 post-table-wrap 전체를 데스크탑처럼 하나의 통짜 블럭으로 두고,
      행은 그 안에서 옅은 구분선으로만 나눈다. */
-  /* 핫게시판(HOT) 카드처럼 한 줄로: 말머리, 제목, 날짜·조회·추천을 전부 한 줄에
-     욱여넣는다. 예전엔 제목 아래 날짜·조회·추천을 별도 줄로 뺐는데, 그러면 행
-     높이가 핫게시판 카드보다 한참 커서(두 줄 vs 한 줄) 화면에 들어가는 글 수가
-     적고 세로 공간을 헛되이 많이 썼다. 게시판 이름을 전부 2글자 안팎으로 줄인
-     덕에(SHORT_BOARD_NAME) 말머리 열 폭을 작게 고정해도 되니, 남는 폭을 제목에
-     몰아주고 날짜/조회/추천은 각자 필요한 만큼만(auto) 차지하게 했다. */
+  /* 1행=말머리+제목, 2행=날짜·조회·추천. 2행은 왼쪽(2열)을 비워둬서 그 1fr 여백이
+     날짜/조회/추천(3~5열)을 행 오른쪽 끝으로 밀어내게 한다 — 카드 우측 하단에
+     작게 붙는 형태. */
   .dc-table tr {
       display: grid;
       grid-template-columns: minmax(35px, auto) 1fr auto auto auto;
@@ -725,16 +722,16 @@ input:-webkit-autofill:focus {
      행만 열이 자동으로 조금 더 늘어난다(행마다 독립된 그리드라 다른 행 정렬에는
      영향 없음). 가운데 정렬이라 태그 좌우 여백도 항상 최소로 고르게 남는다. */
   .dc-table td.col-category { grid-column: 1; grid-row: 1; text-align: center; }
-  .col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 14.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
+  .col-title { grid-column: 2; grid-row: 1; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
-  /* 한 줄에 다 들어가야 해서, 핫게시판 부가정보(조회·추천)와 같은 크기로 제목보다
-     한 단계 더 작게 뒀다. */
   .col-category .tag { font-size: 10px; padding: 2px 8px; }
   .col-title .notice-badge { font-size: 10px; }
   .col-title .dc-cmt-count { font-size: 11px; }
   .col-title .dc-comment-count { font-size: 10px; }
 
-  .col-date, .col-views, .col-likes { font-size: 10px; color: var(--muted); white-space: nowrap; grid-row: 1; }
+  /* 2열은 비워둬 날짜·조회·추천을 3~5열(행 오른쪽 끝)로 밀어낸다. 글씨는 기존(10px)보다
+     더 작게(9px). */
+  .col-date, .col-views, .col-likes { font-size: 9px; color: var(--muted); white-space: nowrap; grid-row: 2; }
   .col-date { grid-column: 3; }
   .col-views { grid-column: 4; }
   .col-likes { grid-column: 5; }
