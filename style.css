@@ -713,8 +713,8 @@ input:-webkit-autofill:focus {
       grid-template-columns: minmax(68px, auto) auto auto 1fr;
       align-items: center;
       column-gap: 8px;
-      row-gap: 4px;
-      padding: 14px 12px;
+      row-gap: 3px;
+      padding: 11px 12px;
       background: transparent;
       border-radius: 0;
       border-bottom: 1px solid var(--panel-alt);
@@ -732,7 +732,10 @@ input:-webkit-autofill:focus {
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
 
-  .col-category { grid-column: 1; grid-row: 1; }
+  /* 말머리(최대 "같이 갈 사람" ~63px)에 맞춰 1열 너비를 고정해두다 보니, "자유"·"인디"처럼
+     짧은 게시판 이름 태그는 왼쪽 정렬로 두면 태그와 제목 사이에 빈 여백이 크게 남아
+     보였다. 태그를 열 안에서 오른쪽 정렬해 길이와 무관하게 항상 제목 바로 옆에 붙게 한다. */
+  .dc-table td.col-category { grid-column: 1; grid-row: 1; text-align: right; }
   .col-title { grid-column: 2 / span 3; grid-row: 1; min-width: 0; font-size: 15.5px; font-weight: 600; padding-left: 0 !important; overflow: hidden; }
 
   /* 제목은 눈에 잘 띄게 키우고, 말머리·댓글수 뱃지나 조회/추천/날짜 같은 부가 정보는
