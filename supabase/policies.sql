@@ -511,6 +511,12 @@ create table if not exists public.track_art (
   created_at timestamptz not null default now()
 );
 alter table public.track_art add column if not exists url text;
+-- 애플뮤직 연동: apple_preview_url은 iTunes API가 로그인/키 없이 주는 30초 미리듣기
+-- mp3 직링크(바로 재생 가능), apple_url은 그 곡의 애플뮤직 앱/웹 페이지 링크("전체
+-- 듣기" 버튼용, 누르면 사용자 본인 애플뮤직 구독으로 전곡을 들을 수 있다). 기존
+-- url(유튜브)/cover는 그대로 두고 여기 얹는 것뿐이라 기존 곡들에는 영향 없다.
+alter table public.track_art add column if not exists apple_preview_url text;
+alter table public.track_art add column if not exists apple_url text;
 alter table public.track_art enable row level security;
 drop policy if exists "track_art read" on public.track_art;
 drop policy if exists "track_art insert" on public.track_art;

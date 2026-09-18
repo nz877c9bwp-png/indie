@@ -54,22 +54,31 @@ async function fetchExistingKeys() {
 
 // 커버는 애플뮤직(iTunes) 정식 앨범아트를 먼저 쓴다 — 유튜브 썸네일은 뮤비 캡처라
 // 곡마다 스타일이 제각각이라 목록이 지저분해 보인다(app.js의 searchTrackArt와 동일한
-// 우선순위). 재생 링크는 애플뮤직에 없으므로 유튜브 검색은 항상 순차로(동시에 X) 이어서
-// 시도한다 — 애플뮤직도 무료지만 너무 빠르게 몰아치면 막힐 수 있어 순차 호출로 배려한다.
-async function searchAppleMusicCover(artist, song) {
+// 우선순위). previewUrl(30초 미리듣기, 로그인/키 불필요)과 trackViewUrl(애플뮤직
+// 앱/웹 "전체 듣기" 링크)도 여기서 같이 얻어서 저장해둔다 — 사이트에서 곡 재생 시
+// 유튜브/유튜브뮤직/애플뮤직 중 고를 수 있게 하는 기능에 쓰인다. 재생 링크(유튜브)는
+// 애플뮤직만으로는 못 구하므로 유튜브 검색은 항상 순차로(동시에 X) 이어서 시도한다 —
+// 애플뮤직도 무료지만 너무 빠르게 몰아치면 막힐 수 있어 순차 호출로 배려한다.
+async function searchAppleMusicInfo(artist, song) {
   const term = encodeURIComponent(`${artist} ${song}`);
   for (const country of ["KR", "US"]) {
     try {
       const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
       const data = await res.json();
       const r = data.results?.[0];
-      if (r) return r.artworkUrl100 || r.artworkUrl60 || null;
+      if (r) {
+        return {
+          cover: r.artworkUrl100 || r.artworkUrl60 || null,
+          previewUrl: r.previewUrl || null,
+          trackUrl: r.trackViewUrl || null,
+        };
+      }
     } catch { /* 다음 국가로 */ }
   }
-  return null;
+  return { cover: null, previewUrl: null, trackUrl: null };
 }
 
-async function searchYoutube(artist, song, preferredCover) {
+async function searchYoutube(artist, song, apple) {
   const term = encodeURIComponent(`${artist} ${song}`);
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${term}&key=${YOUTUBE_API_KEY}`
@@ -81,8 +90,10 @@ async function searchYoutube(artist, song, preferredCover) {
   if (!videoId) return null;
   const thumb = r.snippet?.thumbnails;
   return {
-    cover: preferredCover || thumb?.high?.url || thumb?.medium?.url || thumb?.default?.url || null,
+    cover: apple.cover || thumb?.high?.url || thumb?.medium?.url || thumb?.default?.url || null,
     url: `https://www.youtube.com/watch?v=${videoId}`,
+    applePreviewUrl: apple.previewUrl,
+    appleUrl: apple.trackUrl,
   };
 }
 
@@ -94,7 +105,7 @@ async function upsertTrackArt(key, artist, song, art) {
       "Content-Type": "application/json",
       Prefer: "resolution=merge-duplicates,return=minimal",
     },
-    body: JSON.stringify({ key, artist, song, cover: art.cover, url: art.url }),
+    body: JSON.stringify({ key, artist, song, cover: art.cover, url: art.url, apple_preview_url: art.applePreviewUrl, apple_url: art.appleUrl }),
   });
   if (!res.ok) throw new Error(`Upsert failed: ${res.status} ${await res.text()}`);
 }
@@ -131,9 +142,9 @@ async function main() {
     failed = 0;
   for (const [key, { artist, song }] of batch) {
     try {
-      const appleCover = await searchAppleMusicCover(artist, song);
+      const apple = await searchAppleMusicInfo(artist, song);
       await sleep(200); // 애플뮤직 다음에 유튜브로, 순차적으로만 호출
-      const art = await searchYoutube(artist, song, appleCover);
+      const art = await searchYoutube(artist, song, apple);
       if (!art) {
         notFound++;
         console.log(`No match: ${artist} - ${song}`);

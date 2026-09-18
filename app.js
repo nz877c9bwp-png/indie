@@ -343,6 +343,10 @@ function extractYoutubeId(url) {
 // 임베드 플레이어를 펼친다(글 본문에 유튜브 링크를 붙이면 자동으로 영상이
 // 뜨는 기존 기능과 같은 방식). 다시 클릭하면 접히고, 다른 곡을 클릭하면
 // 동시에 여러 곡이 재생되지 않도록 먼저 열려있던 플레이어를 닫는다.
+//
+// 애플뮤직 정보(미리듣기/전체듣기 링크)가 있는 곡만 유튜브·유튜브뮤직·애플뮤직 중
+// 고를 수 있는 탭을 보여준다 — 대부분의 곡(아직 애플뮤직이 안 채워진)은 지금처럼
+// 클릭 한 번에 바로 유튜브가 재생된다.
 function toggleRecTrackPlayer(li) {
   if (!li.dataset.url) return;
   const list = li.closest('.rec-tracklist');
@@ -351,18 +355,62 @@ function toggleRecTrackPlayer(li) {
   list.querySelectorAll('.rec-track-row.rec-track-playing').forEach((row) => row.classList.remove('rec-track-playing'));
   if (alreadyOpen) return; // 같은 곡을 다시 누른 거면 닫기만 하고 끝낸다.
 
-  const videoId = extractYoutubeId(li.dataset.url);
-  if (!videoId) return;
   const playerRow = element('li', 'rec-track-player-row');
+  li.insertAdjacentElement('afterend', playerRow);
+  li.classList.add('rec-track-playing');
+
+  const hasApple = li.dataset.applePreview || li.dataset.appleUrl;
+  if (!hasApple) {
+    renderYoutubeEmbed(playerRow, li.dataset.url);
+    return;
+  }
+
+  const tabs = element('div', 'rec-service-tabs');
+  const body = element('div', 'rec-service-body');
+  const ytTab = element('button', 'rec-service-tab', '유튜브');
+  const ytmTab = element('button', 'rec-service-tab', '유튜브뮤직');
+  const appleTab = element('button', 'rec-service-tab', '애플뮤직');
+  const setActive = (btn) => { tabs.querySelectorAll('.rec-service-tab').forEach((b) => b.classList.remove('active')); btn.classList.add('active'); };
+  ytTab.onclick = () => { setActive(ytTab); renderYoutubeEmbed(body, li.dataset.url); };
+  ytmTab.onclick = () => {
+    const videoId = extractYoutubeId(li.dataset.url);
+    if (videoId) window.open(`https://music.youtube.com/watch?v=${videoId}`, '_blank', 'noopener');
+  };
+  appleTab.onclick = () => { setActive(appleTab); renderApplePlayer(body, li.dataset.applePreview, li.dataset.appleUrl); };
+  tabs.append(ytTab, ytmTab, appleTab);
+  playerRow.append(tabs, body);
+  ytTab.click(); // 기본값은 유튜브로 바로 재생
+}
+
+function renderYoutubeEmbed(container, url) {
+  container.replaceChildren();
+  const videoId = extractYoutubeId(url);
+  if (!videoId) return;
   const wrapper = element('div', 'yt-wrapper');
   const iframe = element('iframe');
   iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
   iframe.allow = 'autoplay; encrypted-media; fullscreen';
   iframe.allowFullscreen = true;
   wrapper.append(iframe);
-  playerRow.append(wrapper);
-  li.insertAdjacentElement('afterend', playerRow);
-  li.classList.add('rec-track-playing');
+  container.append(wrapper);
+}
+
+// 애플뮤직은 로그인 없이 전체 곡을 재생할 방법이 없어서(구독 인증 필요), 30초
+// 미리듣기를 바로 재생하고 "전체 듣기"는 애플뮤직 앱/웹으로 넘겨주는 링크로 대신한다.
+function renderApplePlayer(container, previewUrl, appleUrl) {
+  container.replaceChildren();
+  const wrap = element('div', 'apple-player-wrap');
+  if (previewUrl) {
+    const audio = element('audio');
+    audio.controls = true; audio.autoplay = true; audio.src = previewUrl;
+    wrap.append(audio, element('div', 'apple-preview-note', '30초 미리듣기'));
+  }
+  if (appleUrl) {
+    const link = element('a', 'apple-full-link', '애플뮤직에서 전체 듣기 →');
+    link.href = appleUrl; link.target = '_blank'; link.rel = 'noopener';
+    wrap.append(link);
+  }
+  container.append(wrap);
 }
 
 // 커버는 애플뮤직(iTunes) 정식 앨범아트를 먼저 쓴다 — 유튜브 썸네일은 뮤비 캡처라
@@ -385,19 +433,27 @@ function toggleRecTrackPlayer(li) {
 async function searchTrackArt(artist, song) {
   const key = `${artist}|${song}`;
   try {
-    const { data } = await client.from('track_art').select('cover,album,duration_ms,url').eq('key', key).maybeSingle();
-    if (data) return { cover: data.cover, album: data.album, duration: formatTrackDuration(data.duration_ms), url: data.url };
+    const { data } = await client.from('track_art').select('cover,album,duration_ms,url,apple_preview_url,apple_url').eq('key', key).maybeSingle();
+    if (data) return { cover: data.cover, album: data.album, duration: formatTrackDuration(data.duration_ms), url: data.url, applePreviewUrl: data.apple_preview_url, appleUrl: data.apple_url };
   } catch { /* 조회 실패해도 자동 검색으로 계속 진행 */ }
 
   const term = encodeURIComponent(`${artist} ${song}`);
 
-  let itunesCover = null, itunesAlbum = null, itunesDuration = null;
+  // previewUrl(30초 미리듣기 mp3, 로그인/키 불필요)과 trackViewUrl(애플뮤직 앱/웹
+  // 페이지 — "전체 듣기" 링크용)도 같이 뽑아둔다. 둘 다 재생 링크가 아니라 커버와
+  // 마찬가지로 이 단계에서 바로 얻을 수 있는 정보라 유튜브 검색 성공 여부와 무관하게
+  // 같이 저장한다.
+  let itunesCover = null, itunesAlbum = null, itunesDuration = null, itunesPreviewUrl = null, itunesTrackUrl = null;
   for (const country of ['KR', 'US']) {
     try {
       const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
       const data = await res.json();
       const r = data.results?.[0];
-      if (r) { itunesCover = r.artworkUrl100 || r.artworkUrl60 || null; itunesAlbum = r.collectionName || null; itunesDuration = formatTrackDuration(r.trackTimeMillis); break; }
+      if (r) {
+        itunesCover = r.artworkUrl100 || r.artworkUrl60 || null; itunesAlbum = r.collectionName || null; itunesDuration = formatTrackDuration(r.trackTimeMillis);
+        itunesPreviewUrl = r.previewUrl || null; itunesTrackUrl = r.trackViewUrl || null;
+        break;
+      }
     } catch { /* 다음 국가로 */ }
   }
 
@@ -413,13 +469,14 @@ async function searchTrackArt(artist, song) {
           cover: itunesCover || thumb?.high?.url || thumb?.medium?.url || thumb?.default?.url || null,
           duration: itunesDuration, album: itunesAlbum,
           url: `https://www.youtube.com/watch?v=${videoId}`,
+          applePreviewUrl: itunesPreviewUrl, appleUrl: itunesTrackUrl,
         };
-        client.from('track_art').upsert({ key, artist, song, cover: art.cover, url: art.url }).then(({ error }) => { if (error) console.error('track_art auto-cache 실패:', error.message); });
+        client.from('track_art').upsert({ key, artist, song, cover: art.cover, url: art.url, apple_preview_url: art.applePreviewUrl, apple_url: art.appleUrl }).then(({ error }) => { if (error) console.error('track_art auto-cache 실패:', error.message); });
         return art;
       }
     } catch { /* 유튜브 실패(할당량 소진 등)해도 애플뮤직 결과만이라도 아래에서 반환 */ }
   }
-  if (itunesCover) return { cover: itunesCover, album: itunesAlbum, duration: itunesDuration, url: null };
+  if (itunesCover) return { cover: itunesCover, album: itunesAlbum, duration: itunesDuration, url: null, applePreviewUrl: itunesPreviewUrl, appleUrl: itunesTrackUrl };
   return null;
 }
 
@@ -443,6 +500,8 @@ async function loadRecommendTrackArt(list, rows) {
       if (myToken !== recTrackArtToken) return;
       row.dataset.album = art?.album || '';
       if (art?.url) row.dataset.url = art.url;
+      if (art?.applePreviewUrl) row.dataset.applePreview = art.applePreviewUrl;
+      if (art?.appleUrl) row.dataset.appleUrl = art.appleUrl;
       const img = row.querySelector('.rec-track-art');
       if (art?.cover) {
         setImageSource(img, art.cover);
