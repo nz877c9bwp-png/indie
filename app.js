@@ -403,6 +403,11 @@ function renderApplePlayer(container, previewUrl, appleUrl) {
   if (previewUrl) {
     const audio = element('audio');
     audio.controls = true; audio.autoplay = true; audio.src = previewUrl;
+    // 애플이 공식 API로 주는 미리듣기를 재생하는 것 자체는 정상적인 용도지만,
+    // 브라우저 기본 컨트롤의 "다운로드" 버튼은 저작권 있는 음원을 클릭 한 번에
+    // 저장하게 해주는 것이라 막아둔다(완벽한 방어는 아니지만 최소한의 조치).
+    audio.setAttribute('controlsList', 'nodownload');
+    audio.addEventListener('contextmenu', (e) => e.preventDefault());
     wrap.append(audio, element('div', 'apple-preview-note', '30초 미리듣기'));
   }
   if (appleUrl) {
