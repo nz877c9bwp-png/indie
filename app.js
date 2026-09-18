@@ -349,7 +349,7 @@ function extractYoutubeId(url) {
 // 클릭 한 번에 바로 유튜브가 재생된다.
 function toggleRecTrackPlayer(li) {
   if (!li.dataset.url) return;
-  const list = li.closest('.rec-tracklist');
+  const list = li.closest('.rec-tracklist, .ad-tracklist'); // 추천곡/앨범 평가 트랙리스트 둘 다 지원
   const alreadyOpen = li.nextElementSibling?.classList?.contains('rec-track-player-row') ? li.nextElementSibling : null;
   list.querySelectorAll('.rec-track-player-row').forEach((row) => row.remove());
   list.querySelectorAll('.rec-track-row.rec-track-playing').forEach((row) => row.classList.remove('rec-track-playing'));
@@ -503,7 +503,7 @@ async function loadRecommendTrackArt(list, rows) {
       if (art?.applePreviewUrl) row.dataset.applePreview = art.applePreviewUrl;
       if (art?.appleUrl) row.dataset.appleUrl = art.appleUrl;
       const img = row.querySelector('.rec-track-art');
-      if (art?.cover) {
+      if (art?.cover && img) {
         setImageSource(img, art.cover);
         img.classList.remove('rec-track-art-empty');
       }
@@ -1231,7 +1231,9 @@ async function loadAlbumTracklist(title, artist) {
   const list = $('adTracklist');
 
   if (albumTracklistCache.has(cacheKey)) {
-    list.replaceChildren(...renderTracklistItems(albumTracklistCache.get(cacheKey)));
+    const rows = renderTracklistItems(albumTracklistCache.get(cacheKey), artist);
+    list.replaceChildren(...rows);
+    loadRecommendTrackArt(list, rows);
     return;
   }
 
@@ -1251,18 +1253,29 @@ async function loadAlbumTracklist(title, artist) {
 
     if (myToken !== tracklistRequestToken) return; // 그새 다른 앨범으로 넘어갔으면 무시
     albumTracklistCache.set(cacheKey, tracks);
-    list.replaceChildren(...renderTracklistItems(tracks));
+    const rows = renderTracklistItems(tracks, artist);
+    list.replaceChildren(...rows);
+    loadRecommendTrackArt(list, rows);
   } catch {
     if (myToken !== tracklistRequestToken) return;
     list.innerHTML = '<li class="ad-track-empty">트랙리스트를 불러오지 못했습니다.</li>';
   }
 }
 
-function renderTracklistItems(tracks) {
+// 앨범 lookup 응답에 이미 트랙별 미리듣기(previewUrl)/전체듣기(trackViewUrl) 링크가
+// 같이 온다 — 애플뮤직 정보는 여기서 바로 채우고, 유튜브 링크만 loadRecommendTrackArt로
+// (추천곡 게시판과 동일한 함수) 비동기로 채운다. 트랙 순서(trackNumber 정렬)는 그대로
+// DOM 순서에 반영되고, toggleRecTrackPlayer도 추천곡과 완전히 동일하게 재사용한다.
+function renderTracklistItems(tracks, albumArtist) {
   if (!tracks.length) return [element('li', 'ad-track-empty', '트랙리스트를 찾을 수 없습니다.')];
   return tracks.map(t => {
-    const li = element('li', 'ad-track-row');
+    const li = element('li', 'ad-track-row rec-track-clickable');
     li.append(element('span', 'ad-track-name', t.trackName || ''), element('span', 'ad-track-dur', formatTrackDuration(t.trackTimeMillis)));
+    li.dataset.artist = albumArtist;
+    li.dataset.song = t.trackName || '';
+    if (t.previewUrl) li.dataset.applePreview = t.previewUrl;
+    if (t.trackViewUrl) li.dataset.appleUrl = t.trackViewUrl;
+    li.addEventListener('click', () => toggleRecTrackPlayer(li));
     return li;
   });
 }
