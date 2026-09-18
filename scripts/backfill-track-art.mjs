@@ -53,6 +53,23 @@ async function fetchExistingKeys() {
   return new Set(rows.map((r) => r.key));
 }
 
+// iTunes Search는 이 스크립트를 짧은 시간에 너무 많이 호출하면 403으로 완전히
+// 막아버린다(실제로 겪음 — 190곡을 촘촘하게 재시도하다가 막혔고, 이전에 확실히
+// 성공했던 검색어도 다시 치니 403이 났다). 막힌 상태에서 계속 두드리면 차단이
+// 더 길어질 수 있어서, 403을 만나면 이 실행은 즉시 중단하고 다음 예약 실행을
+// 기다린다.
+class ITunesRateLimitError extends Error {}
+
+function norm(s) {
+  return (s || "").toLowerCase().replace(/[^a-z0-9가-힣]/g, "");
+}
+
+async function itunesSearch(term, country, limit) {
+  const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=${limit}`);
+  if (res.status === 403) throw new ITunesRateLimitError("iTunes API returned 403 (rate limited)");
+  return res.json();
+}
+
 // 커버는 애플뮤직(iTunes) 정식 앨범아트를 먼저 쓴다 — 유튜브 썸네일은 뮤비 캡처라
 // 곡마다 스타일이 제각각이라 목록이 지저분해 보인다(app.js의 searchTrackArt와 동일한
 // 우선순위). previewUrl(30초 미리듣기, 로그인/키 불필요)과 trackViewUrl(애플뮤직
@@ -60,21 +77,41 @@ async function fetchExistingKeys() {
 // 유튜브/유튜브뮤직/애플뮤직 중 고를 수 있게 하는 기능에 쓰인다. 재생 링크(유튜브)는
 // 애플뮤직만으로는 못 구하므로 유튜브 검색은 항상 순차로(동시에 X) 이어서 시도한다 —
 // 애플뮤직도 무료지만 너무 빠르게 몰아치면 막힐 수 있어 순차 호출로 배려한다.
+//
+// "아티스트 곡명"을 그대로 붙여 검색하면 표기 차이(예: "Radio head" vs 정식 표기
+// "Radiohead", "Good 4 you" vs 원곡명 "good 4 u")로 실패하는 경우가 꽤 있었다.
+// 그래서 실패하면 곡명만으로 재검색해서, 결과 중 아티스트명이 (대소문자/공백/특수
+// 문자를 무시하고 비교했을 때) 서로 포함 관계인 것만 골라 채택한다 — 완전히 무관한
+// 동명곡을 잘못 매칭하지 않기 위한 최소한의 안전장치.
 async function searchAppleMusicInfo(artist, song) {
-  const term = encodeURIComponent(`${artist} ${song}`);
+  const exactTerm = encodeURIComponent(`${artist} ${song}`);
   for (const country of ["KR", "US"]) {
-    try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${term}&entity=song&country=${country}&limit=1`);
-      const data = await res.json();
-      const r = data.results?.[0];
-      if (r) {
-        return {
-          cover: r.artworkUrl100 || r.artworkUrl60 || null,
-          previewUrl: r.previewUrl || null,
-          trackUrl: r.trackViewUrl || null,
-        };
-      }
-    } catch { /* 다음 국가로 */ }
+    const data = await itunesSearch(exactTerm, country, 1);
+    const r = data.results?.[0];
+    if (r) {
+      return {
+        cover: r.artworkUrl100 || r.artworkUrl60 || null,
+        previewUrl: r.previewUrl || null,
+        trackUrl: r.trackViewUrl || null,
+      };
+    }
+  }
+
+  const looseTerm = encodeURIComponent(song);
+  const wanted = norm(artist);
+  for (const country of ["KR", "US"]) {
+    const data = await itunesSearch(looseTerm, country, 5);
+    const match = (data.results || []).find((r) => {
+      const got = norm(r.artistName);
+      return got && wanted && (got.includes(wanted) || wanted.includes(got));
+    });
+    if (match) {
+      return {
+        cover: match.artworkUrl100 || match.artworkUrl60 || null,
+        previewUrl: match.previewUrl || null,
+        trackUrl: match.trackViewUrl || null,
+      };
+    }
   }
   return { cover: null, previewUrl: null, trackUrl: null };
 }
@@ -163,7 +200,8 @@ async function main() {
 
   let done = 0,
     notFound = 0,
-    failed = 0;
+    failed = 0,
+    rateLimited = false;
   for (const [key, { artist, song }] of batch) {
     try {
       const apple = await searchAppleMusicInfo(artist, song);
@@ -184,6 +222,11 @@ async function main() {
         console.log("Quota exceeded — stopping this run early.");
         break;
       }
+      if (err instanceof ITunesRateLimitError) {
+        console.log("iTunes rate limited — stopping this run early, will retry next scheduled run.");
+        rateLimited = true;
+        break;
+      }
     }
     await sleep(300); // 너무 빠르게 몰아치지 않게 살짝 간격을 둔다
   }
@@ -193,6 +236,11 @@ async function main() {
   );
 
   // 2단계: 유튜브는 있는데 애플뮤직만 없는 기존 곡들을 소량 재시도.
+  // 1단계에서 이미 iTunes에 막혔으면 여기서 또 두드려봐야 뻔하니 건너뛴다.
+  if (rateLimited) {
+    console.log("Skipping Apple retry step — already rate limited earlier in this run.");
+    return;
+  }
   const appleMissing = await fetchYoutubeOnlyMissingApple();
   if (appleMissing.length === 0) {
     console.log("No youtube-only rows missing Apple Music info.");
@@ -211,6 +259,10 @@ async function main() {
       }
     } catch (err) {
       console.error(`Apple retry failed: ${artist} - ${song}:`, err.message);
+      if (err instanceof ITunesRateLimitError) {
+        console.log("iTunes rate limited — stopping Apple retry early.");
+        break;
+      }
     }
     await sleep(150);
   }
