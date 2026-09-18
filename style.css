@@ -687,9 +687,7 @@ input:-webkit-autofill:focus {
   #albumBoardHeader { margin: 0 12px 16px; }
   #albumBoardHeader .board-title-row { padding: 0; }
 
-  /* 첫 행이 카드 테두리에 딱 붙어서(여백 0) 위쪽만 유독 답답해 보이던 문제 —
-     카드 자체에 위아래 여백을 줘서 첫/마지막 행도 다른 행들처럼 여유를 갖게 한다. */
-  .post-table-wrap { margin: 0 12px 28px; padding: 8px 0; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
+  .post-table-wrap { margin: 0 12px 28px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); background:var(--panel); width: auto; box-sizing: border-box; }
   .view-box, #writeSection, #albumDetailSection { margin: 0 12px 28px; width: auto; }
   #albumBoardFooter { margin-bottom: 28px; }
   .table-scroll { overflow-x: visible; overflow-y: visible; border-radius: 0; }
@@ -729,6 +727,12 @@ input:-webkit-autofill:focus {
   /* 공지 등으로 배경이 칠해진 첫/마지막 행이 통짜 블럭의 둥근 모서리 밖으로 각지게 삐져나오지 않게 맞춰준다. */
   .dc-table tbody tr:first-child { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
   .dc-table tbody tr:last-child { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+  /* 카드 자체에 여백을 주면 카드 테두리의 뉴모피즘 그림자(밝은 방향 그림자) 때문에
+     빈 배경이 살짝 밝은 띠처럼 도드라져 보인다 — 그래서 카드가 아니라 첫/마지막 행
+     "안쪽"에서만 여백을 늘려, 카드 테두리는 그대로 두고 첫 행이 테두리에 바로
+     붙어 보이던 문제만 해결한다. */
+  .dc-table tbody tr:first-child { padding-top: 19px; }
+  .dc-table tbody tr:last-child { padding-bottom: 19px; }
 
   .col-id { display: none; }
   .col-author { display: none; } /* 한 줄로 압축하기 위해 모바일에서는 작성자 숨김 */
