@@ -15,6 +15,7 @@ const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2aXRtaW1hYnh1cGtocmtzdWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NTU2NDEsImV4cCI6MjEwNDUzMTY0MX0.AD_7HM1C6xhKbXKKOwF6WSRfM1tPHfpj4McmMTJ0jNY";
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const DAILY_CAP = 50; // 하루 100번 중 절반은 방문자가 실시간으로 검색하는 몫으로 남겨둔다
+const APPLE_RETRY_CAP = 30; // 애플뮤직은 무료 API라 유튜브 할당량과 무관, 조금 더 넉넉하게
 
 const sb = (path) => `${SUPABASE_URL}/rest/v1/${path}`;
 const sbHeaders = {
@@ -97,6 +98,29 @@ async function searchYoutube(artist, song, apple) {
   };
 }
 
+// 유튜브는 이미 채워졌지만 애플뮤직 정보가 없는 기존 곡들 — 스키마에 애플뮤직
+// 컬럼을 나중에 추가해서 그 전에 캐시된 곡들은 영영 채워질 기회가 없었다(track_art에
+// 행이 있으면 재검색을 안 하니까). 유튜브 재검색은 필요 없어서(할당량 안 씀) 이건
+// 별도로 소량씩 계속 재시도한다 — 지금은 애플뮤직 카탈로그에 없어도 나중에 입점되면
+// 잡힐 수 있다.
+async function fetchYoutubeOnlyMissingApple() {
+  const res = await fetch(
+    sb("track_art?select=key,artist,song&url=not.is.null&apple_preview_url=is.null&limit=" + APPLE_RETRY_CAP),
+    { headers: sbHeaders }
+  );
+  if (!res.ok) throw new Error(`Failed to fetch apple-missing rows: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+async function patchAppleFields(key, apple) {
+  const res = await fetch(sb(`track_art?key=eq.${encodeURIComponent(key)}`), {
+    method: "PATCH",
+    headers: { ...sbHeaders, "Content-Type": "application/json", Prefer: "return=minimal" },
+    body: JSON.stringify({ apple_preview_url: apple.previewUrl, apple_url: apple.trackUrl }),
+  });
+  if (!res.ok) throw new Error(`Patch failed: ${res.status} ${await res.text()}`);
+}
+
 async function upsertTrackArt(key, artist, song, art) {
   const res = await fetch(sb("track_art"), {
     method: "POST",
@@ -167,6 +191,30 @@ async function main() {
   console.log(
     `Done. cached=${done} notFound=${notFound} failed=${failed}. ${remaining.length - done - notFound - failed} left for next run.`
   );
+
+  // 2단계: 유튜브는 있는데 애플뮤직만 없는 기존 곡들을 소량 재시도.
+  const appleMissing = await fetchYoutubeOnlyMissingApple();
+  if (appleMissing.length === 0) {
+    console.log("No youtube-only rows missing Apple Music info.");
+    return;
+  }
+  console.log(`Retrying Apple Music info for ${appleMissing.length} existing rows.`);
+  let appleFilled = 0, appleNotFound = 0;
+  for (const { key, artist, song } of appleMissing) {
+    try {
+      const apple = await searchAppleMusicInfo(artist, song);
+      if (apple.previewUrl || apple.trackUrl) {
+        await patchAppleFields(key, apple);
+        appleFilled++;
+      } else {
+        appleNotFound++;
+      }
+    } catch (err) {
+      console.error(`Apple retry failed: ${artist} - ${song}:`, err.message);
+    }
+    await sleep(150);
+  }
+  console.log(`Apple retry done. filled=${appleFilled} stillMissing=${appleNotFound}`);
 }
 
 main().catch((err) => {
