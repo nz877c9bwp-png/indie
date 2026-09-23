@@ -570,7 +570,7 @@ client.auth.onAuthStateChange((event, session) => {
     isAdmin = currentUser.email === ADMIN_EMAIL;
     
     const status = element('span', '', `${isAdmin ? '[관리자] ' : ''}${nickname}`);
-    status.style.cssText = `color: var(--${isAdmin ? 'admin' : 'text'}); font-weight:bold;`;
+    status.style.cssText = `color: var(--${isAdmin ? 'admin-ink' : 'text'}); font-weight:bold;`;
     $('userStatus').replaceChildren(status, '님');
 
     $('showLoginBtn').style.display = $('showSignupBtn').style.display = 'none';
@@ -749,7 +749,7 @@ $('btnSearchAlbum').addEventListener('click', async () => {
     }
 
     if(data.results.length === 0) { 
-      $('albumResults').innerHTML = `<div style="color:var(--admin); font-size:13px;">결과가 없습니다. [가수명만]으로 변경하거나 영문으로 검색해보세요.</div>`; 
+      $('albumResults').innerHTML = `<div style="color:var(--admin-ink); font-size:13px;">결과가 없습니다. [가수명만]으로 변경하거나 영문으로 검색해보세요.</div>`; 
       return; 
     }
 
@@ -764,7 +764,7 @@ $('btnSearchAlbum').addEventListener('click', async () => {
       return card;
     }));
   } catch {
-    $('albumResults').innerHTML = '<div style="color:var(--admin); font-size:12px;">검색 서버 오류입니다.</div>';
+    $('albumResults').innerHTML = '<div style="color:var(--admin-ink); font-size:12px;">검색 서버 오류입니다.</div>';
   }
 });
 
@@ -798,7 +798,7 @@ $('btnSearchRecTrack').addEventListener('click', async () => {
     const data = await res.json();
     if (data.error) throw new Error(data.error.message || 'youtube api error');
     if (!data.items?.length) {
-      $('recTrackResults').innerHTML = '<div style="color:var(--admin); font-size:13px;">결과가 없습니다.</div>';
+      $('recTrackResults').innerHTML = '<div style="color:var(--admin-ink); font-size:13px;">결과가 없습니다.</div>';
       return;
     }
     $('recTrackResults').replaceChildren(...data.items.map(v => {
@@ -813,7 +813,7 @@ $('btnSearchRecTrack').addEventListener('click', async () => {
       return card;
     }));
   } catch (e) {
-    $('recTrackResults').innerHTML = `<div style="color:var(--admin); font-size:12px;">검색 실패: ${escapeHTML(e.message || '오류')}</div>`;
+    $('recTrackResults').innerHTML = `<div style="color:var(--admin-ink); font-size:12px;">검색 실패: ${escapeHTML(e.message || '오류')}</div>`;
   }
 });
 
@@ -1016,7 +1016,7 @@ function renderPosts() {
       card.onclick = () => openPostView(post.id);
       const stats = element('div', 'widget-stats');
       const recs = element('span', '', `추천 ${post.recs || 0}`);
-      recs.style.cssText = "background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;";
+      recs.style.color = "var(--music-ink)";
       const author = element('span', 'author-wrap'); author.style.marginLeft = 'auto';
       author.append(element('span', 'author-name', post.author || 'ㅇㅇ'));
       if (post.is_admin_author) author.append(adminAuthorBadge());
@@ -1181,7 +1181,7 @@ function renderPosts() {
         
         const recsVal = post.recs || 0;
         const recsCell = element('td', 'col-likes tabular', recsVal);
-        if(recsVal > 0) recsCell.style.cssText = 'color:var(--admin); font-weight:bold;';
+        if(recsVal > 0) recsCell.style.cssText = 'color:var(--admin-ink); font-weight:bold;';
         
         const idCell = element('td', 'col-id tabular', post.is_notice ? '공지' : displayNum);
         row.append(idCell, tag, titleCell, authorCell, dateCell, viewsCell, recsCell);
@@ -1371,7 +1371,7 @@ function renderMyPosts() {
 
     const recsVal = post.recs || 0;
     const recsCell = element('td', 'col-likes tabular', recsVal);
-    if (recsVal > 0) recsCell.style.cssText = 'color:var(--admin); font-weight:bold;';
+    if (recsVal > 0) recsCell.style.cssText = 'color:var(--admin-ink); font-weight:bold;';
 
     row.append(tag, titleCell, dateCell, viewsCell, recsCell);
     return row;
@@ -1632,7 +1632,7 @@ function createCommentElement(comment, depth) {
   const isGuestComment = !comment.user_id;
   if (isAdmin || isCommentAuthor || isGuestComment) {
     const delBtn = element('button', '', '삭제');
-    delBtn.style.color = 'var(--admin)';
+    delBtn.style.color = 'var(--admin-ink)';
     delBtn.onclick = async () => {
       if (isAdmin || isCommentAuthor) {
         if(!confirm('댓글을 삭제하시겠습니까?')) return;

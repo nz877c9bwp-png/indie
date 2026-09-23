@@ -103,7 +103,7 @@
   <main>
     <div id="postViewSection" style="display:none; margin-bottom:40px;">
       <div style="margin-bottom: 16px;">
-        <button class="btn-list" onclick="history.back()" style="padding:10px 24px; font-size:14px; font-weight:700; border-radius:6px; background:var(--panel); border:1px solid var(--border); color:var(--text);">← 원래 화면으로 돌아가기</button>
+        <button class="btn-list" onclick="history.back()" style="padding:10px 24px; font-size:14px; font-weight:700; ">← 원래 화면으로 돌아가기</button>
       </div>
       <div class="view-box">
         <div class="view-header">
@@ -117,8 +117,8 @@
             </div>
             <div class="view-meta-right">
               <span>조회 <span id="readViews" style="color:var(--text); font-weight:600;">0</span></span>
-              <span>추천 <span id="readRecs" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:600;">0</span></span>
-              <span>비추천 <span id="readDislikes" style="color:var(--admin); font-weight:600;">0</span></span>
+              <span>추천 <span id="readRecs" style="color:var(--music-ink); font-weight:600;">0</span></span>
+              <span>비추천 <span id="readDislikes" style="color:var(--admin-ink); font-weight:600;">0</span></span>
               <span class="mod-actions"><button onclick="reportContent('post', currentReadPostId)">신고</button><button onclick="blockPostAuthor()">차단</button></span>
             </div>
           </div>
@@ -137,7 +137,7 @@
         
         <!-- 댓글 영역 시작 -->
         <div class="comment-section">
-          <div class="comment-count">댓글 <span id="commentCount" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">0</span></div>
+          <div class="comment-count">댓글 <span id="commentCount" style="color:var(--music-ink);">0</span></div>
           <ul class="comment-list" id="commentList"></ul>
           
           <div class="comment-write">
@@ -185,7 +185,7 @@
 
     <div id="boardSection">
       <div class="board-title-row" style="margin-top:0;">
-        <h1 id="widgetTitle" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-size:16px;">핫게시판 (HOT)</h1>
+        <h1 id="widgetTitle" style="color:var(--accent-ink); font-size:16px; font-weight:800; letter-spacing:-0.2px;">핫게시판 (HOT)</h1>
       </div>
       <div class="widget-container" id="topWidgetArea"></div>
 
@@ -215,7 +215,7 @@
           </div>
         </div>
         <div style="display:flex; gap:8px;">
-          <input type="search" id="albumBoardSearchInput" autocomplete="off" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); outline:none; font-size:13px; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
+          <input type="search" id="albumBoardSearchInput" autocomplete="off" placeholder="앨범명 또는 가수명 검색..." onkeypress="if(event.key === 'Enter') renderPosts()" style="flex:1; max-width:300px; padding:8px 12px; border-radius:var(--radius-sm); border:none; background:var(--field); color:var(--text); outline:none; font-size:13px; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
           <button onclick="renderPosts()" style="padding:8px 16px; background:var(--accent-gradient); border:none; color:#fff; border-radius:var(--radius-sm); cursor:pointer; font-weight:bold; font-family:inherit; transition:0.2s;">검색</button>
         </div>
       </div>
@@ -271,14 +271,14 @@
       <div class="write-body">
         <div id="albumSearchWrap">
           <div id="albumSearchOnly">
-            <div id="albumSearchLabel" style="font-weight:600; margin-bottom:8px; background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">평가할 앨범 검색 (Apple Music)</div>
+            <div id="albumSearchLabel" style="font-weight:600; margin-bottom:8px; color:var(--music-ink);">평가할 앨범 검색 (Apple Music)</div>
             <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-              <select id="searchType" style="background:var(--bg); border:none; color:var(--text); padding:0 10px; border-radius:var(--radius-sm); outline:none; font-family:inherit; height:38px; box-shadow:var(--shadow-inset-sm);">
+              <select id="searchType" style="background:var(--field); border:none; color:var(--text); padding:0 10px; border-radius:var(--radius-sm); outline:none; font-family:inherit; height:38px; box-shadow:var(--shadow-inset-sm);">
                 <option value="all">통합검색</option>
                 <option value="artistTerm">가수명만</option>
                 <option value="albumTerm">앨범명만</option>
               </select>
-              <input type="search" id="albumQuery" autocomplete="off" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
+              <input type="search" id="albumQuery" autocomplete="off" placeholder="예: 부활, 잔나비, 전설 (하나만 칠 것)" style="margin-bottom:0; flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--field); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
               <button type="button" id="btnSearchAlbum" style="background:var(--accent-gradient); color:#fff; border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
             </div>
             <div id="albumResults" class="search-result-row"></div>
@@ -305,7 +305,7 @@
               <span id="starRatingText" style="font-size:15px; font-weight:bold; color:var(--muted);">5점</span>
             </div>
             <div style="font-weight:bold; color:var(--text); margin:14px 0 4px; width:100%;">발매 형태</div>
-            <select id="postReleaseType" style="background:var(--bg); border:none; color:var(--text); padding:10px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; font-family:inherit; box-sizing:border-box; box-shadow:var(--shadow-inset-sm);">
+            <select id="postReleaseType" style="background:var(--field); border:none; color:var(--text); padding:10px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; font-family:inherit; box-sizing:border-box; box-shadow:var(--shadow-inset-sm);">
               <option value="정규">정규</option>
               <option value="EP">EP</option>
               <option value="싱글">싱글</option>
@@ -352,10 +352,10 @@
         </div>
         
         <div id="recTrackSearchWrap" style="display:none; margin-bottom:16px;">
-          <div style="font-weight:600; margin-bottom:8px; background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">곡 검색해서 추가 (YouTube) — 검색 결과에서 직접 고르면 그 링크로 바로 들을 수 있게 저장됩니다</div>
+          <div style="font-weight:600; margin-bottom:8px; color:var(--music-ink);">곡 검색해서 추가 (YouTube) — 검색 결과에서 직접 고르면 그 링크로 바로 들을 수 있게 저장됩니다</div>
           <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-            <input type="text" id="recTrackArtist" autocomplete="off" placeholder="아티스트 (예: 잔나비)" style="flex:1; min-width:120px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
-            <input type="text" id="recTrackSong" autocomplete="off" placeholder="곡명 (예: 주저하는 연인들을 위해)" style="flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--bg); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
+            <input type="text" id="recTrackArtist" autocomplete="off" placeholder="아티스트 (예: 잔나비)" style="flex:1; min-width:120px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--field); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
+            <input type="text" id="recTrackSong" autocomplete="off" placeholder="곡명 (예: 주저하는 연인들을 위해)" style="flex:1; min-width:150px; height:38px; border-radius:var(--radius-sm); border:none; background:var(--field); color:var(--text); padding:0 14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); box-sizing:border-box;">
             <button type="button" id="btnSearchRecTrack" style="background:var(--accent-gradient); color:#fff; border:none; padding:0 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; white-space:nowrap; height:38px;">검색</button>
           </div>
           <div id="recTrackResults" class="search-result-row"></div>
@@ -370,7 +370,7 @@
 
         <div id="contentPreviewWrap" style="display:none; margin-top:14px;">
           <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px;">미리보기</div>
-          <div id="contentPreviewArea" class="view-content-area" style="padding:16px; min-height:0; background:var(--bg); border-radius:var(--radius-sm); box-shadow:var(--shadow-inset-sm);"></div>
+          <div id="contentPreviewArea" class="view-content-area" style="padding:16px; min-height:0; background:var(--field); border-radius:var(--radius-sm); box-shadow:var(--shadow-inset-sm);"></div>
         </div>
       </div>
       
@@ -480,7 +480,7 @@
     <input type="password" id="signupPw" placeholder="비밀번호 (6자리 이상)" autocomplete="new-password">
     <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--muted); margin-bottom:16px; cursor:pointer; line-height:1.4;">
       <input type="checkbox" id="signupConsent" style="width:auto; margin:2px 0 0 0;">
-      <span>[필수] 만 14세 이상이며, 개인정보 수집 및 이용약관에 동의합니다. <a onclick="toggleModal('privacyModal', true)" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-decoration:underline; text-decoration-color:var(--accent);">내용 보기</a></span>
+      <span>[필수] 만 14세 이상이며, 개인정보 수집 및 이용약관에 동의합니다. <a onclick="toggleModal('privacyModal', true)" style="color:var(--music-ink); text-decoration:underline; text-decoration-color:var(--accent);">내용 보기</a></span>
     </label>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="toggleModal('signupModal', false)" style="background:var(--panel-alt); color:var(--text); border:1px solid var(--border);">취소</button>
@@ -549,7 +549,7 @@
       이 개인정보 처리방침은 2026년 9월 11일부터 적용됩니다. 법령 및 서비스 내용의 변경에 따라 이 방침의 내용이 수정될 수 있으며, 변경 시에는 공지사항을 통해 사전에 고지합니다.<br><br>
 
       <strong>제14조(YouTube API Services 이용 고지)</strong><br>
-      사이트는 추천곡 게시판에서 곡의 커버 이미지와 재생 링크를 제공하기 위하여 YouTube API Services를 사용하며, 이와 관련하여 <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">YouTube 서비스 약관</a> 및 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">Google 개인정보처리방침</a>이 함께 적용됩니다. 검색에는 게시글에 포함된 곡명·아티스트명 텍스트만 사용되며, 이용자 개인을 식별할 수 있는 정보는 YouTube API로 전송되지 않습니다. 구글 계정을 통해 사이트에 부여한 접근 권한은 <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener" style="background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">Google 계정 권한 관리 페이지</a>에서 언제든지 확인·철회할 수 있습니다.<br><br>
+      사이트는 추천곡 게시판에서 곡의 커버 이미지와 재생 링크를 제공하기 위하여 YouTube API Services를 사용하며, 이와 관련하여 <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener" style="color:var(--music-ink);">YouTube 서비스 약관</a> 및 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" style="color:var(--music-ink);">Google 개인정보처리방침</a>이 함께 적용됩니다. 검색에는 게시글에 포함된 곡명·아티스트명 텍스트만 사용되며, 이용자 개인을 식별할 수 있는 정보는 YouTube API로 전송되지 않습니다. 구글 계정을 통해 사이트에 부여한 접근 권한은 <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener" style="color:var(--music-ink);">Google 계정 권한 관리 페이지</a>에서 언제든지 확인·철회할 수 있습니다.<br><br>
 
       <h3 style="margin:16px 0 10px; color:var(--text);">이용약관</h3>
 
