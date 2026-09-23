@@ -197,7 +197,7 @@ input:-webkit-autofill:focus {
 .auth-btn{ display:inline-flex; align-items:center; height:36px; padding:0 var(--space-3); background:none; border:none; border-radius:var(--radius-pill); color:var(--text-2); font-family:inherit; font-size:14px; line-height:1; font-weight:600; letter-spacing:-0.2px; cursor:pointer; transition:background-color .15s, color .15s; }
 .auth-btn:hover{ background:var(--panel-alt); color:var(--text); }
 
-.write-btn{ display:inline-flex; align-items:center; justify-content:center; height:40px; margin-left:var(--space-2); padding:0 var(--space-5); background:var(--accent-gradient); color:var(--on-accent); font-weight:700; border:none; cursor:pointer; font-size:14px; line-height:1; letter-spacing:-0.2px; border-radius:var(--radius-pill); font-family:inherit; white-space:nowrap; transition:transform .2s, box-shadow .2s; box-shadow:var(--accent-glow); }
+.write-btn{ display:inline-flex; align-items:center; justify-content:center; height:40px; margin-left:0; padding:0 var(--space-5); background:var(--accent-gradient); color:var(--on-accent); font-weight:700; border:none; cursor:pointer; font-size:14px; line-height:1; letter-spacing:-0.2px; border-radius:var(--radius-pill); font-family:inherit; white-space:nowrap; transition:transform .2s, box-shadow .2s; box-shadow:var(--accent-glow); }
 .write-btn:hover{ background:var(--accent-gradient-hover); transform:translateY(-1px); }
 .write-btn:active{ background:var(--accent-gradient-hover); transform:none; box-shadow:var(--shadow-inset); }
 
@@ -436,7 +436,9 @@ input:-webkit-autofill:focus {
 .btn-recommend:active{ box-shadow:var(--shadow-inset-sm); }
 .btn-dislike{ color:var(--admin-ink); }
 
-.view-controls{ display:flex; gap:var(--space-2); }
+.view-controls{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:var(--space-2); }
+/* the header's write button keeps a small gap from the auth links; everywhere else it sits in its own row */
+.user-actions .write-btn{ margin-left:var(--space-2); }
 .btn-list{ display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 var(--space-5); border:none; border-radius:var(--radius-pill); font-family:inherit; font-size:14px; line-height:1; font-weight:700; letter-spacing:-0.2px; white-space:nowrap; cursor:pointer; transition:transform .2s, box-shadow .2s, background-color .15s; background:var(--panel); color:var(--text); box-shadow:var(--shadow-xs); }
 .btn-list:hover{ background:var(--panel-alt); }
 .btn-admin-edit{ display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 var(--space-5); border:none; border-radius:var(--radius-pill); font-family:inherit; font-size:14px; line-height:1; font-weight:700; letter-spacing:-0.2px; white-space:nowrap; cursor:pointer; transition:transform .2s, box-shadow .2s, background-color .15s; background:var(--accent-gradient); color:var(--on-accent); box-shadow:var(--accent-glow); }
@@ -537,8 +539,8 @@ input:-webkit-autofill:focus {
 .yt-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
 .site-footer{ padding:var(--space-8) var(--space-5); text-align:center; color:var(--muted); font-size:12px; line-height:1.7; margin-top:auto; background:var(--bg); }
-.footer-inner { max-width:1180px; margin:0 auto; }
-.footer-inner a{ color:var(--text-2); text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
+.footer-inner { max-width:1180px; margin:0 auto; word-break:keep-all; }
+.footer-inner a{ white-space:nowrap; color:var(--text-2); text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
 .footer-inner a:hover { color:var(--text); }
 
 /* 모바일 반응형 완벽 수정 */
@@ -554,7 +556,10 @@ input:-webkit-autofill:focus {
   .logo-badge { width: 28px; height: 28px; }
   .bw-small { font-size: 8px; }
   .user-actions { gap: 8px; justify-content: flex-end; flex-wrap: nowrap; white-space: nowrap; width: auto; box-sizing: border-box; }
-  .write-btn { height: 32px; margin-left: 0; padding: 0 12px; font-size: 13px; }
+  .user-actions .write-btn { height: 32px; margin-left: 0; padding: 0 12px; font-size: 13px; }
+  /* post footer: controls take their own full-width row and wrap evenly instead of running off the right edge */
+  .view-controls { width: 100%; justify-content: flex-start; }
+  .view-controls > button { flex: 1 1 auto; }
   .auth-btn { height: 32px; padding: 0 var(--space-2); font-size: 13px; }
 
   #userStatus { max-width: 70px; text-align: right; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; margin-bottom: 0; }
