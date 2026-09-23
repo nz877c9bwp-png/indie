@@ -57,11 +57,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
    capitals' sweep, and text-2 for the tails and .KR (cap size, attached to "Indie" like a domain) */
 .brand{ font-size:22px; line-height:1.2; white-space:nowrap; display:flex; align-items:center; gap:var(--space-3); }
 .logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:var(--radius-sm); background:var(--accent-gradient); box-shadow:var(--accent-glow); flex:none; }
-.brand-word{ display:inline-flex; align-items:baseline; gap:0.18em; background:linear-gradient(100deg, var(--music-mark) 10%, var(--accent-mark) 85%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:var(--music-ink); }
+.brand-word{ display:inline-flex; align-items:baseline; gap:0; background:linear-gradient(100deg, var(--music-mark) 10%, var(--accent-mark) 85%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:var(--music-ink); }
 .bw-group{ display:inline-flex; align-items:baseline; flex:none; }
 .bw-slot{ width:auto; }
 .bw-big{ font-weight:900; font-size:1.15em; letter-spacing:-0.8px; -webkit-text-fill-color:transparent; }
-.bw-group:last-child{ margin-left:calc(-0.18em + 1px); }
+/* Equal optical gaps: every group sits 5px (0.227em) of INK apart. Box margins differ per group to cancel each glyph's side bearings (measured in SUIT at 22px). */
+.bw-group:nth-child(2){ margin-left:0.203em; }
+.bw-group:nth-child(3){ margin-left:0.181em; }
+.bw-group:nth-child(4){ margin-left:0.208em; }
+.bw-group:nth-child(5){ margin-left:0.208em; }
 .bw-big.bw-kr{ -webkit-text-fill-color:var(--text-2); color:var(--text-2); font-size:1em; font-weight:700; }
 .bw-small{ font-weight:600; font-size:13px; letter-spacing:0; color:var(--text-2); -webkit-text-fill-color:var(--text-2); margin-left:0; }
 

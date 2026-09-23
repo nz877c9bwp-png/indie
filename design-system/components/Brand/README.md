@@ -6,7 +6,7 @@ Once per screen, top-left of the sticky header, in its 232px first column. It is
 ## Anatomy
 - `.brand` — `brand` type (22px/1.2), a flex row with `space-3` (12px) between badge and word; carries `.display`.
 - `.logo-badge` — 40×40, `radius-sm`, `accent-gradient` fill, `accent-glow`. Inside: the bar mark SVG (see Logos) at 26×26, bars in `on-accent` white (`#fff` and `rgba(255,255,255,0.6)`).
-- `.brand-word` — one `music-mark` → `accent-mark` sweep (100deg) clipped to the text across the whole word. Each word is a `.bw-group`; groups sit 0.18em apart, wider than any capital-to-tail join.
+- `.brand-word` — one `music-mark` → `accent-mark` sweep (100deg) clipped to the text across the whole word. Each word is a `.bw-group`; groups sit an equal 5px (0.227em) of ink apart, `.KR` included; per-group margins (0.181–0.208em) cancel each glyph's side bearings, so change them together if the font or size changes.
   - `.bw-big` — the capitals D U L I at 1.15em/900, -0.8px, in the sweep.
   - `.bw-small` — the tails (o, ike, ndie) at 13px/600 in `text-2`, set tight against their capital.
   - `.bw-big.bw-kr` — `.KR` at 1em/700 in `text-2`, pulled against "Indie" like a domain.
