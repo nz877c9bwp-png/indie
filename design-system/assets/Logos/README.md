@@ -1,0 +1,4 @@
+- **app-icon.png** — the iOS app icon (1024×1024). Three rounded bars like an equalizer: a tall blue bar in the middle and grey bars either side, on a light grey ground. It is drawn in the site's current palette (`#3182F6` blue, `#A7ACB4` grey, `#E9ECEF` ground), not in the refreshed tokens: use it as is where the product needs a square mark, and never recolour it.
+- **logo-bars.svg** — the bar mark from the header. **White ink** (`#fff` and `rgba(255,255,255,0.6)`, the `on-accent` white): place it only on the `accent-gradient` logo badge (40×40, `radius-sm`, `accent-glow`), drawn at 26×26. It is invisible on light grounds. The same three bars, as the `--eq-mask` CSS mask, lead the HOT eyebrow and mark the playing track.
+
+There is no separate wordmark file: "DULI.KR" is live text (see the Brand component).
