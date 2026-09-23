@@ -817,8 +817,6 @@ input:-webkit-autofill:focus {
 
   #albumGrid { grid-template-columns: repeat(2, 1fr); gap: 20px 14px; padding: 20px; width: 100%; box-sizing: border-box;}
   .ad-header { flex-direction: column; align-items: center; text-align: center; gap: 16px; width: 100%; box-sizing: border-box;}
-  .comment-count, .comment-write { padding-left: 16px; padding-right: 16px; }
-  .comment-list { padding: 0 16px; }
   .ad-header img { width: 160px; height: 160px; }
   #albumDetailSection { padding: 20px; }
   .view-header, .view-content-area, .view-footer, .write-header, .write-body, .write-footer { padding: 16px; width: 100%; box-sizing: border-box; }
@@ -902,3 +900,15 @@ input:-webkit-autofill:focus {
 /* an empty/failed tracklist message sits inside the tray itself: no second tray */
 .ad-tracklist .ad-track-empty{ margin:0; padding:var(--space-3) var(--space-4); background:transparent; box-shadow:none; border-radius:0; }
 .ad-info .write-btn{ margin:var(--space-4) 0 0; }
+
+/* Mobile overrides for the comment area. They sit here, after the comment rules above,
+   so they win the cascade (the main 840px block comes earlier in the file). */
+@media (max-width: 840px) {
+  .comment-count, .comment-write { padding-left: 16px; padding-right: 16px; }
+  .comment-list { padding: 0 16px; }
+  /* the 3-line placeholder was clipped in a 76px box squeezed beside the button:
+     stack them — a taller full-width field, the 등록 button right-aligned underneath */
+  .cw-input { flex-direction: column; align-items: stretch; }
+  .cw-input textarea { flex: none; height: auto; min-height: 104px; word-break: keep-all; }
+  .cw-input button { align-self: flex-end; }
+}
