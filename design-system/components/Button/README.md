@@ -1,26 +1,31 @@
-# Button
+Buttons come in three weights (gradient primary, raised secondary, red danger), plus ghost text actions and vendor sign-in keys; every one is a pill.
 
-Buttons come in three weights: gradient primary, neumorphic secondary, and red danger. Text-only links sit beside them.
-
-Copied from `style.css` (`.write-btn`, `.btn-submit-write`, `.btn-list`, `.btn-recommend`, `.btn-admin-delete`, `.btn-settings-danger`, `.auth-btn`, `.kakao-btn`, `.apple-btn`).
+## When to use
+One primary per view: `.write-btn` in the header, `.btn-submit-write` at the foot of a form. Everything else is secondary, danger or ghost.
 
 ## Variants
+The six action buttons share a 40px `radius-pill`, padding 0 `space-5`, `control` type (14px/700) and `space-2` between an icon glyph and the label, except where the table says otherwise.
+
 | Class | Use | Look |
 |---|---|---|
-| `.write-btn` | The one header CTA (글쓰기) | pill (999px), `accent-gradient`, white 13px/700, `accent-glow` |
-| `.btn-submit-write` | Submit in forms (등록) | `radius-sm`, gradient, 14px bold, padding 11px 34px |
-| `.btn-list` | Secondary (목록, 취소) | `panel` + `shadow-sm`, `text`; hover turns the label to gradient text |
-| `.btn-recommend` | Like/recommend | pill, `panel`, gradient label, `shadow-sm` |
-| `.btn-admin-delete` | Destructive | `admin` fill, white |
-| `.btn-settings-danger` | Destructive, quiet | 1px `admin` outline; fills on hover |
-| `.auth-btn` | Header text actions | no chrome; gradient text on hover |
-| `.kakao-btn`, `.apple-btn` | Social sign-in | vendor colours (#FEE500 on #191919; black, white in dark) |
+| `.write-btn` | The header CTA (글쓰기) | `accent-gradient`, `on-accent` label, `accent-glow`; `space-2` after the auth links in `.user-actions` |
+| `.btn-submit-write` | Submit a form (등록) | The one large step: 44px (the height of the fields it submits), 15px/800, padding 0 `space-8`; same fill and glow |
+| `.btn-list` | Secondary (목록, 취소) | `panel` + `shadow-xs`, `text` label |
+| `.btn-recommend` | Recommend (♥ 추천 12) | `panel` + `shadow-xs`, `music-ink` label at 800, tabular count, padding 0 `space-6` |
+| `.btn-admin-delete` | Destructive (삭제) | `admin` fill, `on-accent` label, `shadow-fill` |
+| `.btn-settings-danger` | Destructive, quiet (회원 탈퇴) | Transparent, `admin-ink` label and 1px `admin-ink` inner ring |
+| `.auth-btn` | Header text actions (로그인, 회원가입) | 36px ghost pill, padding 0 `space-3`, `text-2` at 14px/600, no chrome |
+| `.kakao-btn`, `.apple-btn` | Social sign-in | Full-width 48px pills, 15px/700, `shadow-fill`. Kakao `#FEE500` with `#191919`; Apple `apple-fill` with `apple-ink`; `.apple-btn` sits `space-2` below Kakao |
 
 ## States
-Hover on gradient fills: `filter: brightness(1.08)`. Pressed: `shadow-inset` (the button sinks into the surface). Focus: 2px `music` outline, 2px offset.
+- **Hover darkens, never brightens.** Gradient buttons swap to `linear-gradient(135deg, music-hover 10%, accent-hover)` and lift 1px. `.btn-admin-delete` goes to `admin-hover`. `.btn-settings-danger` fills with `admin` and turns its label `on-accent`. `.btn-list` steps to `panel-alt`; `.auth-btn` to `panel-alt` with a `text` label; `.btn-recommend` to `music-soft`. Kakao and Apple take `brightness(.97)`.
+- **Pressed:** gradient and delete buttons keep their hover fill, drop the lift and sink to `shadow-inset`; `.btn-list`, `.btn-recommend`, Kakao and Apple sink to `shadow-inset-sm`.
+- **Focus:** 2px `focus` outline at 2px offset.
+- **Disabled:** `disabled-opacity` (0.4), no shadow.
+- No state uses gradient text.
 
 ## Consumer supplies
-The label (Korean, short, a verb or noun: 글쓰기, 등록, 목록). One primary per view.
+A short Korean label, a verb or noun: 글쓰기, 등록, 목록, 삭제. Put ♥ before the recommend count.
 
-## Contrast note
-White 13–14px text on the gradient starts at 3.7:1 on `music` (light) and 3.1:1 (dark) — below 4.5:1. The source is kept as is; prefer weight 700 and avoid long labels on gradient.
+## Contrast
+`on-accent` white reads at least 4.67:1 on every resting fill in both themes (the gradient's `music` stop 4.67 light / 4.90 dark, `admin` 5.75 / 4.69) and at least 5.85:1 on every hover fill. `admin-ink` reads at least 4.8:1 light / 4.7:1 dark on `bg`, `panel`, `panel-alt` and `field`; `music-ink` 6.7:1 on `panel` and 5.35 / 5.8 on the `music-soft` hover. Kakao reads 13.8:1, Apple 21:1.

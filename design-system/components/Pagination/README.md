@@ -1,7 +1,13 @@
-# Pagination
-
 Page buttons under the post table.
 
-Copied from `style.css` (`.pagination`, `.page-btn`).
+## Structure
+`.pagination` (flex, `space-1` gap) holding `.page-btn` buttons: 36px circles (`radius-pill`, min-width 36px, padding 0 `space-3`), no fill at rest, `text-2` at 14px/600, tabular. The first and last buttons (‹ ›) are 20px/500 so the arrows carry the weight of the numbers.
 
-Raised `panel` squares (`radius-sm`, `shadow-sm`). The current page is pressed in (`shadow-inset-sm`) with bold gradient text; disabled buttons drop to 40% opacity and lose their shadow.
+## Consumer supplies
+‹, the page numbers, ›; `.active` on the current page and `disabled` on an arrow with nowhere to go.
+
+## States
+- Hover: rises to a `panel` key with `shadow-xs`, label `text`.
+- Current (`.active`): `music-soft` fill, 1px `music-line` inner edge, `music-ink` at 800, the shared selected recipe. No gradient text, no pressed well.
+- Disabled: `disabled-opacity` (0.4), no fill, no shadow, default cursor.
+- Focus: 2px `focus` ring at 2px offset.

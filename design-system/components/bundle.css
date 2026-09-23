@@ -1,130 +1,228 @@
-/* DULI component styles — copied from style.css (nz877c9bwp-png/indie@43da5f7).
-   Only change from the source: dark-mode rules keyed to [data-theme="dark"]
-   instead of prefers-color-scheme, and the gradient re-derived per theme. */
-:root{ --accent-gradient: linear-gradient(135deg, var(--music), var(--accent)); }
+/* DULI component styles, final direction: "Soft modern, tactile".
+   Panels sit one step lighter than a cool-grey page (a soft charcoal in dark), each with one downward
+   shadow, a hairline ring and a top highlight; wells (search, fields, segmented control) stay gently inset.
+   Colour jobs: gradient = brand FILLS only (logo badge, write/submit buttons) + the wordmark;
+   blue = selection, shown one way (music-soft fill with a 1px music-line inner edge, music-ink text,
+   weight 800; the edge is inset and 1px, so it never reads as the 2px offset focus outline);
+   violet = community highlights (HOT, 글쓴이, ratings) as text or a 6px label, never a pill.
+   Three filter idioms, one "on" each: genre chips = the blue selected recipe; the service picker = a
+   segmented control whose raised neutral thumb is the state; sort = text links with an underline.
+   Shape grammar: pill = pressable (every button and key, social sign-in included), and the search bar (a
+   field joined to its key); 12px = a form field you fill in or a tile; 6px = a label that only describes.
+   The baseline's .gradient-text utility is gone on purpose: nothing in the site, the app or the previews
+   used it, and gradient text is no longer a state. Outside consumers should switch to a -ink colour.
+   Theme switching: [data-theme="dark"] on <html>; every per-theme value lives in tokens
+   (Kakao's #FEE500/#191919 are brand-fixed in both themes, so they stay literal). */
+:root{
+  --accent-gradient: linear-gradient(135deg, var(--music) 10%, var(--accent));
+  /* the logo's three bars as a mask: HOT eyebrow and the now-playing mark */
+  --eq-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16'%3E%3Crect x='2' y='5' width='4' height='9' rx='2'/%3E%3Crect x='8' y='1' width='4' height='13' rx='2'/%3E%3Crect x='14' y='4' width='4' height='10' rx='2'/%3E%3C/svg%3E");
+  --search-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
+}
+html{ background:var(--bg); }
 body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--font-sans); font-size:15px; letter-spacing:-0.2px; line-height:1.55; -webkit-font-smoothing:antialiased; }
 *{ box-sizing:border-box; }
-a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{ outline:2px solid var(--music); outline-offset:2px; border-radius:2px; }
-.display{ font-family:var(--font-sans); font-weight:800; letter-spacing:-1px; }
+/* focus is always an outline (survives forced-colours); selection never draws a ring. [tabindex] covers the
+   app's clickable cards and rows (.widget-card, .review-card, .rec-track-clickable) once they are made focusable */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+/* the search pill takes the ring while its input is focused; the input drops its own ring only where :has()
+   exists, so an engine without it keeps the input's ring. A focused 검색 key rings itself at offset 0, which
+   keeps the ring 2px inside the pill's 4px padding instead of on its rim. */
+.search:has(input:focus-visible){ outline:2px solid var(--focus); outline-offset:2px; }
+@supports selector(:has(*)){ .search input:focus-visible{ outline:none; } }
+.search button:focus-visible{ outline-offset:0; }
+.display{ font-family:var(--font-sans); font-weight:800; letter-spacing:-0.6px; }
 .tabular{ font-variant-numeric:tabular-nums; }
-.gradient-text{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 
-/* Brand */
-.brand{ font-size:20px; white-space:nowrap; display:flex; align-items:center; gap:28px; }
-.logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:var(--radius-sm); background:var(--accent-gradient); box-shadow:var(--accent-glow); flex:none; }
-.brand-word{ display:inline-flex; align-items:baseline; gap:2px; }
+/* Page frame: header and shell share one grid (232px | content), so the search starts on the content column */
+.site-header{ position:sticky; top:0; z-index:5; background:var(--panel-glass); -webkit-backdrop-filter:saturate(180%) blur(12px); backdrop-filter:saturate(180%) blur(12px); box-shadow:var(--shadow-header); }
+.header-inner{ max-width:1180px; margin:0 auto; padding:var(--space-4) var(--space-5); display:grid; grid-template-columns:232px minmax(0, 1fr) auto; align-items:center; gap:var(--space-8); }
+.header-inner > .search{ justify-self:start; width:100%; height:40px; max-width:520px; }
+.header-inner > .search button{ height:32px; }
+.user-actions{ display:flex; align-items:center; gap:var(--space-1); white-space:nowrap; }
+.user-actions .write-btn{ margin-left:var(--space-2); }
+.shell{ max-width:1180px; margin:0 auto; padding:var(--space-8) var(--space-5) var(--space-12); display:grid; grid-template-columns:232px minmax(0, 1fr); gap:var(--space-8); }
+.shell > *{ min-width:0; }
+.widget-container{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:var(--space-4); margin:0 0 var(--space-10); }
+.board-title-row{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-3); margin:0 0 var(--space-4); }
+.board-title-row h1{ margin:0; font-size:28px; line-height:1.25; font-weight:800; letter-spacing:-0.8px; color:var(--text); }
+/* sidebar groups: a 16px break between groups, the head hugging its own links (with or without a .cat-group wrapper) */
+.cat-group + .cat-group, .board-list + .cat-head{ margin-top:var(--space-4); }
+/* a notice label ahead of a post title in the site's list: the list sets the gap, not the label */
+.col-title > .notice-badge{ margin-right:var(--space-2); }
+
+/* Brand: badge + wordmark; the words sit a narrow space (0.18em) apart, wider than any capital-to-tail join,
+   so the capitals read as one word: D·o U L·ike I·ndie.KR. Tails are 13/600 set tight against their capital
+   (the -0.8px capital tracking closes the joins) so the lone "o" reads as a letter. Two inks only: the
+   capitals' sweep, and text-2 for the tails and .KR (cap size, attached to "Indie" like a domain) */
+.brand{ font-size:22px; line-height:1.2; white-space:nowrap; display:flex; align-items:center; gap:var(--space-3); }
+.logo-badge{ display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:var(--radius-sm); background:var(--accent-gradient); box-shadow:var(--accent-glow); flex:none; }
+.brand-word{ display:inline-flex; align-items:baseline; gap:0.18em; background:linear-gradient(100deg, var(--music-mark) 10%, var(--accent-mark) 85%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:var(--music-ink); }
 .bw-group{ display:inline-flex; align-items:baseline; flex:none; }
-.bw-slot{ width:21.14px; }
-.bw-big{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:var(--music); font-weight:900; font-size:1.15em; }
-.bw-big.bw-kr{ color:var(--muted); }
-.bw-small{ font-weight:300; font-size:10px; color:var(--muted); margin-left:1px; }
+.bw-slot{ width:auto; }
+.bw-big{ font-weight:900; font-size:1.15em; letter-spacing:-0.8px; -webkit-text-fill-color:transparent; }
+.bw-group:last-child{ margin-left:calc(-0.18em + 1px); }
+.bw-big.bw-kr{ -webkit-text-fill-color:var(--text-2); color:var(--text-2); font-size:1em; font-weight:700; }
+.bw-small{ font-weight:600; font-size:13px; letter-spacing:0; color:var(--text-2); -webkit-text-fill-color:var(--text-2); margin-left:0; }
 
-/* Buttons */
-.write-btn{ background:var(--accent-gradient); color:#fff; font-weight:700; border:none; padding:10px 20px; cursor:pointer; font-size:13px; border-radius:999px; font-family:inherit; transition:0.2s; box-shadow:var(--accent-glow); }
-.write-btn:hover{ filter:brightness(1.08); }
-.write-btn:active{ box-shadow:var(--shadow-inset); filter:none; }
-.btn-submit-write{ background:var(--accent-gradient); color:#fff; border:none; padding:11px 34px; border-radius:var(--radius-sm); font-size:14px; cursor:pointer; font-weight:bold; font-family:inherit; transition:0.2s; box-shadow:var(--accent-glow); }
-.btn-submit-write:hover{ filter:brightness(1.08); }
-.btn-list{ background:var(--panel); color:var(--text); border:none; padding:9px 20px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:inherit; font-weight:600; transition:0.2s; box-shadow:var(--shadow-sm); }
-.btn-list:hover{ background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; }
-.btn-list:active{ box-shadow:var(--shadow-inset); }
-.btn-recommend{ background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; border:none; padding:11px 26px; border-radius:999px; font-size:14px; font-weight:bold; cursor:pointer; transition:0.2s; font-family:inherit; display:inline-flex; align-items:center; gap:8px; box-shadow:var(--shadow-sm); }
-.btn-recommend:hover{ transform:translateY(-1px); }
-.btn-recommend:active{ box-shadow:var(--shadow-inset); transform:none; }
-.btn-admin-delete{ background:var(--admin); color:#fff; border:none; padding:9px 20px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-weight:700; font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm); }
-.btn-admin-delete:hover{ filter:brightness(1.08); }
-.btn-settings-danger{ background:none; color:var(--admin); border:1px solid var(--admin); padding:10px 20px; border-radius:var(--radius-sm); font-weight:bold; cursor:pointer; font-family:inherit; transition:0.2s; }
-.btn-settings-danger:hover{ background:var(--admin); color:#fff; }
-.auth-btn{ background:none; border:none; color:var(--text); cursor:pointer; font-size:13px; font-family:inherit; font-weight:600; padding:0; transition:0.2s; }
-.auth-btn:hover{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-.kakao-btn{ width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:#FEE500; color:#191919; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer; box-shadow:var(--shadow-sm); transition:0.2s; }
-.kakao-btn:active{ box-shadow:var(--shadow-inset); }
-.apple-btn{ width:100%; margin-top:8px; padding:12px; border:none; border-radius:var(--radius-sm); background:#000; color:#fff; font-weight:700; font-size:14px; font-family:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:var(--shadow-sm); transition:0.2s; }
-.apple-btn:active{ box-shadow:var(--shadow-inset); }
-[data-theme="dark"] .apple-btn{ background:#fff; color:#000; }
+/* Buttons: all pills. Default 40px / 14px; 등록 is the one large step, 44px / 15px / 800, the height of the
+   fields it submits. Hovers only ever DARKEN a filled button (hover tokens), so white labels keep >= 5.8:1. */
+.write-btn, .btn-submit-write, .btn-list, .btn-recommend, .btn-admin-delete, .btn-settings-danger{ display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); height:40px; padding:0 var(--space-5); border:none; border-radius:var(--radius-pill); font-family:inherit; font-size:14px; line-height:1; font-weight:700; letter-spacing:-0.2px; white-space:nowrap; cursor:pointer; transition:transform .2s, filter .2s, box-shadow .2s, background-color .15s, color .15s; }
+.write-btn, .btn-submit-write{ background:var(--accent-gradient); color:var(--on-accent); box-shadow:var(--accent-glow); }
+.btn-submit-write{ height:44px; padding:0 var(--space-8); font-size:15px; font-weight:800; }
+.write-btn:hover, .btn-submit-write:hover{ background:linear-gradient(135deg, var(--music-hover) 10%, var(--accent-hover)); transform:translateY(-1px); }
+.write-btn:active, .btn-submit-write:active{ background:linear-gradient(135deg, var(--music-hover) 10%, var(--accent-hover)); transform:none; box-shadow:var(--shadow-inset); }
+.btn-list{ background:var(--panel); color:var(--text); box-shadow:var(--shadow-xs); }
+.btn-list:hover{ background:var(--panel-alt); }
+.btn-list:active{ box-shadow:var(--shadow-inset-sm); }
+.btn-recommend{ background:var(--panel); color:var(--music-ink); font-weight:800; padding:0 var(--space-6); font-variant-numeric:tabular-nums; box-shadow:var(--shadow-xs); }
+.btn-recommend:hover{ background:var(--music-soft); }
+.btn-recommend:active{ box-shadow:var(--shadow-inset-sm); }
+.btn-admin-delete{ background:var(--admin); color:var(--on-accent); box-shadow:var(--shadow-fill); }
+.btn-admin-delete:hover{ background:var(--admin-hover); }
+.btn-admin-delete:active{ background:var(--admin-hover); box-shadow:var(--shadow-inset); }
+.btn-settings-danger{ background:transparent; color:var(--admin-ink); box-shadow:inset 0 0 0 1px var(--admin-ink); }
+.btn-settings-danger:hover{ background:var(--admin); color:var(--on-accent); box-shadow:inset 0 0 0 1px var(--admin); }
+.auth-btn{ display:inline-flex; align-items:center; height:36px; padding:0 var(--space-3); background:none; border:none; border-radius:var(--radius-pill); color:var(--text-2); font-family:inherit; font-size:14px; line-height:1; font-weight:600; letter-spacing:-0.2px; cursor:pointer; transition:background-color .15s, color .15s; }
+.auth-btn:hover{ background:var(--panel-alt); color:var(--text); }
+.kakao-btn, .apple-btn{ width:100%; height:48px; padding:0 var(--space-4); border:none; border-radius:var(--radius-pill); font-family:inherit; font-size:15px; line-height:1; font-weight:700; letter-spacing:-0.2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:var(--space-2); box-shadow:var(--shadow-fill); transition:filter .2s, box-shadow .2s; }
+.kakao-btn{ background:#FEE500; color:#191919; }
+.apple-btn{ margin-top:var(--space-2); background:var(--apple-fill); color:var(--apple-ink); }
+.kakao-btn:hover, .apple-btn:hover{ filter:brightness(.97); }
+.kakao-btn:active, .apple-btn:active{ box-shadow:var(--shadow-inset-sm); }
 
-/* Badges */
-.tag{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; background:var(--panel-alt); color:var(--muted); white-space:nowrap; }
-.notice-badge{ display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px; font-weight:800; background:var(--accent-gradient); color:#fff; white-space:nowrap; margin-right:6px; }
-.team-badge{ display:inline-block; font-size:11px; font-weight:800; padding:1px 7px; border-radius:10px; color:#fff; white-space:nowrap; }
-.admin-post-badge{ display:inline-block; font-size:10px; font-weight:800; padding:1px 6px; border-radius:9px; background:var(--admin); color:#fff; white-space:nowrap; margin-left:4px; flex:none; }
-.hot-badge{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:800; font-size:12px; margin-bottom:8px; display:inline-block; }
-.ip-tag{ font-size:11px; color:var(--muted-2); font-weight:400; margin-left:2px; white-space:nowrap; }
+/* Labels: 20px, 6px corners (a label describes; only pressable things are pills), 12/700 so dense Hangul
+   stays open. A label carries no outer margin toward what follows; badges that hang off a name keep theirs. */
+.tag, .notice-badge, .team-badge, .admin-post-badge, .ci-op-badge{ display:inline-flex; align-items:center; height:20px; padding:0 var(--space-2); border-radius:var(--radius-xs); font-size:12px; line-height:1; font-weight:700; letter-spacing:0; white-space:nowrap; vertical-align:middle; }
+.tag{ background:var(--panel); color:var(--text-2); box-shadow:inset 0 0 0 1px var(--line); }
+.notice-badge{ background:var(--music); color:var(--on-accent); }
+/* team colours come from the app: white by default; pass --team-ink with any team colour white fails on */
+.team-badge{ color:var(--team-ink, var(--on-accent)); }
+.admin-post-badge{ background:var(--admin); color:var(--on-accent); margin-left:var(--space-1); flex:none; }
+.ci-op-badge{ background:var(--accent-soft); color:var(--accent-ink); margin-left:var(--space-2); }
+/* HOT: an eyebrow (violet text led by the logo's bars), not a chip */
+.hot-badge{ display:inline-flex; align-items:center; gap:var(--space-1); color:var(--accent-ink); font-size:12px; line-height:1; font-weight:800; letter-spacing:0.04em; }
+.hot-badge::before{ content:""; flex:none; width:15px; height:12px; background:currentColor; -webkit-mask:var(--eq-mask) left center/contain no-repeat; mask:var(--eq-mask) left center/contain no-repeat; }
+.widget-card > .hot-badge{ margin-bottom:var(--space-3); }
+.ip-tag{ font-size:12px; color:var(--muted); font-weight:500; margin-left:var(--space-1); white-space:nowrap; font-variant-numeric:tabular-nums; }
 
-/* Pill tabs */
-.team-tabs{ display:flex; flex-wrap:wrap; gap:10px; }
-.team-tab-btn{ background:var(--panel); border:none; color:var(--muted); padding:8px 18px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm); }
-.team-tab-btn:hover{ color:var(--text); }
-.team-tab-btn.active{ background:var(--team-color, var(--accent-gradient)); color:#fff; box-shadow:var(--shadow-inset-sm); }
-.rec-service-tabs{ display:flex; gap:8px; }
-.rec-service-tab{ background:var(--panel); border:none; color:var(--muted); padding:6px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm); }
+/* Genre chips: raised pills; selected = music-soft + a 1px music-line inner edge + music-ink + 800 (flat, no drop) */
+.team-tabs{ display:flex; flex-wrap:wrap; gap:var(--space-2); margin-bottom:var(--space-4); }
+.team-tab-btn{ display:inline-flex; align-items:center; height:36px; padding:0 var(--space-4); background:var(--panel); border:none; border-radius:var(--radius-pill); color:var(--text-2); font-family:inherit; font-size:14px; line-height:1; font-weight:600; letter-spacing:-0.2px; cursor:pointer; box-shadow:var(--shadow-xs); transition:background-color .15s, color .15s, box-shadow .2s; }
+.team-tab-btn:hover{ color:var(--text); background:var(--panel-alt); }
+.team-tab-btn.active, .team-tab-btn.active:hover{ background:var(--music-soft); color:var(--music-ink); font-weight:800; box-shadow:inset 0 0 0 1px var(--music-line); }
+.team-tab-btn.active[style*="--team-color"]{ background:var(--team-color); color:var(--team-ink, var(--on-accent)); box-shadow:var(--shadow-fill); }
+/* Service picker: a segmented control (one inset well, flat tabs, a raised thumb) so it reads apart from the chips;
+   the thumb stays neutral (text ink, 800): its raised shape is the state, and blue stays the chips' one recipe */
+.rec-service-tabs{ display:inline-flex; flex-wrap:wrap; align-self:flex-start; gap:var(--space-1); padding:var(--space-1); max-width:100%; background:var(--field); border-radius:var(--radius-pill); box-shadow:var(--shadow-inset-sm); }
+.rec-service-tab{ display:inline-flex; align-items:center; height:32px; padding:0 var(--space-4); background:transparent; border:none; border-radius:var(--radius-pill); color:var(--text-2); font-family:inherit; font-size:13px; line-height:1; font-weight:600; letter-spacing:-0.2px; cursor:pointer; white-space:nowrap; transition:background-color .15s, color .15s, box-shadow .2s; }
 .rec-service-tab:hover{ color:var(--text); }
-.rec-service-tab.active{ background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; font-weight:800; box-shadow:var(--shadow-inset-sm); }
-.sort-btns{ display:flex; gap:10px; font-size:13px; align-items:center; flex-wrap:wrap; }
-.sort-btns button{ background:none; border:none; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer; padding:0; font-family:inherit; transition:0.2s; white-space:nowrap; }
-.sort-btns button.active{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:800; }
-.sort-btns button:hover{ color:var(--text); }
+.rec-service-tab.active{ background:var(--panel); color:var(--text); font-weight:800; box-shadow:var(--shadow-xs); }
+.rec-service-tab:focus-visible{ outline-offset:-2px; } /* the well's 4px inset has no room for an outside ring */
+/* Sort: text links; selected = text ink + 800 + a 2px music-mark underline; hover = text ink (600) + a muted-2 underline */
+.sort-btns{ display:flex; gap:var(--space-4); align-items:baseline; flex-wrap:wrap; }
+.sort-btns button{ background:none; border:none; padding:var(--space-1); margin:0 calc(-1 * var(--space-1)); border-radius:var(--radius-xs); color:var(--muted); font-family:inherit; font-size:14px; line-height:1.3; font-weight:600; letter-spacing:-0.2px; cursor:pointer; white-space:nowrap; text-decoration-line:underline; text-decoration-color:transparent; text-decoration-thickness:2px; text-underline-offset:7px; transition:color .15s, text-decoration-color .15s; }
+.sort-btns button:hover{ color:var(--text); text-decoration-color:var(--muted-2); }
+.sort-btns button.active{ color:var(--text); font-weight:800; text-decoration-color:var(--music-mark); }
+.sort-btns button:focus-visible{ outline-offset:4px; }
 
-/* Fields */
-.search{ flex:1; display:flex; max-width:420px; background:var(--bg); border-radius:999px; overflow:hidden; box-shadow:var(--shadow-inset-sm); }
-.search input{ flex:1; background:none; border:none; outline:none; color:var(--text); padding:10px 8px 10px 18px; font-size:13px; font-family:inherit; min-width:0; }
-.search button{ border:none; background:var(--panel); color:var(--text); padding:0 18px; margin:4px; border-radius:999px; cursor:pointer; font-family:inherit; font-weight:600; transition:0.2s; white-space:nowrap; box-shadow:none; }
-.search button:hover{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+/* Fields: gentle wells on `field`. The search bar fills its row up to 440px, in a flex row or a block */
+.search{ display:flex; align-items:center; width:100%; height:44px; max-width:440px; padding:var(--space-1); background:var(--field); border-radius:var(--radius-pill); box-shadow:var(--shadow-inset-sm); }
+.search::before{ content:""; flex:none; width:16px; height:16px; margin:0 var(--space-1) 0 var(--space-3); background:var(--muted); -webkit-mask:var(--search-mask) center/contain no-repeat; mask:var(--search-mask) center/contain no-repeat; }
+.search input{ flex:1; min-width:0; height:100%; padding:0 var(--space-2); background:none; border:none; color:var(--text); font-family:inherit; font-size:14px; letter-spacing:-0.2px; }
+.search button{ flex:none; height:36px; padding:0 var(--space-4); border:none; border-radius:var(--radius-pill); background:var(--panel); color:var(--text); font-family:inherit; font-size:13px; line-height:1; font-weight:700; cursor:pointer; white-space:nowrap; box-shadow:var(--shadow-xs); transition:color .15s, box-shadow .2s; }
+.search button:hover{ color:var(--music-ink); }
+.search button:active{ box-shadow:var(--shadow-inset-sm); }
 input[type="search"]{ -webkit-appearance:none; appearance:none; border-radius:0; }
-.field{ background:var(--bg); border:none; color:var(--text); padding:12px 14px; border-radius:var(--radius-sm); font-size:14px; outline:none; font-family:inherit; box-shadow:var(--shadow-inset-sm); }
-.field::placeholder, .search input::placeholder{ color:var(--muted); }
-.field-area{ width:100%; background:var(--bg); border:none; color:var(--text); padding:18px; font-family:inherit; font-size:15px; resize:vertical; outline:none; border-radius:var(--radius); line-height:1.6; box-shadow:var(--shadow-inset); }
+input[type="search"]::-webkit-search-decoration{ -webkit-appearance:none; }
+.field{ height:44px; padding:0 var(--space-4); background:var(--field); border:none; border-radius:var(--radius-sm); color:var(--text); font-family:inherit; font-size:14px; letter-spacing:-0.2px; box-shadow:var(--shadow-inset-sm); }
+.field::placeholder, .field-area::placeholder, .search input::placeholder{ color:var(--muted); opacity:1; }
+.field-area{ display:block; width:100%; padding:var(--space-3) var(--space-4); background:var(--field); border:none; border-radius:var(--radius-sm); color:var(--text); font-family:inherit; font-size:15px; line-height:1.7; letter-spacing:-0.2px; resize:vertical; box-shadow:var(--shadow-inset); }
 
 /* Surfaces */
-.sidebar{ background:var(--panel); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:6px; }
-.cat-head{ display:flex; align-items:center; justify-content:space-between; padding:8px 14px 4px; font-weight:700; font-size:12.5px; color:var(--muted); }
-.board-list{ list-style:none; margin:0; padding:2px 0; }
-.board-list li a{ display:block; margin:1px 6px; padding:7px 12px; border-radius:var(--radius-sm); font-size:13px; color:var(--muted); text-decoration:none; transition:0.15s; }
-.board-list li a:hover{ color:var(--text); }
-.board-list li a.active{ background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; font-weight:700; box-shadow:var(--shadow-inset-sm); }
-.widget-card{ min-width:0; background:var(--panel); padding:16px; border-radius:var(--radius-lg); cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; box-shadow:var(--shadow-sm); }
-.widget-card:hover{ transform:translateY(-3px); }
-.widget-title{ font-weight:600; font-size:14.5px; color:var(--text); margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4; word-break:break-all; }
-.widget-stats{ font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.review-card{ background:var(--panel); padding:20px; border-radius:var(--radius); cursor:pointer; transition:0.2s; box-shadow:var(--shadow-sm); }
+.sidebar{ align-self:start; background:var(--panel); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:var(--space-2) var(--space-2) var(--space-3); }
+.cat-head{ display:flex; align-items:center; justify-content:space-between; padding:var(--space-3) var(--space-3) var(--space-1); font-size:12px; line-height:1.4; font-weight:700; letter-spacing:0; color:var(--muted); }
+.board-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--space-1); }
+.board-list li a{ display:flex; align-items:center; height:36px; padding:0 var(--space-3); border-radius:calc(var(--radius-lg) - var(--space-2)); font-size:14px; line-height:1; font-weight:500; letter-spacing:-0.2px; color:var(--text-2); text-decoration:none; transition:background-color .15s, color .15s; }
+.board-list li a:hover{ color:var(--text); background:var(--panel-alt); }
+.board-list li a.active, .board-list li a.active:hover{ background:var(--music-soft); color:var(--music-ink); font-weight:800; box-shadow:inset 0 0 0 1px var(--music-line); }
+.board-list li a:focus-visible{ position:relative; z-index:1; }
+.widget-card{ min-width:0; display:flex; flex-direction:column; align-items:flex-start; padding:var(--space-5); background:var(--panel); border-radius:var(--radius-lg); cursor:pointer; box-shadow:var(--shadow-sm); transition:transform .2s, box-shadow .2s; }
+.widget-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.widget-title{ margin:0 0 var(--space-4); font-size:16px; line-height:1.45; font-weight:700; letter-spacing:-0.4px; color:var(--text); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:keep-all; overflow-wrap:anywhere; }
+.widget-stats{ margin-top:auto; display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-3); font-size:12px; line-height:1.5; font-weight:500; color:var(--muted); font-variant-numeric:tabular-nums; }
+/* Korean prose (HOT titles, review excerpt, comments) breaks between words (keep-all); overflow-wrap:anywhere
+   still breaks a long URL or an unbroken run */
+.review-card{ padding:var(--space-5); background:var(--panel); border-radius:var(--radius-lg); cursor:pointer; box-shadow:var(--shadow-sm); transition:transform .2s, box-shadow .2s; }
 .review-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
-.rc-header{ display:flex; justify-content:space-between; margin-bottom:10px; align-items:center; }
-.rc-author{ font-size:13px; font-weight:bold; color:var(--muted); }
-.rc-stars{ font-size:14px; font-weight:bold; background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
-.rc-title{ font-size:16px; font-weight:800; color:var(--text); margin-bottom:8px; }
-.rc-content{ font-size:14px; color:var(--muted); line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.rc-header{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); margin-bottom:var(--space-2); }
+.rc-author{ font-size:13px; line-height:1.4; font-weight:700; color:var(--text-2); }
+.rc-stars{ font-size:13px; line-height:1.4; font-weight:800; letter-spacing:1px; color:var(--accent-ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.rc-title{ margin-bottom:var(--space-2); font-size:17px; line-height:1.45; font-weight:800; letter-spacing:-0.4px; color:var(--text); }
+.rc-content{ font-size:14px; line-height:1.7; color:var(--text-2); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; word-break:keep-all; overflow-wrap:anywhere; }
 
-/* Track list */
-.ad-tracklist, .rec-tracklist{ list-style:none; margin:0; padding:0; background:var(--panel); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); overflow:hidden; counter-reset:track; }
-.ad-track-row, .rec-track-row{ display:flex; align-items:center; gap:10px; padding:11px 18px; border-bottom:1px solid var(--panel-alt); counter-increment:track; }
-.ad-track-row:last-child, .rec-track-row:last-child{ border-bottom:none; }
-.ad-track-row::before{ content:counter(track); color:var(--muted-2); font-size:12.5px; font-variant-numeric:tabular-nums; width:20px; flex:none; }
-.ad-track-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; color:var(--text); }
-.ad-track-dur{ flex:none; font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums; }
-.rec-track-art{ width:44px; height:44px; border-radius:10px; object-fit:cover; flex:none; background:var(--panel-alt); }
-.rec-track-text{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
-.rec-track-song{ font-weight:700; color:var(--text); font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.rec-track-artist{ color:var(--muted); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Track lists: rounded rows inside a raised tray, separated by the 4px row gap alone (no hairlines);
+   playing = music-soft + music-line edge + music-ink + 800 + the bars. Row corners are concentric with the tray
+   (radius-lg minus the space-2 tray padding = 16px). Album rows ::before = number (bars when playing);
+   rec rows ::after = bars when playing. */
+.ad-tracklist, .rec-tracklist{ list-style:none; margin:0; padding:var(--space-2); display:flex; flex-direction:column; gap:var(--space-1); background:var(--panel); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); counter-reset:track; }
+.ad-track-row, .rec-track-row{ position:relative; display:flex; align-items:center; gap:var(--space-3); padding:var(--space-2) var(--space-3); border-radius:calc(var(--radius-lg) - var(--space-2)); counter-increment:track; transition:background-color .15s; }
+.ad-track-row{ min-height:44px; }
+.ad-track-row::before{ content:counter(track, decimal-leading-zero); flex:none; width:20px; color:var(--muted); font-size:12px; line-height:1; font-weight:600; font-variant-numeric:tabular-nums; text-align:center; }
+.ad-track-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; line-height:1.4; font-weight:500; color:var(--text); }
+.ad-track-dur{ flex:none; font-size:12px; line-height:1.4; font-weight:500; color:var(--muted); font-variant-numeric:tabular-nums; }
+.rec-track-art{ flex:none; width:44px; height:44px; border-radius:var(--radius-sm); object-fit:cover; background:var(--panel-alt); box-shadow:var(--shadow-art); }
+.rec-track-text{ display:flex; flex-direction:column; flex:1; min-width:0; }
+.rec-track-song{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px; line-height:1.45; font-weight:700; letter-spacing:-0.3px; color:var(--text); }
+.rec-track-artist{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:1.5; font-weight:500; color:var(--muted); }
 .rec-track-clickable{ cursor:pointer; }
-.rec-track-clickable:hover, .rec-track-playing{ background:var(--panel-alt); }
-.rec-track-clickable:hover .rec-track-song, .rec-track-playing .rec-track-song,
-.ad-track-row.rec-track-playing .ad-track-name{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.rec-track-clickable:hover{ background:var(--panel-alt); }
+.rec-track-playing, .rec-track-playing:hover{ background:var(--music-soft); box-shadow:inset 0 0 0 1px var(--music-line); }
+.rec-track-playing .rec-track-song, .ad-track-row.rec-track-playing .ad-track-name{ color:var(--music-ink); font-weight:800; }
+.ad-track-row.rec-track-playing .ad-track-dur{ color:var(--music-ink); }
+.ad-track-row.rec-track-playing::before, .rec-track-row.rec-track-playing::after{ content:""; flex:none; width:20px; height:14px; background:var(--music-ink); -webkit-mask:var(--eq-mask) center/contain no-repeat; mask:var(--eq-mask) center/contain no-repeat; }
+.rec-track-row.rec-track-playing::after{ height:16px; margin-right:var(--space-1); }
 
-/* Pagination */
-.pagination{ display:flex; gap:8px; }
-.page-btn{ border:none; background:var(--panel); border-radius:var(--radius-sm); padding:6px 13px; cursor:pointer; color:var(--text); font-family:inherit; transition:0.2s; box-shadow:var(--shadow-sm); }
-.page-btn:hover{ background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; }
-.page-btn.active{ background:var(--accent-gradient), var(--panel); background-clip:text, border-box; -webkit-background-clip:text, border-box; -webkit-text-fill-color:transparent; font-weight:bold; box-shadow:var(--shadow-inset-sm); }
-.page-btn:disabled{ opacity:0.4; cursor:default; box-shadow:none; }
+/* Pagination: 36px circles; current page = the selected recipe */
+.pagination{ display:flex; align-items:center; gap:var(--space-1); }
+.page-btn{ display:inline-flex; align-items:center; justify-content:center; min-width:36px; height:36px; padding:0 var(--space-3); border:none; border-radius:var(--radius-pill); background:transparent; color:var(--text-2); font-family:inherit; font-size:14px; line-height:1; font-weight:600; font-variant-numeric:tabular-nums; cursor:pointer; transition:background-color .15s, color .15s, box-shadow .2s; }
+.page-btn:hover{ background:var(--panel); color:var(--text); box-shadow:var(--shadow-xs); }
+.page-btn.active, .page-btn.active:hover{ background:var(--music-soft); color:var(--music-ink); font-weight:800; box-shadow:inset 0 0 0 1px var(--music-line); }
+.page-btn:disabled{ opacity:var(--disabled-opacity); cursor:default; background:transparent; box-shadow:none; }
+/* ‹ › at 20px so the arrows carry the same weight as the numbers beside them */
+.pagination .page-btn:first-child, .pagination .page-btn:last-child{ font-size:20px; font-weight:500; padding-bottom:2px; }
 
-/* Comments */
-.comment-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
-.comment-item{ padding:14px 16px; display:flex; flex-direction:column; gap:8px; background:var(--panel); border-radius:var(--radius); box-shadow:var(--shadow-sm); }
-.comment-item.reply{ box-shadow:var(--shadow-inset-sm); }
-.ci-meta{ display:flex; align-items:center; gap:10px; font-size:13px; flex-wrap:wrap; }
-.ci-author{ font-weight:bold; color:var(--text); }
-.ci-op-badge{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:800; margin-left:4px; }
-.ci-date{ color:var(--muted); font-size:12px; }
-.ci-content{ font-size:14px; color:var(--text); line-height:1.5; white-space:pre-wrap; word-break:break-all; }
-.ci-actions button{ background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; padding:0; margin-right:12px; font-family:inherit; font-weight:bold; transition:color 0.15s; }
-.ci-actions button:hover{ background:var(--accent-gradient); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-decoration:underline; text-decoration-color:var(--accent); }
+/* Comments: a reply is a quieter real card (panel + xs shadow) hung off a thread elbow in the indent */
+/* The list is its own stacking context so the elbow can sit BEHIND the cards (z-index -1): both legs run under
+   the parent and the reply and surface exactly at their edges, for any indent and any corner curve. */
+.comment-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--space-3); isolation:isolate; }
+.comment-item{ position:relative; display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-4) var(--space-5); background:var(--panel); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); }
+/* a reply's indent must be 2 x --elbow: 24px here (--elbow 12px); the app's 18px-per-level indent sets --elbow:9px */
+.comment-item.reply{ --elbow:12px; box-shadow:var(--shadow-xs); }
+/* elbow: the vertical leg sits --elbow left of the reply, starts 16px up inside the parent (hidden under it) and
+   turns at the reply's author line (26px down); the horizontal leg runs 4px under the reply's left edge */
+.comment-item.reply::before{ content:""; position:absolute; z-index:-1; left:calc(-1 * var(--elbow)); top:calc(-1 * var(--space-3) - var(--space-4)); width:calc(var(--elbow) + var(--space-1)); height:calc(var(--space-3) + var(--space-4) + 26px); border:solid var(--muted-2); border-width:0 0 2px 2px; border-bottom-left-radius:var(--radius-sm); pointer-events:none; }
+.ci-meta{ display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-2); font-size:13px; line-height:1.4; }
+.ci-author{ display:inline-flex; align-items:center; font-weight:700; color:var(--text); }
+.ci-date{ color:var(--muted); font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; }
+/* a middle dot sets the date apart from the name and IP tag; empty alt text keeps it out of the accessible name */
+.ci-date::before{ content:"·"; content:"·" / ""; margin-right:var(--space-2); color:var(--muted); }
+.ci-content{ font-size:14px; line-height:1.6; color:var(--text); white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }
+.ci-actions{ display:flex; gap:var(--space-3); }
+.ci-actions button{ padding:0; margin:0; background:none; border:none; border-radius:var(--radius-xs); color:var(--muted); font-family:inherit; font-size:12px; line-height:1.4; font-weight:700; cursor:pointer; text-underline-offset:3px; transition:color .15s; }
+.ci-actions button:hover{ color:var(--text); text-decoration:underline; }
+
+/* Forced colours (Windows contrast themes): not a theme switch, the OS palette replaces ours. Clipped gradient
+   text and mask glyphs would vanish there, and inset-shadow edges are dropped, so hand them system colours. */
+@media (forced-colors: active){
+  .brand-word, .bw-big, .bw-big.bw-kr, .bw-small{ background:none; color:CanvasText; -webkit-text-fill-color:CanvasText; }
+  .hot-badge::before, .search::before, .ad-track-row.rec-track-playing::before, .rec-track-row.rec-track-playing::after{ forced-color-adjust:none; background:CanvasText; }
+  .team-tab-btn.active, .board-list li a.active, .page-btn.active, .rec-service-tab.active, .rec-track-playing{ forced-color-adjust:none; background:SelectedItem; color:SelectedItemText; }
+  .rec-track-playing .rec-track-song, .rec-track-playing .rec-track-artist, .ad-track-row.rec-track-playing .ad-track-name, .ad-track-row.rec-track-playing .ad-track-dur{ color:SelectedItemText; }
+  .ad-track-row.rec-track-playing::before, .rec-track-row.rec-track-playing::after{ background:SelectedItemText; }
+  .sort-btns button:not(.active){ text-decoration-line:none; }
+  /* shadows are dropped here, so surfaces and keys get a 1px system edge (an outline: no layout shift, and a
+     focused control keeps its 2px focus ring) */
+  .sidebar, .widget-card, .review-card, .comment-item, .ad-tracklist, .rec-tracklist, .search, .field, .field-area, .rec-service-tabs{ outline:1px solid CanvasText; outline-offset:-1px; }
+  :is(.team-tab-btn, .btn-list, .btn-recommend, .write-btn, .btn-submit-write, .btn-admin-delete, .search button):not(:focus-visible){ outline:1px solid ButtonText; outline-offset:-1px; }
+}

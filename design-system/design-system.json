@@ -42,8 +42,8 @@
  },
  "lastChange": {
   "by": "Claude",
-  "at": "2026-09-23T06:46:42Z",
-  "via": "GitHub · nz877c9bwp-png/indie@43da5f7",
-  "note": "Extracted from style.css, index.html and the iOS app icon: 15 colors × 2 themes, 16 text styles, 3 radii, 5 shadows, 11 static components."
+  "at": "2026-09-23T08:51:40Z",
+  "via": "Claude Code",
+  "note": "Design refresh: soft-modern panels over a cool-grey page, one selected-state treatment, gradient limited to brand fills, SUIT font file added; axe contrast violations 54/4 -> 0/0."
  }
 }
