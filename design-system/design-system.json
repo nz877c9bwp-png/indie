@@ -1,0 +1,49 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-09-23T06:46:42Z"
+ },
+ "title": "DULI.KR",
+ "namespace": "DULI",
+ "libraries": [],
+ "sections": {},
+ "groups": [
+  "Logos"
+ ],
+ "assetGroups": {
+  "Logos": {
+   "name": "Logos",
+   "tile": "l",
+   "order": [
+    "app-icon.png",
+    "logo-bars.svg"
+   ],
+   "files": {
+    "app-icon.png": {
+     "name": "app-icon.png",
+     "blob": "fdf9dbd446395c8998f1783627b322cd",
+     "size": 29709,
+     "type": "image/png"
+    },
+    "logo-bars.svg": {
+     "name": "logo-bars.svg",
+     "blob": "ff5d9189532fe1b6bf530c6888de4ea3",
+     "size": 349,
+     "type": "image/svg+xml"
+    }
+   }
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "sections": []
+ },
+ "lastChange": {
+  "by": "Claude",
+  "at": "2026-09-23T06:46:42Z",
+  "via": "GitHub · nz877c9bwp-png/indie@43da5f7",
+  "note": "Extracted from style.css, index.html and the iOS app icon: 15 colors × 2 themes, 16 text styles, 3 radii, 5 shadows, 11 static components."
+ }
+}

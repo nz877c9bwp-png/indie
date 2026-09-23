@@ -1,0 +1,53 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>DULI.KR</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--bg); color:var(--text); font-family:var(--font-sans); overflow:hidden; padding:0; }
+  .cover { position:relative; height:288px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:288px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:288px; }
+  .music { fill:var(--music); }
+  .accent { fill:var(--accent); }
+  .ink { fill:var(--text); }
+  .gray { fill:var(--muted-2); }
+  .cut { fill:var(--bg); }
+  .blk { rx:var(--radius-lg); }
+  .bar { rx:var(--radius-sm); }
+  .words { position:absolute; left:32px; bottom:32px; max-width:440px; }
+  .name { margin:0; font-size:100px; line-height:.92; font-weight:800; letter-spacing:-1px; color:var(--text); }
+  .tag { margin:12px 0 0 4px; font-size:14px; line-height:20px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      music 144×250 bled off the top (the brand blue, largest) · accent 120×192 (the gradient's other end) · text/ink 184×240 bleeding off the right edge — ≈40% of 960×288
+  arrangement one tall slab with two satellites, bottoms on one line 24px above the edge, 16px gutters
+  pattern     literal motif: the app icon's equalizer bars — 24-wide pills (rx radius-sm = half the width), grey muted-2 with one music bar in the ink block, three cut into accent in bg
+  scales      corners radius-lg on blocks, radius-sm on bars; gutters 16px; bar pitch 36px
+-->
+<rect class="music blk" x="24" y="-26" width="144" height="290" rx="26"/>
+<rect class="accent blk" x="184" y="72" width="120" height="192" rx="26"/>
+<rect class="ink blk" x="320" y="24" width="184" height="240" rx="26"/>
+<rect class="cut bar" x="204" y="136" width="24" height="64" rx="12"/>
+<rect class="cut bar" x="232" y="112" width="24" height="112" rx="12"/>
+<rect class="cut bar" x="260" y="128" width="24" height="80" rx="12"/>
+<rect class="gray bar" x="344" y="104" width="24" height="80" rx="12"/>
+<rect class="music bar" x="380" y="64" width="24" height="160" rx="12"/>
+<rect class="gray bar" x="416" y="88" width="24" height="112" rx="12"/>
+<rect class="gray bar" x="452" y="112" width="24" height="64" rx="12"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">DULI.KR</h1>
+<p class="tag">너 인디 좋아해? — 인디음악 커뮤니티</p>
+</div>
+</div>
+</body>
+</html>
