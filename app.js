@@ -121,6 +121,26 @@ const RESTRICTED_TAGS = ['같이 갈 사람', '장터'];
 // 태그나 메뉴처럼 자리가 좁은 곳에 보여줄 텍스트만 이걸로 바꿔치기한다.
 const SHORT_BOARD_NAME = { '같이 갈 사람': '동행', '공연 정보': '정보', '공연 후기': '후기', '추천곡': '추천', '앨범 평가': '평가' };
 const shortBoardName = name => SHORT_BOARD_NAME[name] || name;
+
+// 게시물 직접 접근 URL(/board/{게시판}/{id})에 쓰는 영문 slug. 카카오톡 등에 링크를
+// 공유했을 때 크롤러가 글 제목/미리보기를 읽어갈 수 있게 하려고, 해시 기반(#post-143)
+// 대신 실제 path로 바꾸면서 도입했다 — 서버(Cloudflare Pages Functions)가 이 slug로
+// 어떤 글인지 파악해 OG 메타태그를 채워 넣는다. tag 값 자체(DB 식별자)는 안 바뀐다.
+const CATEGORY_SLUG = {
+  '전체': 'all', '인디': 'indie', '국내 인디': 'indie-domestic', '해외 인디': 'indie-international',
+  '추천곡': 'recommend', '앨범 평가': 'album-review', '자유': 'free', '야구': 'baseball',
+  '장터': 'market', '자랑': 'flex', '공연 정보': 'concert-info', '공연 후기': 'concert-review',
+  '같이 갈 사람': 'concert-buddy', '자작곡': 'original-music',
+};
+const SLUG_TO_CATEGORY = Object.fromEntries(Object.entries(CATEGORY_SLUG).map(([k, v]) => [v, k]));
+const categoryToSlug = name => CATEGORY_SLUG[name] || encodeURIComponent(name); // 매핑에 없는 새 태그가 생겨도 깨지지 않게
+const slugToCategory = slug => SLUG_TO_CATEGORY[slug] || decodeURIComponent(slug);
+// 게시판 목록 주소. '전체'만 예외로 루트를 그대로 쓴다(기존 canonical이 https://duli.kr/
+// 이었던 걸 그대로 승계 — 별도 /board/all을 새로 만들면 같은 내용의 URL이 두 개가 돼버린다).
+function boardPath(category) { return category === '전체' ? '/' : `/board/${categoryToSlug(category)}`; }
+// 게시글 주소. 목록에서 보던 합성 카테고리('인디')가 아니라 그 글이 실제로 가진 tag 기준 —
+// 예를 들어 '국내 인디' 글은 /board/indie-domestic/143이 된다.
+function postPath(post) { return `/board/${categoryToSlug(post.tag)}/${post.id}`; }
 const isKakaoUser = () => currentUser?.app_metadata?.provider === 'kakao';
 
 // --- 야구 응원팀 정보 ---
@@ -870,7 +890,7 @@ $('openWriteBtn').onclick = () => {
   tempAlbum = { title: null, artist: null, cover: null };
 
   switchView('write');
-  history.pushState({ view: 'write' }, '', '#write');
+  history.pushState({ view: 'write' }, '', '/write');
 };
 
 window.openWriteWithAlbumParams = (title, artist, cover, releaseType) => {
@@ -942,7 +962,7 @@ function syncBoardHistoryState() {
     genSortType, genSortDir, albSortType, albSortDir,
     postSearchType, postSearchKeyword, baseballTeamFilter, albumReleaseFilter,
   };
-  history.replaceState(state, '', location.hash || (location.pathname + location.search));
+  history.replaceState(state, '', location.pathname + location.search);
 }
 
 function renderPosts() {
@@ -1096,7 +1116,7 @@ function renderPosts() {
         }
         if (post.is_notice) titleCell.append(element('span', 'notice-badge', '공지'));
         const link = element('a', 'dc-title-link', escapeHTML(post.title));
-        link.href = '#post-' + post.id; // 휠클릭/새 탭 열기 시 제목 링크가 실제로 그 글을 가리키게 한다
+        link.href = postPath(post); // 휠클릭/새 탭 열기 시 제목 링크가 실제로 그 글을 가리키게 한다
         titleCell.append(link);
 
         if (post.comment_count > 0) titleCell.append(element('span', 'dc-cmt-count', `[${post.comment_count}]`));
@@ -1241,7 +1261,7 @@ window.openAlbumDetail = (title, artist, pushHistory = true) => {
   }));
   loadAlbumTracklist(title, artist);
   switchView('albumDetail');
-  if (pushHistory) history.pushState({ view: 'albumDetail', albumTitle: title, albumArtist: artist }, '', '#album');
+  if (pushHistory) history.pushState({ view: 'albumDetail', albumTitle: title, albumArtist: artist }, '', '/album');
 };
 
 // --- 마이페이지: 내가 쓴 글 / 내가 쓴 댓글 ---
@@ -1251,7 +1271,7 @@ window.openMyPage = (pushHistory = true) => {
   if (!currentUser) return alert('로그인이 필요합니다.');
   switchMyPageTab('posts');
   switchView('myPage');
-  if (pushHistory) history.pushState({ view: 'myPage' }, '', '#mypage');
+  if (pushHistory) history.pushState({ view: 'myPage' }, '', '/mypage');
 };
 
 window.switchMyPageTab = (tab) => {
@@ -1296,7 +1316,7 @@ function renderMyPosts() {
       titleCell.append(thumb);
     }
     const link = element('a', 'dc-title-link', escapeHTML(post.title));
-    link.href = '#post-' + post.id;
+    link.href = postPath(post);
     titleCell.append(link);
     if (post.comment_count > 0) titleCell.append(element('span', 'dc-cmt-count', `[${post.comment_count}]`));
     if (post.tag === '앨범 평가' && post.album_title) titleCell.append(element('span', 'dc-comment-count', `★ ${formatRating(post.rating)}`));
@@ -1433,7 +1453,7 @@ function changeBoard(category, pushHistory = true, restoreState = null) {
   // renderPosts()(=backToList 내부)가 끝에서 "현재" 히스토리 항목을 최신
   // 상태로 replaceState하므로, 새 항목을 push하는 건 반드시 그보다 먼저
   // 해야 한다 — 안 그러면 이전 게시판의 히스토리 항목을 덮어써버린다.
-  if (pushHistory) history.pushState({ view: 'board', category, page: currentPage, genSortType, genSortDir, albSortType, albSortDir, postSearchType, postSearchKeyword, baseballTeamFilter, albumReleaseFilter }, '', '#board-' + encodeURIComponent(category));
+  if (pushHistory) history.pushState({ view: 'board', category, page: currentPage, genSortType, genSortDir, albSortType, albSortDir, postSearchType, postSearchKeyword, baseballTeamFilter, albumReleaseFilter }, '', boardPath(category));
   backToList();
 }
 
@@ -1655,7 +1675,7 @@ $('btnSubmitComment').addEventListener('click', () => submitComment(null));
 async function openPostView(postId, pushHistory = true) {
   const post = currentPosts.find(p => p.id === postId); if(!post) return;
   currentReadPostId = postId;
-  if (pushHistory) history.pushState({ view: 'postView', postId }, '', '#post-' + postId);
+  if (pushHistory) history.pushState({ view: 'postView', postId }, '', postPath(post));
   
   $('readTitle').textContent = post.title; $('readTag').textContent = post.tag;
   $('readAuthor').replaceChildren(document.createTextNode(post.author || 'ㅇㅇ'));
@@ -1729,7 +1749,7 @@ window.backToList = () => { renderPosts(); switchView('board'); };
 // 뒤로가기를 눌러도 없어진 글로 돌아가지 않도록 현재 히스토리 항목 자체를 목록으로 교체한다.
 function returnToBoardAfterAction() {
   backToList();
-  history.replaceState({ view: 'board', category: currentCategory }, '', '#board-' + encodeURIComponent(currentCategory));
+  history.replaceState({ view: 'board', category: currentCategory }, '', boardPath(currentCategory));
 }
 
 $('btnPostSearch').addEventListener('click', () => {
@@ -1882,7 +1902,7 @@ $('adminEditBtn').addEventListener('click', () => {
   $('postGuestPw').placeholder = '비밀번호 (수정하려면 입력)';
 
   switchView('write');
-  history.pushState({ view: 'write' }, '', '#write');
+  history.pushState({ view: 'write' }, '', '/write');
 });
 
 $('adminNoticeBtn').addEventListener('click', async () => {
@@ -2002,38 +2022,60 @@ window.addEventListener('popstate', (e) => {
   }
 });
 
-// 휠클릭/새 탭 열기 등으로 #post-123 같은 주소에 바로 들어왔을 때, 게시판 목록이 아니라 해당 글이 뜨게 한다.
-function routeFromHash() {
+// 휠클릭/새 탭 열기, 공유된 링크로 바로 들어왔을 때 게시판 목록이 아니라 해당 글/게시판이 뜨게 한다.
+// #post-123, #board-xxx는 예전에 공유됐을 수 있는 레거시 해시 링크라, 계속 인식해서
+// 새 path 주소로 바꿔치기(replaceState)한 뒤 정상 작동하게 하위호환을 유지한다.
+function routeFromPath() {
   // 외부(구글 API 할당량 신청서 등)에 "개인정보처리방침 URL"로 직접 링크할 수 있게,
   // 모달을 페이지 로드 시점에 바로 띄워주는 딥링크를 만든다.
   if (location.hash === '#privacy') {
     toggleModal('privacyModal', true);
   }
-  const postMatch = location.hash.match(/^#post-(\d+)/);
-  if (postMatch) {
-    const postId = Number(postMatch[1]);
-    history.replaceState({ view: 'postView', postId }, '', location.hash);
-    openPostView(postId, false);
+
+  const legacyPost = location.hash.match(/^#post-(\d+)/);
+  if (legacyPost) {
+    const postId = Number(legacyPost[1]);
+    const post = currentPosts.find(p => p.id === postId);
+    history.replaceState(post ? { view: 'postView', postId } : { view: 'board', category: '전체' }, '', post ? postPath(post) : '/');
+    if (post) { openPostView(postId, false); return; }
+    changeBoard('전체', false);
     return;
   }
-  const boardMatch = location.hash.match(/^#board-(.+)/);
-  if (boardMatch) {
-    const category = decodeURIComponent(boardMatch[1]);
-    history.replaceState({ view: 'board', category }, '', location.hash);
+  const legacyBoard = location.hash.match(/^#board-(.+)/);
+  if (legacyBoard) {
+    const category = decodeURIComponent(legacyBoard[1]);
+    history.replaceState({ view: 'board', category }, '', boardPath(category));
     changeBoard(category, false);
     return;
   }
-  history.replaceState({ view: 'board', category: '전체' }, '', location.pathname + location.search);
+
+  const postMatch = location.pathname.match(/^\/board\/([^/]+)\/(\d+)\/?$/);
+  if (postMatch) {
+    const postId = Number(postMatch[2]);
+    history.replaceState({ view: 'postView', postId }, '', location.pathname);
+    openPostView(postId, false);
+    return;
+  }
+  const boardMatch = location.pathname.match(/^\/board\/([^/]+)\/?$/);
+  if (boardMatch) {
+    const category = slugToCategory(boardMatch[1]);
+    history.replaceState({ view: 'board', category }, '', location.pathname);
+    changeBoard(category, false);
+    return;
+  }
+
+  history.replaceState({ view: 'board', category: '전체' }, '', '/');
   changeBoard('전체', false);
 }
 
 // #privacy는 게시글 데이터가 필요 없어서, fetchPosts()를 기다리지 않고 곧바로 연다.
-// (fetchPosts 완료를 기다렸다가 routeFromHash 안에서 처리하면, 이 fetch가 오래 걸릴 때
+// (fetchPosts 완료를 기다렸다가 routeFromPath 안에서 처리하면, 이 fetch가 오래 걸릴 때
 // 그사이 다른 코드가 location.hash를 이미 지워버리는 경우가 있어 레이스가 생겼다.)
 if (location.hash === '#privacy') toggleModal('privacyModal', true);
 
-// 초기화: 게시글을 먼저 불러온 뒤에 주소를 반영해야 #post-123 링크로 바로 들어왔을 때 그 글을 찾을 수 있다.
-fetchPosts().then(routeFromHash);
+// 초기화: 게시글을 먼저 불러온 뒤에 주소를 반영해야 /board/추천/143 같은 글 주소나
+// 레거시 #post-123 링크로 바로 들어왔을 때 그 글을 찾을 수 있다.
+fetchPosts().then(routeFromPath);
 
 // PC 화면에서 사이드바가 스크롤을 스프링처럼 관성 있게 따라오도록 처리
 (function initSidebarSpring() {
