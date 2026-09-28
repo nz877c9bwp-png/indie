@@ -383,6 +383,12 @@ input:-webkit-autofill:focus {
 .rec-track-playing{ background:var(--music-soft); box-shadow:inset 0 0 0 1px var(--music-line); }
 .rec-track-playing .rec-track-song{ color:var(--music-ink); font-weight:800; }
 
+/* 아직 track_art에 안 채워진 곡 — 클릭해도 재생할 게 없으니 흐리게 표시하고
+   "준비중" 배지를 오른쪽 끝에 붙인다(.rec-track-row/.ad-track-row 둘 다 flex라
+   margin-left:auto로 같은 자리에 정렬됨). */
+.rec-track-pending { opacity:0.55; }
+.rec-track-pending-badge { flex:none; margin-left:auto; font-size:11px; color:var(--muted-2); background:var(--panel-alt); padding:2px 9px; border-radius:999px; white-space:nowrap; }
+
 /* 앨범 평가 트랙리스트: 추천곡과 같은 재생 기능(rec-track-clickable/playing)을
    쓰지만 DOM 구조가 달라서(.ad-track-name) 강조 대상만 따로 지정한다. */
 .ad-track-row.rec-track-clickable:hover .ad-track-name{ color:var(--text); }
