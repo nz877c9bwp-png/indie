@@ -133,7 +133,10 @@ const CATEGORY_SLUG = {
   '같이 갈 사람': 'concert-buddy', '자작곡': 'original-music',
 };
 const SLUG_TO_CATEGORY = Object.fromEntries(Object.entries(CATEGORY_SLUG).map(([k, v]) => [v, k]));
-const categoryToSlug = name => CATEGORY_SLUG[name] || encodeURIComponent(name); // 매핑에 없는 새 태그가 생겨도 깨지지 않게
+// tag가 빈 문자열인 전체 공지(예: id=4 "드디어 오픈")가 있어서, name이 falsy일 때
+// encodeURIComponent가 빈 문자열을 그대로 돌려주면 /board//4처럼 슬래시가 중복되고
+// routeFromPath의 정규식([^/]+, 최소 1글자)과 안 맞아 새로고침 시 라우팅이 깨진다.
+const categoryToSlug = name => (name && (CATEGORY_SLUG[name] || encodeURIComponent(name))) || 'notice';
 const slugToCategory = slug => SLUG_TO_CATEGORY[slug] || decodeURIComponent(slug);
 // 게시판 목록 주소. '전체'만 예외로 루트를 그대로 쓴다(기존 canonical이 https://duli.kr/
 // 이었던 걸 그대로 승계 — 별도 /board/all을 새로 만들면 같은 내용의 URL이 두 개가 돼버린다).
